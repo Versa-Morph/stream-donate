@@ -1,0 +1,13 @@
+# StreamDonate — Apache config for SSE support
+
+# Disable output compression for SSE stream endpoint
+# (compression would buffer the stream and break real-time delivery)
+<Files "stream.php">
+    SetEnv no-gzip 1
+    SetEnv dont-vary 1
+    Header set X-Accel-Buffering "no"
+    Header set Cache-Control "no-cache"
+</Files>
+
+# Optional: pretty URLs (not required but useful)
+# RewriteEngine On
