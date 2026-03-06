@@ -1,0 +1,143 @@
+<?php
+
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\DonationController;
+use App\Http\Controllers\ObsController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QrController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SseController;
+use App\Http\Controllers\StreamerDashboardController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Auth Routes (Breeze) — HARUS di atas route /{slug}
+|--------------------------------------------------------------------------
+*/
+
+require __DIR__.'/auth.php';
+
+/*
+|--------------------------------------------------------------------------
+| Public Routes — Donasi (tanpa auth)
+|--------------------------------------------------------------------------
+*/
+
+// Halaman utama redirect ke login
+Route::get('/', function () {
+    return redirect()->route('login');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Authenticated Routes
+|--------------------------------------------------------------------------
+*/
+
+// Redirect /dashboard ke halaman yang sesuai role
+Route::get('/dashboard', function () {
+    $user = auth()->user();
+    if ($user->isAdmin()) {
+        return redirect()->route('admin.dashboard');
+    }
+    return redirect()->route('streamer.dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+// Profile (Breeze default)
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// Setup profil streamer — hanya auth+verified, TIDAK kena middleware 'streamer'
+// (karena streamer baru belum punya profil, middleware 'streamer' akan loop)
+Route::middleware(['auth', 'verified'])->prefix('streamer')->name('streamer.')->group(function () {
+    Route::get('/setup',  [StreamerDashboardController::class, 'setup'])->name('setup');
+    Route::post('/setup', [StreamerDashboardController::class, 'storeSetup'])->name('setup.store');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Streamer Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified', 'streamer'])->prefix('streamer')->name('streamer.')->group(function () {
+
+    // Dashboard
+    Route::get('/dashboard', [StreamerDashboardController::class, 'index'])->name('dashboard');
+
+    // Settings
+    Route::get('/settings', [StreamerDashboardController::class, 'settings'])->name('settings');
+    Route::post('/settings', [StreamerDashboardController::class, 'updateSettings'])->name('settings.update');
+
+    // Regenerate API key
+    Route::post('/regenerate-key', [StreamerDashboardController::class, 'regenerateApiKey'])->name('regenerate-key');
+
+    // Test Alert — kirim fake donation ke SSE tanpa simpan ke DB
+    Route::post('/test-alert', [StreamerDashboardController::class, 'testAlert'])->name('test-alert');
+
+    // Reports
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports');
+    Route::get('/reports/export/csv', [ReportController::class, 'exportCsv'])->name('reports.csv');
+    Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.pdf');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+    // Stop impersonate — di luar middleware 'admin' karena user aktif sedang jadi streamer
+    Route::post('/impersonate/stop', [AdminController::class, 'stopImpersonate'])->name('impersonate.stop');
+});
+
+Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+
+    // Dashboard admin
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+
+    // Manajemen user
+    Route::get('/users', [AdminController::class, 'users'])->name('users');
+    Route::get('/users/create', [AdminController::class, 'createUser'])->name('users.create');
+    Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
+    Route::post('/users/{user}/toggle', [AdminController::class, 'toggleUser'])->name('users.toggle');
+    Route::post('/users/{user}/reset-password', [AdminController::class, 'resetPassword'])->name('users.reset-password');
+
+    // Semua donasi
+    Route::get('/donations', [AdminController::class, 'donations'])->name('donations');
+    Route::delete('/donations/{donation}', [AdminController::class, 'deleteDonation'])->name('donations.delete');
+
+    // Activity logs
+    Route::get('/logs', [AdminController::class, 'logs'])->name('logs');
+
+    // Impersonate — /stop harus SEBELUM /{user} agar tidak ditangkap sebagai model binding
+    Route::post('/impersonate/{user}', [AdminController::class, 'impersonate'])->name('impersonate');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Public Slug Routes — HARUS di paling bawah (fallback wildcard)
+|--------------------------------------------------------------------------
+*/
+
+// Form donasi publik per streamer
+Route::get('/{slug}', [DonationController::class, 'show'])->name('donate.show');
+Route::post('/{slug}/donate', [DonationController::class, 'store'])->name('donate.store');
+
+// QR Code per streamer (SVG inline)
+Route::get('/{slug}/qr', [QrController::class, 'show'])->name('qr.show');
+
+// SSE endpoint (diakses dari OBS widget / browser)
+Route::get('/{slug}/sse', [SseController::class, 'stream'])->name('sse.stream');
+Route::get('/{slug}/stats', [SseController::class, 'stats'])->name('sse.stats');
+
+// OBS Widgets (tanpa auth, diakses dari OBS Browser Source)
+Route::get('/{slug}/obs/overlay',     [ObsController::class, 'overlay'])->name('obs.overlay');
+Route::get('/{slug}/obs/leaderboard', [ObsController::class, 'leaderboard'])->name('obs.leaderboard');
+Route::get('/{slug}/obs/milestone',   [ObsController::class, 'milestone'])->name('obs.milestone');
+Route::get('/{slug}/obs/qr',          [QrController::class, 'obsWidget'])->name('obs.qr');

@@ -1,150 +1,59 @@
-# StreamDonate
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-Platform donasi real-time untuk streamer. Penonton bisa kirim donasi langsung dari browser, alert muncul otomatis di OBS via Browser Source — tanpa install apapun, tanpa database.
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
----
+## About Laravel
 
-## Fitur
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-- **Alert donasi real-time** di OBS via Server-Sent Events (SSE)
-- **Antrian donasi** — beberapa donasi masuk diproses satu per satu
-- **Request video YouTube** — donatur bisa request video yang langsung diputar di alert
-- **Leaderboard overlay** — sidebar top donatur yang update otomatis
-- **Milestone/progress bar** — target donasi stream hari ini
-- **Dashboard** — riwayat, statistik, dan top donatur
-- **Notifikasi suara** synthesized via Web Audio API
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
----
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-## Tech Stack
+## Learning Laravel
 
-| Layer | Teknologi |
-|---|---|
-| Backend | PHP 8+ (vanilla, tanpa framework) |
-| Server | Apache (Laragon / XAMPP) |
-| Real-time | Server-Sent Events (SSE) |
-| Frontend | Vanilla JavaScript |
-| Storage | JSON flat files (tanpa database) |
-| Fonts | Inter + Space Grotesk (Google Fonts) |
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
 
----
+If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-## Cara Menjalankan
+## Laravel Sponsors
 
-### Prasyarat
+We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
 
-- **PHP 8.0+**
-- **Apache** dengan `mod_headers` aktif (Laragon, XAMPP, atau server Apache lain)
-- Browser modern (Chrome/Firefox/Edge)
+### Premium Partners
 
-### Langkah
+- **[Vehikl](https://vehikl.com)**
+- **[Tighten Co.](https://tighten.co)**
+- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
+- **[64 Robots](https://64robots.com)**
+- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
+- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
+- **[Redberry](https://redberry.international/laravel-development)**
+- **[Active Logic](https://activelogic.com)**
 
-**1. Clone atau copy project ke web root**
+## Contributing
 
-```
-# Laragon
-C:\laragon\www\streamdonate\
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
 
-# XAMPP
-C:\xampp\htdocs\streamdonate\
-```
+## Code of Conduct
 
-**2. Pastikan folder `data/` bisa ditulis oleh PHP**
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-```bash
-# Linux/Mac
-chmod 755 data/
-chmod 644 data/*.json
-```
+## Security Vulnerabilities
 
-Di Windows dengan Laragon/XAMPP biasanya sudah otomatis.
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-**3. Aktifkan Apache dan buka browser**
+## License
 
-```
-http://localhost/streamdonate/
-```
-
-atau jika menggunakan virtual host Laragon:
-
-```
-http://streamdonate.test/
-```
-
-**4. Sesuaikan URL widget di tab Overlay**
-
-Ganti URL di kolom Widget URL sesuai domain lokal atau server kamu, lalu copy ke OBS.
-
----
-
-## Struktur File
-
-```
-streamdonate/
-├── index.php          # Panel utama streamer (4 tab: Donasi, Overlay, Dashboard, Settings)
-├── overlay.php        # OBS Browser Source — alert donasi
-├── leaderboard.php    # OBS Browser Source — sidebar top donatur
-├── milestone.php      # OBS Browser Source — progress bar target donasi
-├── .htaccess          # Konfigurasi Apache untuk SSE (disable buffering)
-│
-├── api/
-│   ├── push.php       # POST — terima donasi baru
-│   ├── stream.php     # GET  — SSE broadcast ke semua client
-│   ├── stats.php      # GET  — statistik & leaderboard
-│   └── config.php     # POST — simpan konfigurasi
-│
-└── data/
-    ├── config.json    # Konfigurasi milestone & leaderboard
-    ├── history.json   # Riwayat donasi permanen
-    └── queue.json     # Antrian alert (TTL 5 menit)
-```
-
----
-
-## Setup OBS
-
-1. Di OBS, klik **+** di panel Sources
-2. Pilih **Browser**
-3. Masukkan salah satu URL berikut:
-
-| Widget | URL | Ukuran |
-|---|---|---|
-| Alert donasi | `http://domain-kamu/overlay.php` | 1920 × 1080 |
-| Leaderboard | `http://domain-kamu/leaderboard.php` | 1920 × 1080 |
-| Milestone bar | `http://domain-kamu/milestone.php` | 1920 × 1080 |
-
-4. Centang **"Shutdown source when not visible"** dan **aktifkan transparent background**
-5. Sesuaikan posisi di kanvas OBS
-
-URL lengkap bisa langsung di-copy dari tab **Overlay** di panel streamer.
-
----
-
-## Konfigurasi
-
-Semua konfigurasi bisa diubah dari tab **Settings** di panel utama:
-
-| Setting | Deskripsi |
-|---|---|
-| Judul milestone | Teks yang tampil di progress bar |
-| Target donasi | Nominal target (Rp) |
-| Judul leaderboard | Teks header sidebar top donatur |
-| Jumlah donatur tampil | 3 – 20 entri |
-
-Konfigurasi disimpan ke `data/config.json`.
-
----
-
-## Reset Data
-
-Tab **Settings** → bagian **Danger Zone** → tombol **Reset Riwayat Donasi**.
-
-Atau manual: hapus isi `data/history.json` dan isi dengan `[]`.
-
----
-
-## Catatan
-
-- Project ini dirancang untuk **lokal / self-hosted**. Jika deploy ke server publik, tambahkan autentikasi pada endpoint `api/push.php` agar tidak bisa diakses sembarang orang.
-- `data/queue.json` dibersihkan otomatis oleh `push.php` setelah 5 menit per item — tidak perlu maintenance manual.
-- SSE reconnect otomatis setiap 3 detik jika koneksi terputus.
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
