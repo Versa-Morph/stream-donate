@@ -1,59 +1,237 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# StreamDonate
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Platform donasi real-time untuk streamer. Penonton bisa kirim donasi langsung dari browser, alert muncul otomatis di OBS via Browser Source — tanpa plugin tambahan, tanpa layanan pihak ketiga.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Fitur
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Alert donasi real-time** di OBS via Server-Sent Events (SSE)
+- **Antrian donasi** — beberapa donasi masuk diproses satu per satu, tidak saling tumpang tindih
+- **Request video YouTube** — donatur bisa request video yang diputar langsung di alert
+- **Leaderboard overlay** — panel top donatur yang update otomatis
+- **Milestone overlay** — progress bar target donasi stream
+- **Dashboard streamer** — riwayat, statistik, laporan CSV/PDF
+- **Panel admin** — manajemen user, impersonate, log aktivitas
+- **Notifikasi suara** synthesized via Web Audio API (5 tema: default, minimal, neon, fire, ice)
+- **Live config sync** — ganti tema/suara di Settings langsung berlaku di OBS tanpa refresh
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Tech Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+| Layer | Teknologi |
+|---|---|
+| Framework | Laravel 12 |
+| PHP | 8.2+ |
+| Database | SQLite (default) |
+| Queue | Database (sync di local) |
+| Real-time | Server-Sent Events (SSE) |
+| Frontend | Vanilla JS + Blade |
+| CSS | Custom Properties, Inter + Space Grotesk |
+| Package | barryvdh/laravel-dompdf, simplesoftwareio/simple-qrcode |
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## Requirements
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- **PHP 8.2+** dengan ekstensi: `pdo`, `pdo_sqlite`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `json`, `bcmath`, `fileinfo`
+- **Composer 2.x**
+- **Node.js 18+** + npm
+- **Laragon** (Windows) — atau Apache/Nginx lain yang support `.htaccess`
+- **SQLite** — sudah built-in di PHP, tidak perlu install database terpisah
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Instalasi di Laragon
 
-## Contributing
+### 1. Clone ke folder www
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+cd C:\laragon\www
+git clone <repo-url> streamdonate-versamorph
+```
 
-## Code of Conduct
+Atau jika sudah ada foldernya, pastikan Laragon sudah mengenali virtual host-nya.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 2. Aktifkan Pretty URL di Laragon
 
-## Security Vulnerabilities
+Laragon otomatis membuat virtual host untuk setiap folder di `www\`. Buka Laragon → klik kanan tray → **Apache → httpd.conf** dan pastikan `mod_rewrite` aktif (biasanya sudah aktif secara default).
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 3. Install dependensi PHP
 
-## License
+```bash
+cd C:\laragon\www\streamdonate-versamorph
+composer install
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 4. Buat file `.env`
+
+```bash
+copy .env.example .env
+```
+
+Edit `.env`, sesuaikan nilai berikut:
+
+```env
+APP_NAME=StreamDonate
+APP_URL=http://streamdonate-versamorph.test
+
+DB_CONNECTION=sqlite
+# Baris DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD boleh dibiarkan dikomentari
+
+QUEUE_CONNECTION=sync
+```
+
+> **Catatan `QUEUE_CONNECTION=sync`**: Di lokal/Laragon tidak perlu menjalankan queue worker terpisah. Gunakan `sync` agar job diproses langsung saat donasi masuk.
+
+### 5. Generate app key
+
+```bash
+php artisan key:generate
+```
+
+### 6. Buat file database SQLite
+
+```bash
+php artisan migrate
+```
+
+Jika file `database/database.sqlite` belum ada, buat dulu secara manual:
+
+```bash
+# Windows CMD
+type nul > database\database.sqlite
+
+# atau lewat Git Bash / PowerShell
+New-Item database/database.sqlite -ItemType File
+```
+
+Lalu jalankan ulang:
+
+```bash
+php artisan migrate
+```
+
+### 7. Install dependensi Node & build assets
+
+```bash
+npm install
+npm run build
+```
+
+> Untuk development dengan hot-reload: `npm run dev` (jalankan di terminal terpisah)
+
+### 8. Set permission storage (jika perlu)
+
+Di Windows + Laragon biasanya tidak diperlukan, tapi jika ada error permission:
+
+```bash
+php artisan storage:link
+```
+
+### 9. Buka di browser
+
+```
+http://streamdonate-versamorph.test
+```
+
+Akan diredirect ke halaman login. Buat akun admin pertama lewat Tinker:
+
+```bash
+php artisan tinker
+```
+
+```php
+$user = \App\Models\User::create([
+    'name'     => 'Admin',
+    'email'    => 'admin@streamdonate.test',
+    'password' => bcrypt('password'),
+    'role'     => 'admin',
+]);
+$user->markEmailAsVerified();
+```
+
+---
+
+## Setup OBS
+
+### Tambahkan widget sebagai Browser Source
+
+1. Di OBS, klik **+** di panel Sources → pilih **Browser**
+2. Centang **"Use custom frame rate"** → set ke **30**
+3. Centang **"Shutdown source when not visible"**
+4. Pastikan **transparent background** aktif (Width: 1920, Height: 1080)
+
+| Widget | URL | Keterangan |
+|---|---|---|
+| Alert donasi | `http://[domain]/[slug]/obs/overlay?key=[api_key]` | Posisi bebas di kanvas OBS |
+| Leaderboard | `http://[domain]/[slug]/obs/leaderboard?key=[api_key]` | Panel `300px`, posisikan via crop/transform OBS |
+| Milestone | `http://[domain]/[slug]/obs/milestone?key=[api_key]` | Panel `340px` bottom-left |
+
+URL lengkap sudah tersedia di halaman **Dashboard → tab Overlay** milik masing-masing streamer, tinggal copy-paste.
+
+### Mendapatkan API Key
+
+Login sebagai streamer → **Dashboard** → bagian **Widget URLs** — API key sudah otomatis terlampir di URL.
+
+---
+
+## Struktur Aplikasi
+
+```
+streamdonate-versamorph/
+│
+├── app/
+│   ├── Http/Controllers/
+│   │   ├── DonationController.php      # Form donasi publik
+│   │   ├── SseController.php           # SSE broadcast + stats endpoint
+│   │   ├── ObsController.php           # Render OBS widget views
+│   │   ├── StreamerDashboardController.php
+│   │   └── AdminController.php
+│   ├── Jobs/
+│   │   └── ProcessDonationJob.php      # Proses donasi → simpan + broadcast SSE
+│   └── Models/
+│       ├── Streamer.php                # buildStats() untuk leaderboard & milestone
+│       └── Donation.php
+│
+├── resources/views/
+│   ├── obs/
+│   │   ├── overlay.blade.php           # Alert donasi (5 tema, flat minimal)
+│   │   ├── leaderboard.blade.php       # Top donatur floating panel
+│   │   └── milestone.blade.php         # Progress bar compact panel
+│   └── streamer/
+│       ├── dashboard.blade.php
+│       └── settings.blade.php
+│
+├── routes/web.php
+├── database/database.sqlite            # Auto-created saat migrate
+└── .env
+```
+
+---
+
+## Perintah Berguna
+
+```bash
+# Jalankan semua (server + queue + vite) sekaligus
+composer run dev
+
+# Clear semua cache
+php artisan optimize:clear
+
+# Reset database (hati-hati: hapus semua data)
+php artisan migrate:fresh
+
+# Lihat log real-time
+php artisan pail
+```
+
+---
+
+## Catatan
+
+- File legacy PHP vanilla (sebelum migrasi ke Laravel) tersimpan di folder `_legacy/` sebagai referensi.
+- Untuk deploy ke server publik, pastikan `APP_DEBUG=false` dan `QUEUE_CONNECTION=database` dengan queue worker aktif (`php artisan queue:work`).
+- SSE reconnect otomatis setiap 3 detik jika koneksi terputus.
+- Perubahan tema/suara di halaman Settings akan berlaku di OBS dalam ~20 detik tanpa perlu refresh Browser Source.
