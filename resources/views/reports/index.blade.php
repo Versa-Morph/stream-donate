@@ -94,21 +94,6 @@
             font-size: 22px; font-weight: 700; letter-spacing: -.5px; color: var(--text); }
         .stat-sub { font-size: 10px; color: var(--text-3); margin-top: 4px; }
 
-        /* ── CHART ── */
-        .chart-section {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius-lg); padding: 20px 24px;
-            margin-bottom: 24px;
-        }
-        .chart-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-        .chart-header .iconify { width: 16px; height: 16px; color: var(--brand-light); }
-        .chart-title { font-size: 13px; font-weight: 700; color: var(--text-2); }
-        #report-chart { width: 100%; display: block; }
-
-        /* ── TWO COL ── */
-        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        @media (max-width: 800px) { .two-col { grid-template-columns: 1fr; } }
-
         /* ── TABLE ── */
         .table-section {
             background: var(--surface); border: 1px solid var(--border);
@@ -140,19 +125,6 @@
         }
         .empty-cell { text-align: center; color: var(--text-3); padding: 36px; font-size: 12px; }
 
-        /* ── RANK MEDALS ── */
-        .rank-wrap { display: flex; align-items: center; gap: 4px; }
-        .rank-badge {
-            width: 22px; height: 22px; border-radius: 7px;
-            display: inline-flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 800; font-family: 'Space Grotesk', sans-serif;
-        }
-        .rank-badge.gold   { background: rgba(251,191,36,.15); color: var(--yellow); border: 1px solid rgba(251,191,36,.3); }
-        .rank-badge.silver { background: rgba(160,160,180,.12); color: #a0a0b4; border: 1px solid rgba(160,160,180,.25); }
-        .rank-badge.bronze { background: rgba(205,127,50,.12);  color: #cd7f32; border: 1px solid rgba(205,127,50,.25); }
-        .rank-plain { font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 700; color: var(--text-3); }
-        .donor-emoji { margin-right: 5px; }
-
         /* ── EMPTY STATE ── */
         .report-empty {
             background: var(--surface); border: 1px solid var(--border);
@@ -163,7 +135,29 @@
         .report-empty-title { font-size: 14px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; }
         .report-empty-sub { font-size: 12px; }
 
-        @media(max-width:640px) { .filter-bar { flex-direction: column; align-items: flex-start; } .filter-actions { margin-left: 0; } }
+        /* ── PAGINATION ── */
+        .rp-pagination {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 12px; padding: 12px 18px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .rp-pagination-info { font-size: 11px; color: var(--text-3); }
+        .rp-pagination-links { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+        .rp-page-btn {
+            min-width: 30px; height: 30px; padding: 0 8px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 7px; font-size: 12px; font-weight: 600;
+            border: 1px solid var(--border); background: var(--surface-2);
+            color: var(--text-2); text-decoration: none; cursor: pointer;
+            transition: all .15s; line-height: 1;
+        }
+        .rp-page-btn:hover { border-color: rgba(124,108,252,.4); color: var(--brand-light); background: rgba(124,108,252,.06); }
+        .rp-page-btn.active { background: var(--brand); border-color: var(--brand); color: #fff; cursor: default; }
+        .rp-page-btn.disabled { opacity: .35; pointer-events: none; }
+        .rp-page-ellipsis { font-size: 12px; color: var(--text-3); padding: 0 2px; }
+
+        @media(max-width:640px) { .filter-bar { flex-direction: column; align-items: flex-start; } .filter-actions { margin-left: 0; } .rp-pagination { flex-direction: column; align-items: flex-start; } }
     </style>
     @endpush
 
@@ -255,103 +249,92 @@
             @endif
         </div>
 
-        <!-- Bar Chart (harian) — Canvas -->
-        @if($dailyData->count() > 0)
-        <div class="chart-section">
-            <div class="chart-header">
-                <span class="iconify" data-icon="solar:chart-2-bold-duotone"></span>
-                <div class="chart-title">Donasi Harian</div>
-            </div>
-            <canvas id="report-chart"></canvas>
-        </div>
-        @endif
-
-        <!-- Two col: Top donors + Recent donations -->
         @if($totalCount > 0)
-        <div class="two-col">
-
-            <!-- Top 10 Donatur -->
-            <div class="table-section">
-                <div class="table-header">
-                    <span class="iconify" data-icon="solar:ranking-bold-duotone"></span>
-                    Top 10 Donatur
-                    <span class="table-chip">{{ min(10, count($topDonors)) }}</span>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Donatur</th>
-                            <th>Total</th>
-                            <th>Kali</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($topDonors as $i => $donor)
-                        <tr>
-                            <td>
-                                @if($i === 0)
-                                    <span class="rank-badge gold">1</span>
-                                @elseif($i === 1)
-                                    <span class="rank-badge silver">2</span>
-                                @elseif($i === 2)
-                                    <span class="rank-badge bronze">3</span>
-                                @else
-                                    <span class="rank-plain">{{ $i + 1 }}</span>
-                                @endif
-                            </td>
-                            <td>
-                                <span class="donor-emoji">{{ $donor['emoji'] ?? '🎉' }}</span>
-                                {{ $donor['name'] }}
-                            </td>
-                            <td class="amount-cell">Rp {{ number_format($donor['total']) }}</td>
-                            <td style="color:var(--text-3)">{{ $donor['count'] }}×</td>
-                        </tr>
-                        @empty
-                        <tr><td colspan="4" class="empty-cell">Belum ada data</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+        <!-- Riwayat Donasi — full width + pagination -->
+        <div class="table-section" style="margin-bottom:24px">
+            <div class="table-header">
+                <span class="iconify" data-icon="solar:history-bold-duotone"></span>
+                Riwayat Donasi
+                <span class="table-chip">{{ $totalCount }}</span>
             </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:130px">Waktu</th>
+                        <th>Donatur</th>
+                        <th>Pesan</th>
+                        <th style="text-align:right">Nominal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($donationsPaginated as $d)
+                    <tr>
+                        <td style="font-size:11px; color:var(--text-3); white-space:nowrap">
+                            {{ $d->created_at->format('d M Y') }}<br>
+                            <span style="font-size:10px">{{ $d->created_at->format('H:i') }}</span>
+                        </td>
+                        <td>
+                            <span style="margin-right:5px">{{ $d->emoji ?? '🎉' }}</span>
+                            <span style="font-weight:600;color:var(--text)">{{ Str::limit($d->name, 28) }}</span>
+                        </td>
+                        <td style="color:var(--text-3);font-size:11px;max-width:280px">
+                            {{ $d->message ? Str::limit($d->message, 60) : '—' }}
+                        </td>
+                        <td class="amount-cell" style="text-align:right">
+                            Rp {{ number_format($d->amount) }}
+                        </td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="4" class="empty-cell">Tidak ada donasi dalam periode ini</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
 
-            <!-- Riwayat Donasi -->
-            <div class="table-section">
-                <div class="table-header">
-                    <span class="iconify" data-icon="solar:history-bold-duotone"></span>
-                    Riwayat Donasi
-                    <span class="table-chip">{{ $totalCount }}</span>
+            @if($donationsPaginated->hasPages())
+            <div class="rp-pagination">
+                <div class="rp-pagination-info">
+                    Menampilkan {{ $donationsPaginated->firstItem() }}–{{ $donationsPaginated->lastItem() }}
+                    dari {{ number_format($donationsPaginated->total()) }} donasi
                 </div>
-                <div style="max-height:440px; overflow-y:auto">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Waktu</th>
-                                <th>Donatur</th>
-                                <th>Nominal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($donations as $d)
-                            <tr>
-                                <td style="font-size:10px; color:var(--text-3); white-space:nowrap">
-                                    {{ $d->created_at->format('d/m H:i') }}
-                                </td>
-                                <td>
-                                    <span style="margin-right:4px">{{ $d->emoji ?? '🎉' }}</span>
-                                    {{ Str::limit($d->name, 22) }}
-                                </td>
-                                <td class="amount-cell" style="font-size:12px">
-                                    Rp {{ number_format($d->amount) }}
-                                </td>
-                            </tr>
-                            @empty
-                            <tr><td colspan="3" class="empty-cell">Tidak ada donasi dalam periode ini</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                <div class="rp-pagination-links">
+                    {{-- Prev --}}
+                    @if($donationsPaginated->onFirstPage())
+                        <span class="rp-page-btn disabled">&#8249;</span>
+                    @else
+                        <a class="rp-page-btn" href="{{ $donationsPaginated->previousPageUrl() }}">&#8249;</a>
+                    @endif
+
+                    {{-- Page numbers --}}
+                    @foreach($donationsPaginated->getUrlRange(1, $donationsPaginated->lastPage()) as $page => $url)
+                        @php
+                            $cur  = $donationsPaginated->currentPage();
+                            $last = $donationsPaginated->lastPage();
+                            $show = ($page === 1 || $page === $last || abs($page - $cur) <= 2);
+                            $ellipsisBefore = ($page === $cur - 3 && $cur - 3 > 1);
+                            $ellipsisAfter  = ($page === $cur + 3 && $cur + 3 < $last);
+                        @endphp
+                        @if($ellipsisBefore || $ellipsisAfter)
+                            <span class="rp-page-ellipsis">…</span>
+                        @elseif($show)
+                            @if($page === $cur)
+                                <span class="rp-page-btn active">{{ $page }}</span>
+                            @else
+                                <a class="rp-page-btn" href="{{ $url }}">{{ $page }}</a>
+                            @endif
+                        @endif
+                    @endforeach
+
+                    {{-- Next --}}
+                    @if($donationsPaginated->hasMorePages())
+                        <a class="rp-page-btn" href="{{ $donationsPaginated->nextPageUrl() }}">&#8250;</a>
+                    @else
+                        <span class="rp-page-btn disabled">&#8250;</span>
+                    @endif
                 </div>
             </div>
+            @endif
         </div>
+
         @else
         <div class="report-empty">
             <span class="iconify" data-icon="solar:chart-2-bold-duotone"></span>
@@ -362,72 +345,4 @@
 
     </div>
 
-    @push('scripts')
-    <script>
-    // ── Canvas bar chart (Reports) ──
-    (function () {
-        const raw = @json($dailyData);
-        if (!raw || !raw.length) return;
-        const canvas = document.getElementById('report-chart');
-        if (!canvas) return;
-
-        const dpr  = window.devicePixelRatio || 1;
-        const W    = canvas.parentElement.offsetWidth - 48;
-        const H    = 140;
-        canvas.width  = W * dpr;
-        canvas.height = H * dpr;
-        canvas.style.width  = W + 'px';
-        canvas.style.height = H + 'px';
-
-        const ctx = canvas.getContext('2d');
-        ctx.scale(dpr, dpr);
-
-        const maxVal   = Math.max(...raw.map(d => d.total), 1);
-        const count    = raw.length;
-        const padX     = 8;
-        const gap      = 4;
-        const barAreaW = W - padX * 2;
-        const barW     = Math.max(10, Math.floor((barAreaW - gap * (count - 1)) / count));
-        const barAreaH = H - 30;
-
-        raw.forEach(function (d, i) {
-            const x   = padX + i * (barW + gap);
-            const pct = d.total / maxVal;
-            const bH  = Math.max(pct * barAreaH, d.total > 0 ? 4 : 1);
-            const y   = barAreaH - bH + 4;
-
-            // bg slot
-            ctx.fillStyle = 'rgba(255,255,255,.04)';
-            ctx.beginPath();
-            ctx.roundRect(x, 4, barW, barAreaH, 4);
-            ctx.fill();
-
-            if (d.total > 0) {
-                const grad = ctx.createLinearGradient(x, y + bH, x, y);
-                grad.addColorStop(0, 'rgba(124,108,252,.55)');
-                grad.addColorStop(1, 'rgba(124,108,252,1)');
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.roundRect(x, y, barW, bH, 4);
-                ctx.fill();
-
-                // Glow top
-                ctx.fillStyle = 'rgba(169,157,255,.7)';
-                ctx.beginPath();
-                ctx.roundRect(x, y, barW, Math.min(3, bH), 2);
-                ctx.fill();
-            }
-
-            // label — show every 3rd or if few bars
-            if (count <= 14 || i % Math.ceil(count / 14) === 0) {
-                ctx.fillStyle = 'rgba(96,96,120,.9)';
-                ctx.font = '9px Inter, sans-serif';
-                ctx.textAlign = 'center';
-                const label = d.date.substring(0, 5);
-                ctx.fillText(label, x + barW / 2, H - 6);
-            }
-        });
-    })();
-    </script>
-    @endpush
 </x-app-layout>

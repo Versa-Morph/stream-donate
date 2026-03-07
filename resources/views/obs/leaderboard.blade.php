@@ -233,11 +233,30 @@ const MEDALS     = ['🥇','🥈','🥉'];
 
 async function loadInitial() {
     try {
-        const res  = await fetch(STATS_URL);
-        const data = await res.json();
+        const res = await fetch(STATS_URL);
+
+        // Bedakan server error (non-JSON / non-2xx) dari data kosong
+        if (!res.ok) {
+            throw new Error('Server error: ' + res.status);
+        }
+
+        let data;
+        try {
+            data = await res.json();
+        } catch (parseErr) {
+            throw new Error('Invalid response from server');
+        }
+
         applyStats(data, false);
     } catch(e) {
-        document.getElementById('lb-list').innerHTML = '<div class="lb-empty">Belum ada donasi masuk</div>';
+        // Tampilkan state error yang BERBEDA dari state kosong
+        // agar streamer tahu ini adalah masalah koneksi, bukan "belum ada donasi"
+        document.getElementById('lb-list').innerHTML =
+            '<div class="lb-empty" style="color:rgba(249,115,22,.7);font-size:12px;">Gagal memuat data<br>Mencoba lagi…</div>';
+
+        // Auto-retry setelah 10 detik
+        setTimeout(loadInitial, 10000);
+        console.warn('Leaderboard loadInitial failed, will retry in 10s:', e.message);
     }
     panel.classList.add('visible');
 }

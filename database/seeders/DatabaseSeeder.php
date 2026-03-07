@@ -47,6 +47,8 @@ class DatabaseSeeder extends Seeder
             'thank_you_message' => 'Terima kasih atas donasi kamu!',
         ]);
 
+        $this->call(BannedWordsSeeder::class);
+
         $this->command->info('');
         $this->command->info('=== Akun Default ===');
         $this->command->info('Admin    : admin@streamdonate.local / admin123');

@@ -24,7 +24,8 @@
 .stat-sub{font-size:11px;color:var(--text-3)}
 
 /* ── Main layout ── */
-.dash-content{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+.dash-content{display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start}
+.dash-col-right{display:flex;flex-direction:column;gap:16px}
 
 /* ── Cards ── */
 .dash-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;display:flex;flex-direction:column}
@@ -64,35 +65,69 @@
 .leader-total{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:var(--yellow)}
 .leader-count{font-size:10px;color:var(--text-3);margin-top:1px}
 
-/* ── Bar Chart ── */
-.chart-section{margin-bottom:20px}
-.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
-.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.chart-title{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;letter-spacing:-.3px}
-.chart-subtitle{font-size:11px;color:var(--text-3)}
-#daily-chart{width:100%;height:120px;display:block}
+/* ── Heatmap Activity (compact card di kolom kanan) ── */
+.hm-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;position:relative;overflow:visible}
+.hm-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:6px}
+.hm-card-title{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;letter-spacing:-.2px}
 
-/* ── OBS Widgets ── */
-.widgets-section{margin-top:20px}
-.section-label{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text-3);text-transform:uppercase;margin-bottom:4px}
-.section-sub{font-size:12px;color:var(--text-3);margin-bottom:14px}
-.widget-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.widget-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;transition:border-color .2s}
-.widget-card:hover{border-color:var(--border-2)}
-.widget-icon{
-    width:36px;height:36px;border-radius:var(--radius-sm);
+/* Month nav */
+.hm-nav{display:flex;align-items:center;gap:4px}
+.hm-nav-btn{
+    width:22px;height:22px;border-radius:5px;border:1px solid var(--border);
+    background:var(--surface-2);color:var(--text-2);
     display:flex;align-items:center;justify-content:center;
-    margin-bottom:12px;
-    background:var(--surface-2);border:1px solid var(--border);
+    cursor:pointer;font-size:13px;line-height:1;
+    transition:all .15s;flex-shrink:0;padding:0;
 }
-.widget-icon .iconify{width:20px;height:20px;color:var(--brand-light)}
-.widget-name{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px}
-.widget-desc{font-size:11px;color:var(--text-3);margin-bottom:14px;line-height:1.6}
-.widget-url-row{display:flex;gap:6px}
-.widget-url-input{flex:1;font-size:11px;padding:8px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-3);font-family:monospace;outline:none;min-width:0}
-.copy-btn{padding:8px 12px;background:var(--surface-3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-2);cursor:pointer;font-size:11px;font-weight:700;transition:all .15s;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:5px}
-.copy-btn:hover{background:var(--brand);border-color:var(--brand);color:#fff}
-.copy-btn .iconify{width:13px;height:13px}
+.hm-nav-btn:hover{border-color:rgba(124,108,252,.5);color:var(--brand-light);background:rgba(124,108,252,.08)}
+.hm-month-label{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;min-width:88px;text-align:center;letter-spacing:-.1px;color:var(--text-2)}
+
+/* Calendar layout */
+.heatmap-cal{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:2px;
+}
+.hm-dow{
+    font-size:8px;font-weight:700;color:var(--text-3);
+    text-align:center;letter-spacing:.3px;text-transform:uppercase;
+    padding-bottom:3px;
+}
+.hm-cell{
+    aspect-ratio:1;border-radius:2px;
+    background:rgba(124,108,252,var(--hm-opacity,0.04));
+    cursor:default;
+    transition:transform .12s, outline .12s;
+    outline:2px solid transparent;
+    min-width:0;
+}
+.hm-cell[data-has="1"]{cursor:pointer}
+.hm-cell[data-has="1"]:hover{transform:scale(1.35);outline-color:rgba(124,108,252,.6);z-index:2;position:relative}
+.hm-cell[data-has="0"],.hm-cell.hm-empty{background:rgba(255,255,255,.04)}
+
+/* Legend (inline di bawah kalender) */
+.heatmap-legend{display:flex;align-items:center;gap:4px;margin-top:8px}
+.legend-label{font-size:9px;color:var(--text-3)}
+.legend-cell{
+    width:9px;height:9px;border-radius:2px;flex-shrink:0;cursor:default;
+    background:rgba(124,108,252,var(--lc-op,.12));
+}
+
+/* Tooltip */
+.hm-tooltip{
+    position:fixed;z-index:9999;
+    background:#1a1a2e;border:1px solid rgba(124,108,252,.4);
+    border-radius:8px;padding:8px 12px;
+    font-size:12px;color:var(--text);
+    pointer-events:none;opacity:0;
+    transition:opacity .15s;white-space:nowrap;
+    box-shadow:0 8px 24px rgba(0,0,0,.5);
+    line-height:1.6;
+}
+.hm-tooltip.visible{opacity:1}
+.hm-tooltip .tt-date{font-weight:700;font-size:11px;color:var(--text-3);margin-bottom:2px}
+.hm-tooltip .tt-amount{font-size:14px;font-weight:700;color:var(--brand-light)}
+.hm-tooltip .tt-count{font-size:11px;color:var(--text-3)}
 
 .empty-state{padding:40px 20px;text-align:center;color:var(--text-3);font-size:13px}
 
@@ -110,10 +145,6 @@
 .header-btn-brand:hover{transform:translateY(-1px);box-shadow:0 6px 20px var(--brand-glow)}
 .header-btn .iconify{width:15px;height:15px}
 
-/* ── QR preview ── */
-.qr-preview-wrap{width:80px;height:80px;margin:0 auto 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;display:flex;align-items:center;justify-content:center}
-.qr-preview-wrap img{width:100%;height:100%;display:block}
-
 /* ── Test Alert button ── */
 .test-alert-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:none;font-family:'Inter',sans-serif;background:linear-gradient(135deg,var(--orange),#ea580c);color:#fff;box-shadow:0 4px 16px rgba(249,115,22,.3)}
 .test-alert-btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(249,115,22,.4)}
@@ -125,6 +156,7 @@
 .test-alert-btn.loading .btn-icon-wrap{display:none}
 .test-alert-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 20px;font-size:13px;font-weight:600;color:var(--text);box-shadow:0 12px 40px rgba(0,0,0,.5);z-index:9999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;display:flex;align-items:center;gap:10px}
 .test-alert-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.test-alert-toast.toast-error{background:#3b1a1a;border-color:#e53e3e;color:#fc8181}
 .test-alert-toast .toast-emoji{font-size:18px}
 
 /* ── SSE notification badge ── */
@@ -145,8 +177,8 @@
 
 .test-alert-toast .toast-emoji{font-size:18px}
 @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:900px){.dash-content{grid-template-columns:1fr}.widget-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:600px){.widget-grid{grid-template-columns:1fr}.dash-header{flex-direction:column;align-items:flex-start}}
+@media(max-width:900px){.dash-content{grid-template-columns:1fr}.dash-col-right{flex-direction:row;flex-wrap:wrap}.dash-col-right .hm-card{flex:1;min-width:260px}.dash-col-right .dash-card{flex:1;min-width:260px}}
+@media(max-width:600px){.dash-header{flex-direction:column;align-items:flex-start}.dash-col-right{flex-direction:column}}
 </style>
 @endpush
 
@@ -228,19 +260,6 @@
         </div>
     </div>
 
-    {{-- Bar Chart — 7 Hari Terakhir --}}
-    <div class="chart-section">
-        <div class="chart-card">
-            <div class="chart-header">
-                <div>
-                    <div class="chart-title">Donasi 7 Hari Terakhir</div>
-                    <div class="chart-subtitle">Total nominal per hari</div>
-                </div>
-            </div>
-            <canvas id="daily-chart"></canvas>
-        </div>
-    </div>
-
     {{-- Main content --}}
     <div class="dash-content">
 
@@ -286,98 +305,58 @@
             </div>
         </div>
 
-        {{-- Leaderboard --}}
-        <div class="dash-card">
-            <div class="card-title-row">
-                <span class="iconify" data-icon="solar:ranking-bold-duotone" style="width:18px;height:18px;color:var(--yellow)"></span>
-                <div class="card-title">{{ $streamer->leaderboard_title }}</div>
-            </div>
-            <div class="leader-list">
-                @php $medals = ['🥇','🥈','🥉']; @endphp
-                @forelse($stats['leaderboard'] as $i => $item)
-                    <div class="leader-item {{ $i < 3 ? 'rank-'.($i+1) : '' }}">
-                        <div class="rank-num {{ $i >= 3 ? 'plain' : '' }}">{{ $i < 3 ? $medals[$i] : ($i+1) }}</div>
-                        <div class="leader-emoji">{{ $item['emoji'] }}</div>
-                        <div class="leader-name">{{ $item['name'] }}</div>
-                        <div class="leader-right">
-                            <div class="leader-total">Rp {{ number_format($item['total'], 0, ',', '.') }}</div>
-                            <div class="leader-count">{{ $item['count'] }}x donasi</div>
-                        </div>
+        {{-- Kolom kanan: Heatmap + Leaderboard --}}
+        <div class="dash-col-right">
+
+            {{-- Heatmap Activity — compact --}}
+            <div class="hm-card">
+                <div class="hm-card-header">
+                    <div class="hm-card-title">Aktivitas Donasi</div>
+                    <div class="hm-nav">
+                        <button class="hm-nav-btn" id="hm-prev" title="Bulan sebelumnya" aria-label="Bulan sebelumnya">&#8249;</button>
+                        <div class="hm-month-label" id="hm-month-label"></div>
+                        <button class="hm-nav-btn" id="hm-next" title="Bulan berikutnya" aria-label="Bulan berikutnya">&#8250;</button>
                     </div>
-                @empty
-                    <div class="empty-state">Belum ada data</div>
-                @endforelse
+                </div>
+                <div class="heatmap-cal" id="heatmap-cal"></div>
+                <div class="heatmap-legend">
+                    <span class="legend-label">Sepi</span>
+                    <span class="legend-cell" style="--lc-op:0.12"></span>
+                    <span class="legend-cell" style="--lc-op:0.35"></span>
+                    <span class="legend-cell" style="--lc-op:0.60"></span>
+                    <span class="legend-cell" style="--lc-op:0.85"></span>
+                    <span class="legend-cell" style="--lc-op:1.00"></span>
+                    <span class="legend-label">Ramai</span>
+                </div>
+                <div class="hm-tooltip" id="hm-tooltip" role="tooltip" aria-hidden="true"></div>
             </div>
-        </div>
 
-    </div>
+            {{-- Leaderboard --}}
+            <div class="dash-card">
+                <div class="card-title-row">
+                    <span class="iconify" data-icon="solar:ranking-bold-duotone" style="width:18px;height:18px;color:var(--yellow)"></span>
+                    <div class="card-title">{{ $streamer->leaderboard_title }}</div>
+                </div>
+                <div class="leader-list">
+                    @php $medals = ['🥇','🥈','🥉']; @endphp
+                    @forelse($stats['leaderboard'] as $i => $item)
+                        <div class="leader-item {{ $i < 3 ? 'rank-'.($i+1) : '' }}">
+                            <div class="rank-num {{ $i >= 3 ? 'plain' : '' }}">{{ $i < 3 ? $medals[$i] : ($i+1) }}</div>
+                            <div class="leader-emoji">{{ $item['emoji'] }}</div>
+                            <div class="leader-name">{{ $item['name'] }}</div>
+                            <div class="leader-right">
+                                <div class="leader-total">Rp {{ number_format($item['total'], 0, ',', '.') }}</div>
+                                <div class="leader-count">{{ $item['count'] }}x donasi</div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="empty-state">Belum ada data</div>
+                    @endforelse
+                </div>
+            </div>
 
-    {{-- OBS Widget URLs --}}
-    <div class="widgets-section">
-        <div class="section-label">URL Widget OBS</div>
-        <div class="section-sub">Copy URL berikut, lalu paste di OBS → Browser Source</div>
-        <div class="widget-grid">
-            @php
-                $baseUrl = config('app.url');
-                $key     = $streamer->api_key;
-                $slug    = $streamer->slug;
-            @endphp
-            <div class="widget-card">
-                <div class="widget-icon" style="background:rgba(124,108,252,.1);border-color:rgba(124,108,252,.2)">
-                    <span class="iconify" data-icon="solar:bell-bold-duotone" style="color:var(--brand-light)"></span>
-                </div>
-                <div class="widget-name">Alert Donasi</div>
-                <div class="widget-desc">Popup alert saat donasi masuk. Tambahkan sebagai Browser Source di OBS.</div>
-                <div class="widget-url-row">
-                    <input class="widget-url-input" readonly value="{{ $baseUrl }}/{{ $slug }}/obs/overlay?key={{ $key }}" id="url-overlay" />
-                    <button class="copy-btn" onclick="copyText(document.getElementById('url-overlay').value,'URL Overlay')">
-                        <span class="iconify" data-icon="solar:copy-bold-duotone"></span>Copy
-                    </button>
-                </div>
-            </div>
-            <div class="widget-card">
-                <div class="widget-icon" style="background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.2)">
-                    <span class="iconify" data-icon="solar:ranking-bold-duotone" style="color:var(--yellow)"></span>
-                </div>
-                <div class="widget-name">Leaderboard</div>
-                <div class="widget-desc">Panel top donatur real-time. Bisa ditaruh di sisi kanan layar.</div>
-                <div class="widget-url-row">
-                    <input class="widget-url-input" readonly value="{{ $baseUrl }}/{{ $slug }}/obs/leaderboard?key={{ $key }}" id="url-lb" />
-                    <button class="copy-btn" onclick="copyText(document.getElementById('url-lb').value,'URL Leaderboard')">
-                        <span class="iconify" data-icon="solar:copy-bold-duotone"></span>Copy
-                    </button>
-                </div>
-            </div>
-            <div class="widget-card">
-                <div class="widget-icon" style="background:rgba(34,211,160,.1);border-color:rgba(34,211,160,.2)">
-                    <span class="iconify" data-icon="solar:target-bold-duotone" style="color:var(--green)"></span>
-                </div>
-                <div class="widget-name">Milestone Bar</div>
-                <div class="widget-desc">Progress bar target donasi. Bisa ditaruh di bagian bawah layar.</div>
-                <div class="widget-url-row">
-                    <input class="widget-url-input" readonly value="{{ $baseUrl }}/{{ $slug }}/obs/milestone?key={{ $key }}" id="url-ms" />
-                    <button class="copy-btn" onclick="copyText(document.getElementById('url-ms').value,'URL Milestone')">
-                        <span class="iconify" data-icon="solar:copy-bold-duotone"></span>Copy
-                    </button>
-                </div>
-            </div>
-            <div class="widget-card">
-                <div class="widget-icon" style="background:rgba(168,85,247,.1);border-color:rgba(168,85,247,.2)">
-                    <span class="iconify" data-icon="solar:qr-code-bold-duotone" style="color:var(--purple)"></span>
-                </div>
-                <div class="widget-name">QR Donasi</div>
-                <div class="widget-desc">QR code yang bisa di-scan penonton untuk langsung ke form donasi kamu.</div>
-                <div class="qr-preview-wrap">
-                    <img src="{{ $baseUrl }}/{{ $slug }}/qr" alt="QR {{ $streamer->display_name }}" loading="lazy" />
-                </div>
-                <div class="widget-url-row">
-                    <input class="widget-url-input" readonly value="{{ $baseUrl }}/{{ $slug }}/obs/qr" id="url-qr" />
-                    <button class="copy-btn" onclick="copyText(document.getElementById('url-qr').value,'URL QR Widget')">
-                        <span class="iconify" data-icon="solar:copy-bold-duotone"></span>Copy
-                    </button>
-                </div>
-            </div>
-        </div>
+        </div>{{-- end dash-col-right --}}
+
     </div>
 
 </div>
@@ -407,6 +386,14 @@ function sendTestAlert() {
         },
     })
     .then(r => r.json())
+    .then(r => {
+        if (!r.ok) {
+            return r.json().catch(() => ({})).then(body => {
+                throw new Error(body.error || 'Server error ' + r.status);
+            });
+        }
+        return r.json();
+    })
     .then(data => {
         if (data.ok) {
             document.getElementById('toast-emoji').textContent = data.emoji;
@@ -414,70 +401,203 @@ function sendTestAlert() {
                 data.emoji + ' ' + data.name + ' • Rp ' + Number(data.amount).toLocaleString('id-ID') + ' — dikirim ke OBS!';
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3500);
+        } else {
+            document.getElementById('toast-emoji').textContent = '⚠️';
+            document.getElementById('toast-msg').textContent = data.error || 'Gagal mengirim test alert.';
+            toast.classList.add('show', 'toast-error');
+            setTimeout(() => { toast.classList.remove('show', 'toast-error'); }, 4000);
         }
     })
-    .catch(() => {
-        document.getElementById('toast-msg').textContent = 'Gagal mengirim test alert.';
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3000);
+    .catch(err => {
+        document.getElementById('toast-emoji').textContent = '⚠️';
+        document.getElementById('toast-msg').textContent = err.message || 'Gagal mengirim test alert.';
+        toast.classList.add('show', 'toast-error');
+        setTimeout(() => { toast.classList.remove('show', 'toast-error'); }, 4000);
     })
     .finally(() => {
         btn.classList.remove('loading');
         btn.disabled = false;
     });
 }
-// ── Bar Chart: 7 Hari Terakhir ──
+// ── Heatmap Calendar ──
 (function () {
-    const data = @json($dailySummary);
-    const canvas = document.getElementById('daily-chart');
-    if (!canvas) return;
+    var HEATMAP_URL = '{{ route('streamer.heatmap-data') }}';
+    var CSRF        = document.querySelector('meta[name="csrf-token"]') ?
+                      document.querySelector('meta[name="csrf-token"]').content : '';
 
-    const dpr = window.devicePixelRatio || 1;
-    const W   = canvas.offsetWidth || canvas.parentElement.offsetWidth;
-    const H   = 120;
-    canvas.width  = W * dpr;
-    canvas.height = H * dpr;
-    canvas.style.width  = W + 'px';
-    canvas.style.height = H + 'px';
+    // Initial data from server (no AJAX needed for first render)
+    var initialData = @json($heatmapInitial);
 
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
+    var cal       = document.getElementById('heatmap-cal');
+    var tip       = document.getElementById('hm-tooltip');
+    var labelEl   = document.getElementById('hm-month-label');
+    var btnPrev   = document.getElementById('hm-prev');
+    var btnNext   = document.getElementById('hm-next');
 
-    const maxVal = Math.max(...data.map(d => d.total), 1);
-    const barW   = Math.floor((W - 60) / data.length) - 6;
-    const barAreaH = H - 36;
-    const startX = 30;
+    if (!cal || !tip) return;
 
-    // Draw bars
-    data.forEach(function (d, i) {
-        const x   = startX + i * ((W - 60) / data.length);
-        const pct = d.total / maxVal;
-        const bH  = Math.max(pct * barAreaH, d.total > 0 ? 3 : 1);
-        const y   = barAreaH - bH + 8;
+    var currentYear  = initialData.year;
+    var currentMonth = initialData.month;
+    var activeCell   = null;
 
-        // Bar bg
-        ctx.fillStyle = 'rgba(255,255,255,.04)';
-        ctx.beginPath();
-        ctx.roundRect(x, 8, barW, barAreaH, 4);
-        ctx.fill();
+    // Day-of-week headers: Sun first (matches JS Date.getDay())
+    var DOW_LABELS = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
 
-        if (d.total > 0) {
-            // Gradient bar
-            const grad = ctx.createLinearGradient(x, y + bH, x, y);
-            grad.addColorStop(0, 'rgba(124,108,252,.6)');
-            grad.addColorStop(1, 'rgba(124,108,252,1)');
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.roundRect(x, y, barW, bH, 4);
-            ctx.fill();
+    function toOpacity(total, maxTotal) {
+        if (!total) return 0;
+        var ratio = Math.log1p(total) / Math.log1p(maxTotal);
+        return Math.max(0.18, Math.min(1.0, 0.18 + ratio * 0.82));
+    }
+
+    function formatRp(n) {
+        return 'Rp ' + Number(n).toLocaleString('id-ID');
+    }
+
+    // ── Tooltip ──
+    function showTip(cell) {
+        var total = parseInt(cell.dataset.total, 10) || 0;
+        var count = parseInt(cell.dataset.count, 10) || 0;
+        var date  = cell.dataset.dateLabel || cell.dataset.date || '';
+        tip.innerHTML =
+            '<div class="tt-date">' + date + '</div>' +
+            '<div class="tt-amount">' + (total ? formatRp(total) : 'Tidak ada donasi') + '</div>' +
+            (count ? '<div class="tt-count">' + count + ' donasi</div>' : '');
+        tip.classList.add('visible');
+        tip.setAttribute('aria-hidden', 'false');
+        positionTip(cell);
+    }
+
+    function hideTip() {
+        tip.classList.remove('visible');
+        tip.setAttribute('aria-hidden', 'true');
+        activeCell = null;
+    }
+
+    function positionTip(cell) {
+        var rect  = cell.getBoundingClientRect();
+        var tipW  = tip.offsetWidth  || 160;
+        var tipH  = tip.offsetHeight || 60;
+        var margin = 8;
+        var top   = rect.top - tipH - margin;
+        var left  = rect.left + rect.width / 2 - tipW / 2;
+        if (top < 8) top = rect.bottom + margin;
+        if (left < 8) left = 8;
+        if (left + tipW > window.innerWidth - 8) left = window.innerWidth - tipW - 8;
+        tip.style.top  = top  + 'px';
+        tip.style.left = left + 'px';
+    }
+
+    // ── Render ──
+    function renderCalendar(data) {
+        if (!data || !data.days) return;
+
+        currentYear  = data.year;
+        currentMonth = data.month;
+
+        if (labelEl) labelEl.textContent = data.monthLabel;
+
+        // Disable next button if we're at current month
+        var now = new Date();
+        if (btnNext) {
+            var isCurrentOrFuture = (data.year > now.getFullYear()) ||
+                (data.year === now.getFullYear() && data.month >= now.getMonth() + 1);
+            btnNext.disabled = isCurrentOrFuture;
+            btnNext.style.opacity = isCurrentOrFuture ? '.3' : '';
+            btnNext.style.cursor  = isCurrentOrFuture ? 'not-allowed' : '';
         }
 
-        // Date label
-        ctx.fillStyle = 'rgba(96,96,120,.9)';
-        ctx.font = '9px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(d.date, x + barW / 2, H - 4);
-    });
+        // Find max for opacity scale
+        var maxTotal = 1;
+        data.days.forEach(function (d) { if (d.total > maxTotal) maxTotal = d.total; });
+
+        // Build grid HTML
+        // Row 0: day-of-week headers
+        var html = '';
+        DOW_LABELS.forEach(function (lbl) {
+            html += '<div class="hm-dow">' + lbl + '</div>';
+        });
+
+        // Leading empty cells (firstWeekday = 0 means Sun, so 0 empty cells before Sunday)
+        for (var e = 0; e < data.firstWeekday; e++) {
+            html += '<div class="hm-cell hm-empty"></div>';
+        }
+
+        // Day cells
+        data.days.forEach(function (day) {
+            var op  = toOpacity(day.total, maxTotal);
+            var has = day.total > 0 ? '1' : '0';
+            html += '<div class="hm-cell"' +
+                ' data-date="' + day.iso + '"' +
+                ' data-date-label="' + day.dateLabel + '"' +
+                ' data-total="' + day.total + '"' +
+                ' data-count="' + day.count + '"' +
+                ' data-has="' + has + '"' +
+                ' style="--hm-opacity:' + (day.total ? op.toFixed(3) : '0.04') + '"' +
+                '></div>';
+        });
+
+        cal.innerHTML = html;
+
+        // Attach tooltip events to day cells (not headers/empties)
+        cal.querySelectorAll('.hm-cell[data-date]').forEach(function (cell) {
+            cell.addEventListener('mouseenter', function () {
+                activeCell = cell;
+                showTip(cell);
+            });
+            cell.addEventListener('mousemove', function () {
+                if (activeCell === cell) positionTip(cell);
+            });
+            cell.addEventListener('mouseleave', hideTip);
+            cell.addEventListener('touchstart', function (e) {
+                e.preventDefault();
+                showTip(cell);
+            }, { passive: false });
+            cell.addEventListener('touchend', function () {
+                setTimeout(hideTip, 2000);
+            });
+        });
+    }
+
+    // ── AJAX navigation ──
+    function loadMonth(year, month) {
+        hideTip();
+        if (labelEl) labelEl.textContent = '…';
+        fetch(HEATMAP_URL + '?year=' + year + '&month=' + month, {
+            headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) { renderCalendar(data); })
+        .catch(function () {
+            if (labelEl) labelEl.textContent = 'Error';
+        });
+    }
+
+    if (btnPrev) {
+        btnPrev.addEventListener('click', function () {
+            var m = currentMonth - 1, y = currentYear;
+            if (m < 1) { m = 12; y--; }
+            loadMonth(y, m);
+        });
+    }
+
+    if (btnNext) {
+        btnNext.addEventListener('click', function () {
+            var now = new Date();
+            var m = currentMonth + 1, y = currentYear;
+            if (m > 12) { m = 1; y++; }
+            // Never navigate beyond current month
+            if (y > now.getFullYear() || (y === now.getFullYear() && m > now.getMonth() + 1)) return;
+            loadMonth(y, m);
+        });
+    }
+
+    // Reposition tooltip on scroll
+    window.addEventListener('scroll', function () {
+        if (activeCell) positionTip(activeCell);
+    }, { passive: true });
+
+    // Initial render — use server-side data directly (no AJAX)
+    renderCalendar(initialData);
 })();
 
 // ── SSE Live Feed ──

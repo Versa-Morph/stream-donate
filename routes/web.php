@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\BannedWordController as AdminBannedWordController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\ObsController;
 use App\Http\Controllers\ProfileController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\QrController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SseController;
 use App\Http\Controllers\StreamerDashboardController;
+use App\Http\Controllers\Streamer\BannedWordController as StreamerBannedWordController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -79,10 +81,18 @@ Route::middleware(['auth', 'verified', 'streamer'])->prefix('streamer')->name('s
     // Test Alert — kirim fake donation ke SSE tanpa simpan ke DB
     Route::post('/test-alert', [StreamerDashboardController::class, 'testAlert'])->name('test-alert');
 
+    // Heatmap data AJAX — navigasi bulan prev/next
+    Route::get('/heatmap-data', [StreamerDashboardController::class, 'heatmapData'])->name('heatmap-data');
+
     // Reports
     Route::get('/reports', [ReportController::class, 'index'])->name('reports');
     Route::get('/reports/export/csv', [ReportController::class, 'exportCsv'])->name('reports.csv');
     Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.pdf');
+
+    // Banned words — streamer's own custom words (AJAX)
+    Route::get('/banned-words',              [StreamerBannedWordController::class, 'index'])->name('banned-words.index');
+    Route::post('/banned-words',             [StreamerBannedWordController::class, 'store'])->name('banned-words.store');
+    Route::delete('/banned-words/{bannedWord}', [StreamerBannedWordController::class, 'destroy'])->name('banned-words.destroy');
 });
 
 /*
@@ -117,6 +127,11 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
 
     // Impersonate — /stop harus SEBELUM /{user} agar tidak ditangkap sebagai model binding
     Route::post('/impersonate/{user}', [AdminController::class, 'impersonate'])->name('impersonate');
+
+    // Banned words — global list management
+    Route::get('/banned-words',                 [AdminBannedWordController::class, 'index'])->name('banned-words.index');
+    Route::post('/banned-words',                [AdminBannedWordController::class, 'store'])->name('banned-words.store');
+    Route::delete('/banned-words/{bannedWord}', [AdminBannedWordController::class, 'destroy'])->name('banned-words.destroy');
 });
 
 /*
@@ -127,7 +142,9 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
 
 // Form donasi publik per streamer
 Route::get('/{slug}', [DonationController::class, 'show'])->name('donate.show');
-Route::post('/{slug}/donate', [DonationController::class, 'store'])->name('donate.store');
+Route::post('/{slug}/donate', [DonationController::class, 'store'])
+    ->middleware('throttle:donate')
+    ->name('donate.store');
 
 // QR Code per streamer (SVG inline)
 Route::get('/{slug}/qr', [QrController::class, 'show'])->name('qr.show');

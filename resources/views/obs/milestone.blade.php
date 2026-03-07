@@ -224,10 +224,30 @@ let wasReached  = false;
 
 async function loadInitial() {
     try {
-        const res  = await fetch(STATS_URL);
-        const data = await res.json();
+        const res = await fetch(STATS_URL);
+
+        // Bedakan server error dari data valid
+        if (!res.ok) {
+            throw new Error('Server error: ' + res.status);
+        }
+
+        let data;
+        try {
+            data = await res.json();
+        } catch (parseErr) {
+            throw new Error('Invalid response from server');
+        }
+
         applyStats(data);
-    } catch(e) {}
+    } catch(e) {
+        // Tampilkan indikator error yang jelas — jangan biarkan tampil diam dengan default Rp 0
+        statusEl.textContent = '● error';
+        statusEl.style.color = 'rgba(249,115,22,.4)';
+
+        // Auto-retry setelah 10 detik
+        setTimeout(loadInitial, 10000);
+        console.warn('Milestone loadInitial failed, will retry in 10s:', e.message);
+    }
     panel.classList.add('visible');
 }
 

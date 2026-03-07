@@ -317,8 +317,7 @@
                     Activity Log Terbaru
                 </span>
                 <a href="{{ route('admin.logs') }}" class="section-link">Lihat semua →</a>
-            </div>
-            <div class="table-wrap">
+            </div>            <div class="table-wrap">
                 <table>
                     <thead>
                         <tr>
@@ -347,5 +346,21 @@
                 </table>
             </div>
         </div>
+
+        <!-- Quick Links -->
+        <div class="section" style="margin-top:24px;">
+            <div class="section-header">
+                <span class="section-title">
+                    <span class="iconify" data-icon="solar:shield-warning-bold-duotone"></span>
+                    Moderasi Konten
+                </span>
+                <a href="{{ route('admin.banned-words.index') }}" class="section-link">Kelola kata terlarang →</a>
+            </div>
+            <div style="padding:14px 18px; color:var(--text-3); font-size:13px;">
+                Atur kata-kata yang akan disensor otomatis (***) pada nama dan pesan donasi di seluruh platform.
+                Streamer juga dapat menambahkan kata khusus mereka sendiri di halaman Settings.
+            </div>
+        </div>
+
     </div>
 </x-app-layout>

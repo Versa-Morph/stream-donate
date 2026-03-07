@@ -310,13 +310,53 @@
 </div>
 
 <script>
-const SSE_URL        = '{{ url("/" . $streamer->slug . "/sse") }}?key={{ $apiKey }}';
+const SSE_BASE_URL   = '{{ url("/" . $streamer->slug . "/sse") }}?key={{ $apiKey }}';
 const ASSET_STORAGE  = '{{ asset("storage") }}';
 
 // ── Mutable config — updated live via SSE stats.config ──
 let SOUND_ON       = {{ $streamer->sound_enabled ? 'true' : 'false' }};
 let SOUND_PREF     = {!! json_encode($streamer->notification_sound ?? 'ding') !!};
 let ALERT_DURATION = {{ (int) ($streamer->alert_duration ?? 8000) }};
+
+// ── Kunci localStorage untuk menyimpan posisi SSE terakhir ──
+// Key di-scope per slug agar tidak bentrok antar streamer di browser yang sama
+const LS_SEQ_KEY = 'ssd_last_seq_{{ $streamer->slug }}';
+
+/**
+ * Baca lastKnownSeq dari localStorage.
+ * Dikembalikan sebagai integer atau null jika belum ada / tidak valid.
+ */
+function getLastKnownSeq() {
+    try {
+        const raw = localStorage.getItem(LS_SEQ_KEY);
+        if (raw === null) return null;
+        const n = parseInt(raw, 10);
+        return isNaN(n) ? null : n;
+    } catch (e) {
+        return null;
+    }
+}
+
+/**
+ * Simpan posisi SSE terakhir ke localStorage.
+ * Dipanggil setiap kali event: donation diterima.
+ */
+function saveLastKnownSeq(seq) {
+    try {
+        if (seq != null) localStorage.setItem(LS_SEQ_KEY, String(seq));
+    } catch (e) { /* localStorage tidak tersedia (private mode / full) — abaikan */ }
+}
+
+/**
+ * Bangun SSE URL dengan menyertakan last_seq jika tersedia.
+ * Server akan melanjutkan dari titik ini sehingga alert yang
+ * masuk selama OBS offline / reload akan tetap diputar ulang
+ * selama masih dalam TTL (15 menit).
+ */
+function buildSseUrl() {
+    const seq = getLastKnownSeq();
+    return seq !== null ? SSE_BASE_URL + '&last_seq=' + seq : SSE_BASE_URL;
+}
 
 function getSoundUrl() {
     return (SOUND_PREF && !['ding','coin','whoosh'].includes(SOUND_PREF))
@@ -431,7 +471,7 @@ function applyConfig(config) {
 
 // ─── SSE ───
 function connectSSE() {
-    const es = new EventSource(SSE_URL);
+    const es = new EventSource(buildSseUrl());
     es.onopen = function() {
         statusEl.textContent = '● live';
         statusEl.style.color = 'rgba(34,211,160,.4)';
@@ -441,18 +481,32 @@ function connectSSE() {
             const d = JSON.parse(e.data);
             if (seenIds.has(d.seq ?? d.id)) return;
             seenIds.add(d.seq ?? d.id);
+            // Simpan posisi terakhir ke localStorage untuk recovery setelah reload/reconnect
+            saveLastKnownSeq(d.seq ?? null);
             addToQueue(d);
         } catch(err) { console.error('SSE parse error:', err); }
     });
     es.addEventListener('stats', function(e) {
-        try { applyConfig(JSON.parse(e.data).config); }
-        catch(err) { console.error('SSE stats error:', err); }
+        try {
+            const parsed = JSON.parse(e.data);
+            if (parsed && parsed.config) applyConfig(parsed.config);
+        } catch(err) { console.error('SSE stats error:', err); }
     });
     es.addEventListener('ping', function() {});
+    es.addEventListener('stream_error', function(e) {
+        // Server mengirim event ini sebelum menutup koneksi karena error internal
+        statusEl.textContent = '● error — reconnecting…';
+        statusEl.style.color = 'rgba(249,115,22,.4)';
+        es.close();
+        // Reconnect dengan last_seq dari localStorage agar tidak melewatkan alert
+        setTimeout(connectSSE, 5000);
+    });
     es.onerror = function() {
         statusEl.textContent = '● reconnecting…';
         statusEl.style.color = 'rgba(249,115,22,.4)';
         es.close();
+        // lastKnownSeq sudah tersimpan di localStorage — buildSseUrl() akan membacanya
+        // sehingga alert yang masuk selama disconnect tetap akan diputar ulang
         setTimeout(connectSSE, 3000);
     };
 }

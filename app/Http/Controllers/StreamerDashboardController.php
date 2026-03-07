@@ -10,6 +10,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -37,22 +39,10 @@ class StreamerDashboardController extends Controller
             ->limit(50)
             ->get();
 
-        // Ringkasan harian 7 hari terakhir
-        $dailySummary = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $date = now()->subDays($i);
-            $dailySummary[] = [
-                'date'   => $date->format('d M'),
-                'total'  => $streamer->donations()
-                    ->whereDate('created_at', $date->toDateString())
-                    ->sum('amount'),
-                'count'  => $streamer->donations()
-                    ->whereDate('created_at', $date->toDateString())
-                    ->count(),
-            ];
-        }
+        // Heatmap: kirim data bulan ini langsung (navigasi bulan lain via AJAX)
+        $heatmapInitial = $this->buildMonthHeatmap($streamer, now()->year, now()->month);
 
-        return view('streamer.dashboard', compact('streamer', 'stats', 'donations', 'dailySummary'));
+        return view('streamer.dashboard', compact('streamer', 'stats', 'donations', 'heatmapInitial'));
     }
 
     /**
@@ -155,43 +145,101 @@ class StreamerDashboardController extends Controller
             'thank_you_message'    => ['required', 'string', 'max:200'],
         ]);
 
-        // Handle avatar upload
+        // ── Handle avatar upload (atomic: upload baru dulu, hapus lama hanya jika berhasil) ──
         if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
-            // Delete old avatar if exists
-            if ($streamer->avatar) {
-                Storage::disk('public')->delete($streamer->avatar);
+            try {
+                $ext     = $request->file('avatar')->getClientOriginalExtension();
+                $newPath = $request->file('avatar')->storeAs('avatars', $streamer->id . '.' . $ext, 'public');
+
+                if ($newPath === false) {
+                    throw new \RuntimeException('Upload file avatar gagal (storeAs returned false).');
+                }
+
+                // Upload baru berhasil — baru sekarang hapus file lama
+                $oldAvatar = $streamer->avatar;
+                $streamer->avatar = $newPath;
+
+                if ($oldAvatar && $oldAvatar !== $newPath) {
+                    Storage::disk('public')->delete($oldAvatar);
+                }
+            } catch (\Throwable $e) {
+                Log::error('StreamerDashboardController: gagal upload avatar', [
+                    'streamer_id' => $streamer->id,
+                    'error'       => $e->getMessage(),
+                ]);
+                return back()->withInput()->with('error', 'Gagal mengunggah foto profil. Mohon coba lagi.');
             }
-            $ext  = $request->file('avatar')->getClientOriginalExtension();
-            $path = $request->file('avatar')->storeAs('avatars', $streamer->id . '.' . $ext, 'public');
-            $streamer->avatar = $path;
         }
 
-        // Handle sound file upload / delete
-        $existingIsCustom   = $streamer->notification_sound
+        // ── Handle sound file upload / delete (atomic: upload baru dulu, hapus lama hanya jika berhasil) ──
+        $existingIsCustom = $streamer->notification_sound
             && !in_array($streamer->notification_sound, ['ding', 'coin', 'whoosh']);
-        $submittedPreset    = $request->input('notification_sound_preset', 'ding');
-        $userChosePreset    = in_array($submittedPreset, ['ding', 'coin', 'whoosh']);
+        $submittedPreset  = $request->input('notification_sound_preset', 'ding');
+        $userChosePreset  = in_array($submittedPreset, ['ding', 'coin', 'whoosh']);
 
         if ($request->input('delete_sound') === '1' && $existingIsCustom) {
-            // User clicked delete on the custom badge
-            Storage::disk('public')->delete($streamer->notification_sound);
-            $notificationSound = 'ding';
-        } elseif ($request->hasFile('sound_file') && $request->file('sound_file')->isValid()) {
-            // New file uploaded — replace old custom if any
-            if ($existingIsCustom) {
+            // User klik delete — hapus custom sound, kembali ke preset default
+            try {
                 Storage::disk('public')->delete($streamer->notification_sound);
+            } catch (\Throwable $e) {
+                Log::warning('StreamerDashboardController: gagal menghapus sound lama', [
+                    'streamer_id' => $streamer->id,
+                    'path'        => $streamer->notification_sound,
+                    'error'       => $e->getMessage(),
+                ]);
+                // Lanjutkan meski hapus gagal — set ke preset ding agar fungsional
             }
-            $ext  = $request->file('sound_file')->getClientOriginalExtension();
-            $path = $request->file('sound_file')->storeAs('sounds', $streamer->id . '.' . $ext, 'public');
-            $notificationSound = $path;
+            $notificationSound = 'ding';
+
+        } elseif ($request->hasFile('sound_file') && $request->file('sound_file')->isValid()) {
+            // Upload sound baru — upload dulu, baru hapus yang lama
+            try {
+                $ext     = $request->file('sound_file')->getClientOriginalExtension();
+                $newPath = $request->file('sound_file')->storeAs('sounds', $streamer->id . '.' . $ext, 'public');
+
+                if ($newPath === false) {
+                    throw new \RuntimeException('Upload file sound gagal (storeAs returned false).');
+                }
+
+                // Upload berhasil — baru hapus file lama
+                if ($existingIsCustom && $streamer->notification_sound !== $newPath) {
+                    try {
+                        Storage::disk('public')->delete($streamer->notification_sound);
+                    } catch (\Throwable $e) {
+                        Log::warning('StreamerDashboardController: gagal hapus sound lama setelah upload baru', [
+                            'streamer_id' => $streamer->id,
+                            'old_path'    => $streamer->notification_sound,
+                            'error'       => $e->getMessage(),
+                        ]);
+                        // Lanjutkan — file baru sudah tersimpan, file lama jadi orphan (bisa di-cleanup nanti)
+                    }
+                }
+                $notificationSound = $newPath;
+
+            } catch (\Throwable $e) {
+                Log::error('StreamerDashboardController: gagal upload sound file', [
+                    'streamer_id' => $streamer->id,
+                    'error'       => $e->getMessage(),
+                ]);
+                return back()->withInput()->with('error', 'Gagal mengunggah file suara. Mohon coba lagi.');
+            }
+
         } elseif ($userChosePreset) {
-            // User explicitly selected ding/coin/whoosh — delete old custom file and switch
+            // User memilih preset built-in — hapus custom file jika ada
             if ($existingIsCustom) {
-                Storage::disk('public')->delete($streamer->notification_sound);
+                try {
+                    Storage::disk('public')->delete($streamer->notification_sound);
+                } catch (\Throwable $e) {
+                    Log::warning('StreamerDashboardController: gagal hapus sound lama saat ganti preset', [
+                        'streamer_id' => $streamer->id,
+                        'error'       => $e->getMessage(),
+                    ]);
+                }
             }
             $notificationSound = $submittedPreset;
+
         } elseif ($existingIsCustom) {
-            // Custom badge still active, no new file, no delete — preserve existing path
+            // Custom badge masih aktif, tidak ada perubahan — pertahankan
             $notificationSound = $streamer->notification_sound;
         } else {
             $notificationSound = 'ding';
@@ -253,6 +301,86 @@ class StreamerDashboardController extends Controller
     }
 
     /**
+     * AJAX: kembalikan data heatmap untuk bulan tertentu (JSON)
+     * GET /streamer/heatmap-data?year=2026&month=3
+     */
+    public function heatmapData(Request $request): JsonResponse
+    {
+        $user     = Auth::user();
+        $streamer = $user->streamer;
+
+        if (!$streamer) {
+            return response()->json(['error' => 'Streamer tidak ditemukan.'], 404);
+        }
+
+        $year  = (int) $request->query('year',  now()->year);
+        $month = (int) $request->query('month', now()->month);
+
+        // Sanity clamp
+        if ($year < 2000 || $year > 2100) $year  = now()->year;
+        if ($month < 1   || $month > 12)  $month = now()->month;
+
+        return response()->json($this->buildMonthHeatmap($streamer, $year, $month));
+    }
+
+    /**
+     * Build heatmap data for a given month.
+     *
+     * Returns:
+     *   year          int
+     *   month         int
+     *   monthLabel    string  e.g. "Maret 2026"
+     *   firstWeekday  int     0 = Sun … 6 = Sat (day-of-week of 1st of month)
+     *   daysInMonth   int
+     *   days          array   [{iso, dateLabel, total, count}, …]  (1 entry per day)
+     */
+    private function buildMonthHeatmap($streamer, int $year, int $month): array
+    {
+        $start = \Carbon\Carbon::create($year, $month, 1)->startOfDay();
+        $end   = $start->copy()->endOfMonth()->endOfDay();
+
+        // Single aggregated query — date in streamer's app timezone
+        $rows = \App\Models\Donation::where('streamer_id', $streamer->id)
+            ->whereBetween('created_at', [$start, $end])
+            ->selectRaw("DATE(created_at) as day, SUM(amount) as total, COUNT(*) as cnt")
+            ->groupBy('day')
+            ->get()
+            ->keyBy('day');   // keyed by "2026-03-07"
+
+        $daysInMonth  = $start->daysInMonth;
+        $firstWeekday = (int) $start->dayOfWeek; // 0=Sun, 1=Mon, … 6=Sat
+
+        // Indonesian month names
+        $monthNames = [
+            1  => 'Januari', 2  => 'Februari', 3  => 'Maret',
+            4  => 'April',   5  => 'Mei',       6  => 'Juni',
+            7  => 'Juli',    8  => 'Agustus',   9  => 'September',
+            10 => 'Oktober', 11 => 'November',  12 => 'Desember',
+        ];
+
+        $days = [];
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $iso  = sprintf('%04d-%02d-%02d', $year, $month, $d);
+            $row  = $rows->get($iso);
+            $days[] = [
+                'iso'       => $iso,
+                'dateLabel' => $d . ' ' . $monthNames[$month] . ' ' . $year,
+                'total'     => $row ? (int) $row->total : 0,
+                'count'     => $row ? (int) $row->cnt   : 0,
+            ];
+        }
+
+        return [
+            'year'        => $year,
+            'month'       => $month,
+            'monthLabel'  => $monthNames[$month] . ' ' . $year,
+            'firstWeekday'=> $firstWeekday,
+            'daysInMonth' => $daysInMonth,
+            'days'        => $days,
+        ];
+    }
+
+    /**
      * Kirim test alert ke SSE stream tanpa menyimpan ke database donations
      */
     public function testAlert(Request $request): JsonResponse
@@ -261,7 +389,7 @@ class StreamerDashboardController extends Controller
         $streamer = $user->streamer;
 
         if (!$streamer) {
-            return response()->json(['error' => 'Profil streamer tidak ditemukan.'], 404);
+            return response()->json(['ok' => false, 'error' => 'Profil streamer tidak ditemukan.'], 404);
         }
 
         // Nama & pesan random untuk test
@@ -275,34 +403,48 @@ class StreamerDashboardController extends Controller
         $emoji   = $emojis[array_rand($emojis)];
         $amount  = $amounts[array_rand($amounts)];
 
-        // Dapatkan seq berikutnya
-        $lastSeq = AlertQueue::where('streamer_id', $streamer->id)->max('seq') ?? 0;
-        $nextSeq = $lastSeq + 1;
+        try {
+            // Generate seq dalam transaksi dengan lock untuk konsistensi
+            DB::transaction(function () use ($streamer, $name, $message, $emoji, $amount) {
+                $lastSeq = AlertQueue::where('streamer_id', $streamer->id)
+                    ->lockForUpdate()
+                    ->max('seq') ?? 0;
+                $nextSeq = $lastSeq + 1;
 
-        // Buat payload fake
-        $payload = [
-            'id'        => 0,
-            'seq'       => $nextSeq,
-            'name'      => $name,
-            'amount'    => $amount,
-            'emoji'     => $emoji,
-            'msg'       => $message,
-            'ytUrl'     => null,
-            'ytEnabled' => false,
-            'duration'  => $streamer->alert_duration,
-            'time'      => now()->toIso8601String(),
-            'is_test'   => true,
-        ];
+                $payload = [
+                    'id'        => 0,
+                    'seq'       => $nextSeq,
+                    'name'      => $name,
+                    'amount'    => $amount,
+                    'emoji'     => $emoji,
+                    'msg'       => $message,
+                    'ytUrl'     => null,
+                    'ytEnabled' => false,
+                    'duration'  => $streamer->alert_duration,
+                    'time'      => now()->toIso8601String(),
+                    'is_test'   => true,
+                ];
 
-        // Insert langsung dengan DB untuk bypass FK constraint (donation_id nullable)
-        \Illuminate\Support\Facades\DB::table('alert_queues')->insert([
-            'streamer_id' => $streamer->id,
-            'donation_id' => null,
-            'seq'         => $nextSeq,
-            'payload'     => json_encode($payload),
-            'expires_at'  => now()->addMinutes(5)->toDateTimeString(),
-            'created_at'  => now()->toDateTimeString(),
-        ]);
+                AlertQueue::create([
+                    'streamer_id' => $streamer->id,
+                    'donation_id' => null,
+                    'seq'         => $nextSeq,
+                    'payload'     => $payload,
+                    'expires_at'  => now()->addMinutes(5),
+                    'created_at'  => now(),
+                ]);
+            });
+        } catch (\Throwable $e) {
+            Log::error('StreamerDashboardController: testAlert gagal', [
+                'streamer_id' => $streamer->id,
+                'error'       => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'ok'    => false,
+                'error' => 'Gagal mengirim test alert. Pastikan widget OBS sedang terhubung.',
+            ], 500);
+        }
 
         return response()->json([
             'ok'     => true,

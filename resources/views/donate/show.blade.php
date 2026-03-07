@@ -364,7 +364,13 @@ function connectSSE() {
         connEl.innerHTML = '<span class="conn-dot"></span> Terhubung';
     };
     es.addEventListener('stats', (e) => {
-        try { applyStats(JSON.parse(e.data)); } catch(err) {}
+        try {
+            const parsed = JSON.parse(e.data);
+            if (parsed) applyStats(parsed);
+        } catch(err) {
+            // Stats parse gagal — biarkan tampilan tetap dengan data terakhir yang valid
+            console.warn('Stats parse error:', err);
+        }
     });
     es.onerror = () => {
         connEl.className = 'err';
@@ -469,17 +475,30 @@ async function submitDonation() {
             headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
             body: JSON.stringify({ name, amount, msg: msg || null, yt_url: ytUrl || null, emoji }),
         });
-        const data = await res.json();
+
+        // Coba parse response sebagai JSON
+        // Jika server mengembalikan HTML (misal halaman error 500), res.json() akan throw
+        let data;
+        try {
+            data = await res.json();
+        } catch (parseErr) {
+            // Server mengembalikan non-JSON (HTML error page, bukan network error)
+            showErr('Terjadi kesalahan pada server. Mohon coba lagi dalam beberapa saat.');
+            return;
+        }
 
         if (res.ok && data.success) {
             document.getElementById('donate-form').style.display = 'none';
             showThankYou(emoji, data.message);
         } else {
-            const msgs = data.errors ? Object.values(data.errors).flat().join('<br>') : (data.message || 'Gagal mengirim donasi.');
+            const msgs = data.errors
+                ? Object.values(data.errors).flat().join('<br>')
+                : (data.message || 'Gagal mengirim donasi. Coba lagi.');
             showErr(msgs);
         }
     } catch(e) {
-        showErr('Gagal terhubung ke server. Coba lagi.');
+        // Network error — tidak bisa terhubung ke server sama sekali
+        showErr('Tidak dapat terhubung ke server. Periksa koneksi internet Anda dan coba lagi.');
     } finally {
         btn.disabled = false;
         btn.classList.remove('loading');

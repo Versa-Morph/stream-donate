@@ -211,6 +211,7 @@
         .flash.success { background:rgba(34,211,160,.08); border:1px solid rgba(34,211,160,.2); color:var(--green); }
         .flash.error   { background:rgba(244,63,94,.08);  border:1px solid rgba(244,63,94,.2);  color:var(--red); }
         .flash.info    { background:rgba(124,108,252,.08); border:1px solid rgba(124,108,252,.2); color:var(--brand-light); }
+        .flash.warning { background:rgba(251,191,36,.08);  border:1px solid rgba(251,191,36,.2);  color:var(--yellow); }
         .flash .iconify { width:16px; height:16px; flex-shrink:0; }
         .flash-msg { flex:1; }
         .flash-dismiss {
@@ -498,6 +499,24 @@
             </button>
         </div>
     @endif
+    @if(session('warning'))
+        <div class="flash warning" id="flash-warning">
+            <span class="iconify" data-icon="solar:danger-triangle-bold-duotone"></span>
+            <span class="flash-msg">{{ session('warning') }}</span>
+            <button class="flash-dismiss" onclick="dismissFlash('flash-warning')" aria-label="Tutup">
+                <span class="iconify" data-icon="solar:close-circle-bold"></span>
+            </button>
+        </div>
+    @endif
+    @if(session('status'))
+        <div class="flash info" id="flash-status">
+            <span class="iconify" data-icon="solar:info-circle-bold-duotone"></span>
+            <span class="flash-msg">{{ session('status') }}</span>
+            <button class="flash-dismiss" onclick="dismissFlash('flash-status')" aria-label="Tutup">
+                <span class="iconify" data-icon="solar:close-circle-bold"></span>
+            </button>
+        </div>
+    @endif
 
     {{ $slot }}
 </div>
@@ -538,9 +557,9 @@ function dismissFlash(id) {
     el.addEventListener('animationend', () => el.remove(), { once: true });
 }
 document.addEventListener('DOMContentLoaded', function () {
-    ['flash-success', 'flash-error', 'flash-info'].forEach(function (id) {
+    ['flash-success', 'flash-error', 'flash-info', 'flash-warning', 'flash-status'].forEach(function (id) {
         const el = document.getElementById(id);
-        if (el) setTimeout(() => dismissFlash(id), 4000);
+        if (el) setTimeout(() => dismissFlash(id), 6000);
     });
 
     // Close user dropdown when clicking outside
