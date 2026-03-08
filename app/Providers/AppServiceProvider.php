@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
-        if (app()->environment('production')) {
+        if ($this->app->environment('production')) {
             Artisan::call('migrate', ['--force' => true]);
         }
     }
