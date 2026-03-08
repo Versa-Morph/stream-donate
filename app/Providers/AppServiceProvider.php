@@ -32,5 +32,9 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
+
+        if (app()->environment('production')) {
+            Artisan::call('migrate', ['--force' => true]);
+        }
     }
 }
