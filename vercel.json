@@ -5,7 +5,7 @@
 
     "functions": {
         "api/index.php": {
-            "runtime": "vercel-php@0.6.0"
+            "runtime": "vercel-php@0.7.3"
         }
     },
 
@@ -22,6 +22,7 @@
         "APP_URL": "https://streamdonate.versamorph.com",
 
         "LOG_CHANNEL": "stderr",
+
         "CACHE_DRIVER": "array",
         "SESSION_DRIVER": "cookie",
 
