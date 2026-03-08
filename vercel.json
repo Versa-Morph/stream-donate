@@ -18,7 +18,7 @@
 
     "env": {
         "APP_ENV": "production",
-        "APP_DEBUG": "false",
+        "APP_DEBUG": "true",
         "APP_URL": "https://streamdonate.versamorph.com",
 
         "LOG_CHANNEL": "stderr",
