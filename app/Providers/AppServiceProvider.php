@@ -28,5 +28,9 @@ class AppServiceProvider extends ServiceProvider
             $slug = $request->route('slug') ?? 'unknown';
             return Limit::perMinute(5)->by($request->ip() . '|' . $slug);
         });
+
+        if ($this->app->environment('production')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
     }
 }
