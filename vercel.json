@@ -27,7 +27,7 @@
         "SESSION_DRIVER": "cookie",
 
         "DB_CONNECTION": "sqlite",
-        "DB_DATABASE": "/tmp/database.sqlite",
+        "DB_DATABASE": "database/database.sqlite",
 
         "APP_CONFIG_CACHE": "/tmp/config.php",
         "APP_EVENTS_CACHE": "/tmp/events.php",
