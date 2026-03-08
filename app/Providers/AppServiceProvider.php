@@ -6,6 +6,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Artisan;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,6 +32,10 @@ class AppServiceProvider extends ServiceProvider
 
         if ($this->app->environment('production')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
+        if ($this->app->environment('production')) {
+            Artisan::call('migrate', ['--force' => true]);
         }
     }
 }
