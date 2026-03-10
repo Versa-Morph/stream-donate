@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\BannedWordController as AdminBannedWordController;
 use App\Http\Controllers\DonationController;
+use App\Http\Controllers\ObsCanvasController;
 use App\Http\Controllers\ObsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QrController;
@@ -93,6 +94,10 @@ Route::middleware(['auth', 'verified', 'streamer'])->prefix('streamer')->name('s
     Route::get('/banned-words',              [StreamerBannedWordController::class, 'index'])->name('banned-words.index');
     Route::post('/banned-words',             [StreamerBannedWordController::class, 'store'])->name('banned-words.store');
     Route::delete('/banned-words/{bannedWord}', [StreamerBannedWordController::class, 'destroy'])->name('banned-words.destroy');
+
+    // OBS Canvas Editor
+    Route::get('/obs-canvas',  [ObsCanvasController::class, 'editor'])->name('obs-canvas');
+    Route::post('/obs-canvas', [ObsCanvasController::class, 'save'])->name('obs-canvas.save');
 });
 
 /*
@@ -158,3 +163,4 @@ Route::get('/{slug}/obs/overlay',     [ObsController::class, 'overlay'])->name('
 Route::get('/{slug}/obs/leaderboard', [ObsController::class, 'leaderboard'])->name('obs.leaderboard');
 Route::get('/{slug}/obs/milestone',   [ObsController::class, 'milestone'])->name('obs.milestone');
 Route::get('/{slug}/obs/qr',          [QrController::class, 'obsWidget'])->name('obs.qr');
+Route::get('/{slug}/obs/canvas',      [ObsCanvasController::class, 'render'])->name('obs.canvas');

@@ -32,6 +32,7 @@ class Streamer extends Model
         'min_donation',
         'is_accepting_donation',
         'thank_you_message',
+        'canvas_config',
     ];
 
     protected function casts(): array
@@ -45,6 +46,7 @@ class Streamer extends Model
             'alert_duration' => 'integer',
             'leaderboard_count' => 'integer',
             'min_donation' => 'integer',
+            'canvas_config' => 'array',
         ];
     }
 
@@ -71,6 +73,37 @@ class Streamer extends Model
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class);
+    }
+
+    /**
+     * Kembalikan canvas_config dengan nilai default jika null/kosong.
+     */
+    public function getCanvasConfig(): array
+    {
+        $defaults = [
+            'width'  => 1920,
+            'height' => 1080,
+            'widgets' => [
+                'notification' => ['active' => true,  'x' => 680,  'y' => 820, 'w' => 560, 'h' => 200],
+                'leaderboard'  => ['active' => false, 'x' => 60,   'y' => 60,  'w' => 300, 'h' => 420],
+                'milestone'    => ['active' => false, 'x' => 40,   'y' => 800, 'w' => 340, 'h' => 130],
+                'qrcode'       => ['active' => false, 'x' => 1620, 'y' => 760, 'w' => 260, 'h' => 300],
+            ],
+        ];
+
+        $saved = $this->canvas_config;
+        if (empty($saved)) return $defaults;
+
+        // Merge widget-level defaults agar key baru tidak hilang
+        foreach ($defaults['widgets'] as $key => $def) {
+            if (!isset($saved['widgets'][$key])) {
+                $saved['widgets'][$key] = $def;
+            } else {
+                $saved['widgets'][$key] = array_merge($def, $saved['widgets'][$key]);
+            }
+        }
+
+        return array_merge($defaults, $saved);
     }
 
     /**
