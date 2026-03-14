@@ -311,9 +311,6 @@ input[type="file"].file-input-hidden{display:none}
             <div class="nav-item" data-tab="banned-words" onclick="switchTab('banned-words',this)">
                 <span class="iconify" data-icon="solar:shield-warning-bold-duotone"></span>Kata Terlarang
             </div>
-            <div class="nav-item" data-tab="obs" onclick="switchTab('obs',this)">
-                <span class="iconify" data-icon="solar:monitor-bold-duotone"></span>Widget OBS
-            </div>
             <div class="nav-divider"></div>
             <div class="nav-section-label">Lainnya</div>
             <div class="nav-item" data-tab="api" onclick="switchTab('api',this)">
@@ -678,60 +675,6 @@ input[type="file"].file-input-hidden{display:none}
                     <div class="hint" style="margin-top:16px">
                         <span class="iconify" data-icon="solar:info-circle-bold"></span>
                         Kata global dari admin tidak dapat dihapus. Kamu hanya bisa mengelola kata kustom milikmu sendiri.
-                    </div>
-                </div>
-            </div>
-
-            {{-- ══ TAB: Widget OBS ══ --}}
-            <div class="settings-panel" id="tab-obs">
-                <div class="panel-card">
-                    <div class="panel-card-head">
-                        <div class="panel-card-icon" style="background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2)">
-                            <span class="iconify" data-icon="solar:monitor-bold-duotone" style="color:var(--purple)"></span>
-                        </div>
-                        <div>
-                            <div class="panel-card-title">Widget OBS Browser Source</div>
-                            <div class="panel-card-sub">Copy URL lalu paste sebagai <strong style="color:var(--text-2)">Browser Source</strong> di OBS Studio</div>
-                        </div>
-                    </div>
-
-                    @php
-                        $baseUrl = config('app.url');
-                        $key     = $streamer->api_key;
-                        $slug    = $streamer->slug;
-                        $widgets = [
-                            ['id'=>'obs-url-overlay',     'icon'=>'solar:bell-bold-duotone',       'color'=>'var(--brand-light)', 'bg'=>'rgba(124,108,252,.1)', 'bc'=>'rgba(124,108,252,.2)', 'name'=>'Alert Donasi',   'desc'=>'Popup alert saat ada donasi masuk. Ukuran: 600×200px.',     'url'=>$baseUrl.'/'.$slug.'/obs/overlay?key='.$key,     'open'=>$baseUrl.'/'.$slug.'/obs/overlay?key='.$key],
-                            ['id'=>'obs-url-leaderboard', 'icon'=>'solar:ranking-bold-duotone',    'color'=>'var(--yellow)',      'bg'=>'rgba(251,191,36,.1)',  'bc'=>'rgba(251,191,36,.2)',  'name'=>'Leaderboard',    'desc'=>'Panel top donatur real-time. Ukuran: 320×480px.',           'url'=>$baseUrl.'/'.$slug.'/obs/leaderboard?key='.$key, 'open'=>$baseUrl.'/'.$slug.'/obs/leaderboard?key='.$key],
-                            ['id'=>'obs-url-milestone',   'icon'=>'solar:target-bold-duotone',     'color'=>'var(--green)',       'bg'=>'rgba(34,211,160,.1)',  'bc'=>'rgba(34,211,160,.2)',  'name'=>'Milestone Bar',  'desc'=>'Progress bar target donasi. Ukuran: 800×80px.',             'url'=>$baseUrl.'/'.$slug.'/obs/milestone?key='.$key,   'open'=>$baseUrl.'/'.$slug.'/obs/milestone?key='.$key],
-                            ['id'=>'obs-url-qr',          'icon'=>'solar:qr-code-bold-duotone',    'color'=>'var(--purple)',      'bg'=>'rgba(168,85,247,.1)',  'bc'=>'rgba(168,85,247,.2)',  'name'=>'QR Donasi',      'desc'=>'QR code untuk di-scan penonton. Ukuran: 200×200px.',        'url'=>$baseUrl.'/'.$slug.'/obs/qr',                    'open'=>$baseUrl.'/'.$slug.'/qr'],
-                        ];
-                    @endphp
-
-                    <div class="obs-grid">
-                        @foreach($widgets as $w)
-                        <div class="obs-card">
-                            <div class="obs-card-icon" style="background:{{ $w['bg'] }};border:1px solid {{ $w['bc'] }}">
-                                <span class="iconify" data-icon="{{ $w['icon'] }}" style="color:{{ $w['color'] }}"></span>
-                            </div>
-                            <div class="obs-card-name">{{ $w['name'] }}</div>
-                            <div class="obs-card-desc">{{ $w['desc'] }}</div>
-                            <input class="obs-url-input" readonly value="{{ $w['url'] }}" id="{{ $w['id'] }}" />
-                            <div class="obs-actions">
-                                <button type="button" class="obs-copy-btn"
-                                        onclick="copyText(document.getElementById('{{ $w['id'] }}').value,'URL {{ $w['name'] }}')">
-                                    <span class="iconify" data-icon="solar:copy-bold-duotone"></span>Copy URL
-                                </button>
-                                <a href="{{ $w['open'] }}" target="_blank" class="obs-open-btn">
-                                    <span class="iconify" data-icon="solar:eye-bold-duotone"></span>Preview
-                                </a>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-
-                    <div class="hint" style="margin-top:16px">
-                        <span class="iconify" data-icon="solar:shield-warning-bold-duotone" style="color:var(--yellow)"></span>
-                        Jika kamu regenerate API Key, URL Alert, Leaderboard, dan Milestone di atas akan berubah — update ulang di OBS.
                     </div>
                 </div>
             </div>

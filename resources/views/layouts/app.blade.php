@@ -395,6 +395,9 @@
                 <a href="{{ route('streamer.reports') }}" class="nav-link {{ request()->routeIs('streamer.reports*') ? 'active' : '' }}">
                     <span class="iconify" data-icon="solar:chart-bold-duotone"></span>Laporan
                 </a>
+                <a href="{{ route('streamer.obs-canvas') }}" class="nav-link {{ request()->routeIs('streamer.obs-canvas*') ? 'active' : '' }}">
+                    <span class="iconify" data-icon="solar:monitor-bold-duotone"></span>OBS Canvas
+                </a>
                 @if(auth()->user()->streamer)
                     <a href="{{ route('donate.show', auth()->user()->streamer->slug) }}" class="nav-link nav-external" target="_blank">
                         <span class="iconify" data-icon="solar:heart-send-bold-duotone"></span>Form Donasi
