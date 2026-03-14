@@ -6,6 +6,7 @@ use App\Http\Controllers\DonationController;
 use App\Http\Controllers\ObsCanvasController;
 use App\Http\Controllers\ObsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PolicyController;
 use App\Http\Controllers\QrController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SseController;
@@ -20,6 +21,15 @@ use Illuminate\Support\Facades\Route;
 */
 
 require __DIR__.'/auth.php';
+
+/*
+|--------------------------------------------------------------------------
+| Public Routes — Policies
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/policies', [PolicyController::class, 'index'])->name('policies.index');
+Route::get('/policies/{slug}', [PolicyController::class, 'show'])->name('policies.show');
 
 /*
 |--------------------------------------------------------------------------

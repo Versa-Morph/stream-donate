@@ -79,6 +79,11 @@
     <div class="auth-card">
         {{ $slot }}
     </div>
+    <div style="margin-top:20px;text-align:center;font-size:12px;color:var(--text-3)">
+        <a href="{{ route('policies.index') }}" style="color:var(--text-3);text-decoration:none;margin:0 8px">Policies</a>
+        <span style="opacity:.5">|</span>
+        <a href="mailto:support@streamdonate.com" style="color:var(--text-3);text-decoration:none;margin:0 8px">Support</a>
+    </div>
 </div>
 </body>
 </html>

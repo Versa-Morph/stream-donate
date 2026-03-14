@@ -371,6 +371,9 @@
 
     {{-- Nav links --}}
     <div class="topbar-nav">
+        <a href="{{ route('policies.index') }}" class="nav-link {{ request()->routeIs('policies.*') ? 'active' : '' }}">
+            <span class="iconify" data-icon="solar:document-text-bold-duotone"></span>Policies
+        </a>
         @auth
             @if(auth()->user()->isAdmin())
                 <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
