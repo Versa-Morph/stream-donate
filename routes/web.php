@@ -27,10 +27,10 @@ require __DIR__.'/auth.php';
 |--------------------------------------------------------------------------
 */
 
-// Halaman utama redirect ke login
+// Halaman utama — landing page / company profile
 Route::get('/', function () {
-    return redirect()->route('login');
-});
+    return view('welcome');
+})->name('home');
 
 /*
 |--------------------------------------------------------------------------
