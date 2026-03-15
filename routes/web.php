@@ -11,6 +11,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SseController;
 use App\Http\Controllers\StreamerDashboardController;
 use App\Http\Controllers\Streamer\BannedWordController as StreamerBannedWordController;
+use App\Http\Controllers\PolicyController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,7 +20,16 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
+
+/*
+|--------------------------------------------------------------------------
+| Public Routes — Policies
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/policies', [PolicyController::class, 'index'])->name('policies.index');
+Route::get('/policies/{slug}', [PolicyController::class, 'show'])->name('policies.show');
 
 /*
 |--------------------------------------------------------------------------
