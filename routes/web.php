@@ -98,6 +98,11 @@ Route::middleware(['auth', 'verified', 'streamer'])->prefix('streamer')->name('s
     // OBS Canvas Editor
     Route::get('/obs-canvas',  [ObsCanvasController::class, 'editor'])->name('obs-canvas');
     Route::post('/obs-canvas', [ObsCanvasController::class, 'save'])->name('obs-canvas.save');
+
+    // Widget Studio
+    Route::get('/widgets',  [StreamerDashboardController::class, 'widgets'])->name('widgets');
+    Route::post('/widgets', [StreamerDashboardController::class, 'saveWidgets'])->name('widgets.save');
+    Route::post('/widgets/alert-settings', [StreamerDashboardController::class, 'saveAlertSettings'])->name('widgets.alert-settings');
 });
 
 /*

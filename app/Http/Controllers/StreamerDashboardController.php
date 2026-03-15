@@ -72,16 +72,21 @@ class StreamerDashboardController extends Controller
 
         $validated = $request->validate([
             'display_name' => ['required', 'string', 'max:60'],
-            'slug'         => ['required', 'string', 'max:40', 'unique:streamers,slug', 'regex:/^[a-z0-9\-]+$/'],
+            'slug'         => ['nullable', 'string', 'max:40', 'regex:/^[a-z0-9\-]+$/'],
             'bio'          => ['nullable', 'string', 'max:200'],
         ], [
-            'slug.unique'  => 'Slug sudah digunakan. Pilih nama lain.',
-            'slug.regex'   => 'Slug hanya boleh huruf kecil, angka, dan tanda hubung (-).',
+            'slug.regex' => 'Slug hanya boleh huruf kecil, angka, dan tanda hubung (-).',
         ]);
+
+        // Generate slug if not provided, or ensure provided slug is unique
+        $slug = $this->resolveUniqueSlug(
+            base: $validated['slug'] ?? '',
+            fallbackName: $validated['display_name'],
+        );
 
         Streamer::create([
             'user_id'      => $user->id,
-            'slug'         => $validated['slug'],
+            'slug'         => $slug,
             'display_name' => $validated['display_name'],
             'api_key'      => Streamer::generateApiKey(),
             'bio'          => $validated['bio'] ?? null,
@@ -95,6 +100,52 @@ class StreamerDashboardController extends Controller
 
         return redirect()->route('streamer.dashboard')
             ->with('success', 'Profil streamer berhasil dibuat!');
+    }
+
+    /**
+     * Resolve a unique slug.
+     *
+     * - If $base is non-empty and not already taken → use it as-is.
+     * - If $base is taken or empty → generate from $fallbackName + 4-char suffix,
+     *   retrying up to 10 times until unique.
+     */
+    private function resolveUniqueSlug(string $base, string $fallbackName): string
+    {
+        $base = strtolower(trim($base));
+
+        // Sanitize base: keep only a-z, 0-9, hyphens
+        $base = preg_replace('/[^a-z0-9\-]/', '', $base);
+        $base = preg_replace('/-+/', '-', $base);
+        $base = trim($base, '-');
+
+        // If valid and not taken, use it
+        if ($base !== '' && !Streamer::where('slug', $base)->exists()) {
+            return $base;
+        }
+
+        // Build slug from display name
+        $nameBase = strtolower($fallbackName);
+        $nameBase = preg_replace('/[^a-z0-9\s\-]/u', '', $nameBase);
+        $nameBase = trim(preg_replace('/[\s]+/', '-', $nameBase), '-');
+        $nameBase = preg_replace('/-+/', '-', $nameBase);
+        $nameBase = substr($nameBase, 0, 30);
+
+        if ($nameBase === '') {
+            $nameBase = 'streamer';
+        }
+
+        // Try up to 10 times with different 4-char suffixes
+        for ($i = 0; $i < 10; $i++) {
+            $suffix    = Str::lower(Str::random(4));
+            $candidate = $nameBase . '-' . $suffix;
+
+            if (!Streamer::where('slug', $candidate)->exists()) {
+                return $candidate;
+            }
+        }
+
+        // Last resort: name + microsecond timestamp
+        return $nameBase . '-' . substr((string) now()->timestamp, -6);
     }
 
     /**
@@ -129,7 +180,7 @@ class StreamerDashboardController extends Controller
             'bio'                  => ['nullable', 'string', 'max:200'],
             'min_donation'         => ['required', 'integer', 'min:100', 'max:1000000'],
             'alert_duration'       => ['required', 'integer', 'min:3000', 'max:30000'],
-            'alert_theme'          => ['required', 'in:default,minimal,neon,retro,fire,ice'],
+            'alert_theme'          => ['required', 'in:default,minimal,neon,fire,ice'],
             'yt_enabled'           => ['boolean'],
             'sound_enabled'        => ['boolean'],
             'notification_sound_preset' => ['nullable', 'string', 'in:ding,coin,whoosh,__custom__'],
@@ -336,19 +387,31 @@ class StreamerDashboardController extends Controller
      */
     private function buildMonthHeatmap($streamer, int $year, int $month): array
     {
-        $start = \Carbon\Carbon::create($year, $month, 1)->startOfDay();
-        $end   = $start->copy()->endOfMonth()->endOfDay();
+        // WIB = UTC+7. Bulan WIB dimulai dari UTC prev-day 17:00 sampai UTC last-day 16:59.
+        // Kurangi 7 jam dari start dan tambah 7 jam ke end agar whereBetween mencakup seluruh bulan WIB.
+        $wibStart = \Carbon\Carbon::create($year, $month, 1, 0, 0, 0, 'Asia/Jakarta');
+        $wibEnd   = $wibStart->copy()->endOfMonth();
 
-        // Single aggregated query — date in streamer's app timezone
+        $start = $wibStart->copy()->setTimezone('UTC');
+        $end   = $wibEnd->copy()->setTimezone('UTC');
+
+        // Single aggregated query — date in WIB timezone (UTC+7)
+        // SQLite: datetime(created_at, '+7 hours')
+        // MySQL:  CONVERT_TZ(created_at, 'UTC', 'Asia/Jakarta')
+        $driver    = \Illuminate\Support\Facades\DB::getDriverName();
+        $datExpr   = $driver === 'sqlite'
+            ? "DATE(datetime(created_at, '+7 hours'))"
+            : "DATE(CONVERT_TZ(created_at, 'UTC', 'Asia/Jakarta'))";
+
         $rows = \App\Models\Donation::where('streamer_id', $streamer->id)
             ->whereBetween('created_at', [$start, $end])
-            ->selectRaw("DATE(created_at) as day, SUM(amount) as total, COUNT(*) as cnt")
+            ->selectRaw("{$datExpr} as day, SUM(amount) as total, COUNT(*) as cnt")
             ->groupBy('day')
             ->get()
             ->keyBy('day');   // keyed by "2026-03-07"
 
-        $daysInMonth  = $start->daysInMonth;
-        $firstWeekday = (int) $start->dayOfWeek; // 0=Sun, 1=Mon, … 6=Sat
+        $daysInMonth  = $wibStart->daysInMonth;
+        $firstWeekday = (int) $wibStart->dayOfWeek; // 0=Sun, 1=Mon, … 6=Sat
 
         // Indonesian month names
         $monthNames = [
@@ -452,5 +515,121 @@ class StreamerDashboardController extends Controller
             'amount' => $amount,
             'emoji'  => $emoji,
         ]);
+    }
+
+    /**
+     * Halaman Widget Studio
+     */
+    public function widgets(): View|RedirectResponse
+    {
+        $user = Auth::user();
+
+        if (!$user->streamer) {
+            return redirect()->route('streamer.setup');
+        }
+
+        $streamer       = $user->streamer;
+        $widgetSettings = $streamer->getWidgetSettings();
+        $alertTiers     = $streamer->getAlertDurationTiers();
+        $alertMaxDur    = min((int) ($streamer->alert_max_duration ?? 30), 120);
+
+        return view('streamer.widgets', compact('streamer', 'widgetSettings', 'alertTiers', 'alertMaxDur'));
+    }
+
+    /**
+     * Simpan widget settings (AJAX / form POST)
+     */
+    public function saveWidgets(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $user     = Auth::user();
+        $streamer = $user->streamer;
+
+        if (!$streamer) {
+            return response()->json(['ok' => false, 'error' => 'Profil tidak ditemukan.'], 404);
+        }
+
+        $widget = $request->input('widget'); // 'alert','milestone','leaderboard','qr'
+        $data   = $request->input('data', []);
+
+        $allowed = ['alert', 'milestone', 'leaderboard', 'qr'];
+        if (!in_array($widget, $allowed)) {
+            return response()->json(['ok' => false, 'error' => 'Widget tidak dikenal.'], 422);
+        }
+
+        // Sanitize: hanya string keys, strip tags
+        $clean = [];
+        foreach ($data as $key => $val) {
+            $clean[preg_replace('/[^a-z0-9_]/', '', strtolower($key))] = strip_tags((string) $val);
+        }
+
+        $current = $streamer->widget_settings ?? [];
+        $current[$widget] = $clean;
+        $streamer->widget_settings = $current;
+        $streamer->save();
+
+        ActivityLog::log(
+            action: 'streamer.widgets.saved',
+            description: "Widget '{$widget}' settings disimpan",
+            streamerId: $streamer->id,
+        );
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Simpan pengaturan alert: audio, durasi tier, youtube/video toggle (AJAX).
+     * POST /streamer/widgets/alert-settings
+     */
+    public function saveAlertSettings(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $user     = Auth::user();
+        $streamer = $user->streamer;
+
+        if (!$streamer) {
+            return response()->json(['ok' => false, 'error' => 'Profil tidak ditemukan.'], 404);
+        }
+
+        $validSounds = [
+            'ding', 'coin', 'whoosh', 'chime', 'pop', 'tada',
+            'woosh_light', 'blip', 'sparkle', 'fanfare',
+        ];
+
+        $validated = $request->validate([
+            'sound_enabled'        => ['boolean'],
+            'notification_sound'   => ['nullable', 'string', 'in:' . implode(',', $validSounds)],
+            'yt_enabled'           => ['boolean'],
+            'alert_max_duration'   => ['required', 'integer', 'min:5', 'max:120'],
+            'alert_duration_tiers' => ['required', 'array', 'min:1', 'max:4'],
+            'alert_duration_tiers.*.from'     => ['required', 'integer', 'min:0'],
+            'alert_duration_tiers.*.duration' => ['required', 'integer', 'min:1', 'max:120'],
+        ]);
+
+        // Enforce max_duration cap on each tier
+        $maxDur = (int) $validated['alert_max_duration'];
+        $tiers  = array_map(function ($tier) use ($maxDur) {
+            return [
+                'from'     => (int) $tier['from'],
+                'duration' => min((int) $tier['duration'], $maxDur),
+            ];
+        }, $validated['alert_duration_tiers']);
+
+        // Sort tiers ascending by `from`
+        usort($tiers, fn($a, $b) => $a['from'] <=> $b['from']);
+
+        $streamer->fill([
+            'sound_enabled'        => $request->boolean('sound_enabled'),
+            'notification_sound'   => $validated['notification_sound'] ?? $streamer->notification_sound,
+            'yt_enabled'           => $request->boolean('yt_enabled'),
+            'alert_max_duration'   => $maxDur,
+            'alert_duration_tiers' => $tiers,
+        ])->save();
+
+        ActivityLog::log(
+            action: 'streamer.alert-settings.saved',
+            description: 'Alert settings (audio, durasi tier, video) disimpan',
+            streamerId: $streamer->id,
+        );
+
+        return response()->json(['ok' => true]);
     }
 }

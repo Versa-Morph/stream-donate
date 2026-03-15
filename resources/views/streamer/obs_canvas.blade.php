@@ -883,13 +883,30 @@ function toggleWidget(key, active) {
     updateRowActiveStyle(key, active);
 }
 
-// ── Drag & Drop ──
-let dragState = null;
+// ── Drag & Drop + Resize (single consolidated mousedown handler) ──
+let dragState   = null;
+let resizeState = null;
 
 surface.addEventListener('mousedown', function(e) {
-    // Cek apakah klik di resize handle
-    if (e.target.closest('.resize-handle')) return;
+    // ── Resize: handle klik di resize handle ──
+    const handle = e.target.closest('.resize-handle');
+    if (handle) {
+        const key = handle.dataset.widget;
+        const box = document.getElementById('wbox-' + key);
+        if (!box || box.hasAttribute('data-inactive')) return;
 
+        const wdata = cfg.widgets[key];
+        resizeState = {
+            key, box,
+            startX: e.clientX, startY: e.clientY,
+            startW: wdata.w,   startH: wdata.h,
+        };
+        box.classList.add('resizing');
+        e.preventDefault();
+        return; // jangan lanjut ke drag
+    }
+
+    // ── Drag: handle klik di wbox ──
     const box = e.target.closest('.wbox');
     if (!box || box.hasAttribute('data-inactive')) return;
 
@@ -910,8 +927,37 @@ surface.addEventListener('mousedown', function(e) {
 });
 
 document.addEventListener('mousemove', function(e) {
+    // ── Resize move ──
+    if (resizeState) {
+        const { key, box, startX, startY, startW, startH } = resizeState;
+
+        const dxScaled = e.clientX - startX;
+        const dyScaled = e.clientY - startY;
+
+        // Konversi delta ke koordinat asli
+        const dx = Math.round(dxScaled / scale);
+        const dy = Math.round(dyScaled / scale);
+
+        let newW = Math.max(MIN_W[key] || 100, startW + dx);
+        let newH = Math.max(MIN_H[key] || 60,  startH + dy);
+
+        // Klem agar tidak keluar batas
+        const wdata = cfg.widgets[key];
+        newW = Math.min(newW, cfg.width  - wdata.x);
+        newH = Math.min(newH, cfg.height - wdata.y);
+
+        cfg.widgets[key].w = newW;
+        cfg.widgets[key].h = newH;
+
+        box.style.width  = newW + 'px';
+        box.style.height = newH + 'px';
+        updateCoords(key, wdata.x, wdata.y, newW, newH);
+        updateSizeDisplay(key, newW, newH);
+        return;
+    }
+
+    // ── Drag move ──
     if (!dragState) return;
-    if (resizeState) return;
 
     const { key, box, offX, offY } = dragState;
     const surfRect = surface.getBoundingClientRect();
@@ -938,67 +984,13 @@ document.addEventListener('mousemove', function(e) {
 });
 
 document.addEventListener('mouseup', function() {
-    if (dragState) {
-        dragState.box.classList.remove('dragging');
-        dragState = null;
-    }
-});
-
-// ── Resize ──
-let resizeState = null;
-
-surface.addEventListener('mousedown', function(e) {
-    const handle = e.target.closest('.resize-handle');
-    if (!handle) return;
-
-    const key = handle.dataset.widget;
-    const box = document.getElementById('wbox-' + key);
-    if (!box || box.hasAttribute('data-inactive')) return;
-
-    const wdata = cfg.widgets[key];
-    resizeState = {
-        key, box,
-        startX: e.clientX, startY: e.clientY,
-        startW: wdata.w,   startH: wdata.h,
-    };
-    box.classList.add('resizing');
-    e.preventDefault();
-    e.stopPropagation();
-});
-
-document.addEventListener('mousemove', function(e) {
-    if (!resizeState) return;
-
-    const { key, box, startX, startY, startW, startH } = resizeState;
-
-    const dxScaled = e.clientX - startX;
-    const dyScaled = e.clientY - startY;
-
-    // Konversi delta ke koordinat asli
-    const dx = Math.round(dxScaled / scale);
-    const dy = Math.round(dyScaled / scale);
-
-    let newW = Math.max(MIN_W[key] || 100, startW + dx);
-    let newH = Math.max(MIN_H[key] || 60,  startH + dy);
-
-    // Klem agar tidak keluar batas
-    const wdata = cfg.widgets[key];
-    newW = Math.min(newW, cfg.width  - wdata.x);
-    newH = Math.min(newH, cfg.height - wdata.y);
-
-    cfg.widgets[key].w = newW;
-    cfg.widgets[key].h = newH;
-
-    box.style.width  = newW + 'px';
-    box.style.height = newH + 'px';
-    updateCoords(key, wdata.x, wdata.y, newW, newH);
-    updateSizeDisplay(key, newW, newH);
-});
-
-document.addEventListener('mouseup', function() {
     if (resizeState) {
         resizeState.box.classList.remove('resizing');
         resizeState = null;
+    }
+    if (dragState) {
+        dragState.box.classList.remove('dragging');
+        dragState = null;
     }
 });
 

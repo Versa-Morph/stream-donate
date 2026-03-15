@@ -51,7 +51,7 @@
         .ms-wrap {
             background: var(--surface);
             border: 1px solid var(--border2);
-            border-radius: 16px;
+            border-radius: var(--radius-ms, 16px);
             overflow: hidden;
             box-shadow:
                 0 8px 40px rgba(0,0,0,.7),
@@ -184,6 +184,40 @@
         #milestone-panel.reached .ms-pct { display: none; }
         #milestone-panel.reached .ms-reached-label { display: inline; }
 
+        /* ─── THEMES ─── */
+        body.theme-neon {
+            --surface: rgba(2,4,18,.97);
+            --border2: rgba(0,255,200,.22);
+            --brand:   #00ffc8;
+            --brand2:  #00e5ff;
+            --orange:  #00ffc8;
+            --green:   #00e5ff;
+        }
+        body.theme-fire {
+            --surface: rgba(10,4,2,.97);
+            --border2: rgba(249,115,22,.22);
+            --brand:   #f97316;
+            --brand2:  #fbbf24;
+            --orange:  #f97316;
+            --green:   #fbbf24;
+        }
+        body.theme-ice {
+            --surface: rgba(2,8,22,.96);
+            --border2: rgba(147,210,255,.18);
+            --brand:   #38bdf8;
+            --brand2:  #818cf8;
+            --orange:  #38bdf8;
+            --green:   #818cf8;
+        }
+        body.theme-minimal {
+            --surface: rgba(12,12,16,.95);
+            --border2: rgba(255,255,255,.14);
+            --brand:   #e0e0f0;
+            --brand2:  #ffffff;
+            --orange:  #e0e0f0;
+            --green:   #ffffff;
+        }
+
         /* ─── SSE status ─── */
         #sse-status {
             position: fixed; bottom: 8px; left: 10px;
@@ -192,7 +226,83 @@
         }
     </style>
 </head>
-<body>
+<body class="@php
+    $ws = $streamer->getWidgetSettings()['milestone'] ?? [];
+    $preset = $ws['preset'] ?? 'default';
+    $themeMap = ['neon'=>'theme-neon','fire'=>'theme-fire','ice'=>'theme-ice','minimal'=>'theme-minimal'];
+    echo $themeMap[$preset] ?? '';
+@endphp">
+
+<style id="widget-custom-vars">
+@php
+    $ws = $streamer->getWidgetSettings()['milestone'] ?? [];
+    $preset = $ws['preset'] ?? 'default';
+    $vars = [];
+    if ($preset === 'custom'):
+        if (!empty($ws['surface'])) $vars[] = '--surface: ' . $ws['surface'] . ';';
+        if (!empty($ws['border']))  $vars[] = '--border2: ' . $ws['border']  . ';';
+        if (!empty($ws['brand']))   $vars[] = '--brand: '   . $ws['brand']   . ';';
+        if (!empty($ws['brand2']))  $vars[] = '--brand2: '  . $ws['brand2']  . ';';
+        if (!empty($ws['orange']))  $vars[] = '--orange: '  . $ws['orange']  . ';';
+        if (!empty($ws['green']))   $vars[] = '--green: '   . $ws['green']   . ';';
+        if (!empty($ws['radius']))  $vars[] = '--radius-ms: ' . intval($ws['radius']) . 'px;';
+    elseif ($preset === 'neon'):
+        $vars[] = '--surface: rgba(2,4,18,.97);';
+        $vars[] = '--border2: rgba(0,255,200,.22);';
+        $vars[] = '--brand: #00ffc8;';
+        $vars[] = '--brand2: #00e5ff;';
+        $vars[] = '--orange: #00ffc8;';
+        $vars[] = '--green: #00e5ff;';
+    elseif ($preset === 'fire'):
+        $vars[] = '--surface: rgba(10,4,2,.97);';
+        $vars[] = '--border2: rgba(249,115,22,.22);';
+        $vars[] = '--brand: #f97316;';
+        $vars[] = '--brand2: #fbbf24;';
+        $vars[] = '--orange: #f97316;';
+        $vars[] = '--green: #fbbf24;';
+    elseif ($preset === 'ice'):
+        $vars[] = '--surface: rgba(2,8,22,.96);';
+        $vars[] = '--border2: rgba(147,210,255,.18);';
+        $vars[] = '--brand: #38bdf8;';
+        $vars[] = '--brand2: #818cf8;';
+        $vars[] = '--orange: #38bdf8;';
+        $vars[] = '--green: #818cf8;';
+    elseif ($preset === 'minimal'):
+        $vars[] = '--surface: rgba(12,12,16,.95);';
+        $vars[] = '--border2: rgba(255,255,255,.14);';
+        $vars[] = '--brand: #e0e0f0;';
+        $vars[] = '--brand2: #ffffff;';
+        $vars[] = '--orange: #e0e0f0;';
+        $vars[] = '--green: #ffffff;';
+    endif;
+    // Radius for non-default presets
+    if ($preset !== 'default' && $preset !== 'custom' && !empty($ws['radius'])):
+        $vars[] = '--radius-ms: ' . intval($ws['radius']) . 'px;';
+    endif;
+    // Width / position
+    $msWidth = !empty($ws['width']) ? intval($ws['width']) : 340;
+    $msPos   = $ws['position'] ?? 'bottom-left';
+@endphp
+@if(!empty($vars))
+:root {
+    {!! implode("\n    ", $vars) !!}
+}
+@endif
+#milestone-panel {
+    width: {{ $msWidth }}px !important;
+@php
+    $posMap = [
+        'top-left'     => ['top:40px',     'left:40px',   'bottom:auto', 'right:auto'],
+        'top-right'    => ['top:40px',      'right:40px',  'bottom:auto', 'left:auto'],
+        'bottom-left'  => ['bottom:40px',   'left:40px',   'top:auto',    'right:auto'],
+        'bottom-right' => ['bottom:40px',   'right:40px',  'top:auto',    'left:auto'],
+        'center'       => ['top:50%',       'left:50%',    'transform:translate(-50%,-50%)', 'bottom:auto', 'right:auto'],
+    ];
+    $posStyles = $posMap[$msPos] ?? $posMap['bottom-left'];
+    echo implode(";\n    ", $posStyles) . ';';
+@endphp
+}
+</style>
 
 <div id="sse-status">connecting…</div>
 
@@ -239,6 +349,8 @@ async function loadInitial() {
         }
 
         applyStats(data);
+        // Tampilkan panel hanya setelah data berhasil dimuat
+        panel.classList.add('visible');
     } catch(e) {
         // Tampilkan indikator error yang jelas — jangan biarkan tampil diam dengan default Rp 0
         statusEl.textContent = '● error';
@@ -248,7 +360,6 @@ async function loadInitial() {
         setTimeout(loadInitial, 10000);
         console.warn('Milestone loadInitial failed, will retry in 10s:', e.message);
     }
-    panel.classList.add('visible');
 }
 
 function connectSSE() {

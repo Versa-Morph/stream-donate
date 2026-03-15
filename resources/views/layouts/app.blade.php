@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#070709">
     <title>{{ $title ?? config('app.name', 'StreamDonate') }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js" defer></script>
     <style>
         :root {
@@ -397,6 +397,9 @@
                 </a>
                 <a href="{{ route('streamer.obs-canvas') }}" class="nav-link {{ request()->routeIs('streamer.obs-canvas*') ? 'active' : '' }}">
                     <span class="iconify" data-icon="solar:monitor-bold-duotone"></span>OBS Canvas
+                </a>
+                <a href="{{ route('streamer.widgets') }}" class="nav-link {{ request()->routeIs('streamer.widgets*') ? 'active' : '' }}">
+                    <span class="iconify" data-icon="solar:palette-bold-duotone"></span>Widget Studio
                 </a>
                 @if(auth()->user()->streamer)
                     <a href="{{ route('donate.show', auth()->user()->streamer->slug) }}" class="nav-link nav-external" target="_blank">

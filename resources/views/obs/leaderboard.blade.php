@@ -51,7 +51,7 @@
         .lb-wrap {
             background: var(--surface);
             border: 1px solid var(--border2);
-            border-radius: 16px;
+            border-radius: var(--radius-lb, 16px);
             overflow: hidden;
             box-shadow:
                 0 8px 40px rgba(0,0,0,.7),
@@ -190,6 +190,40 @@
         /* Empty state */
         .lb-empty { padding: 22px 16px; font-size: 11px; color: var(--text-3); text-align: center; }
 
+        /* ─── THEMES ─── */
+        body.theme-neon {
+            --surface: rgba(2,4,18,.97);
+            --border2: rgba(0,255,200,.22);
+            --brand:   #00ffc8;
+            --brand2:  #00e5ff;
+            --yellow:  #00ffc8;
+            --green:   #00e5ff;
+        }
+        body.theme-fire {
+            --surface: rgba(10,4,2,.97);
+            --border2: rgba(249,115,22,.22);
+            --brand:   #f97316;
+            --brand2:  #fbbf24;
+            --yellow:  #f97316;
+            --green:   #fbbf24;
+        }
+        body.theme-ice {
+            --surface: rgba(2,8,22,.96);
+            --border2: rgba(147,210,255,.18);
+            --brand:   #38bdf8;
+            --brand2:  #818cf8;
+            --yellow:  #38bdf8;
+            --green:   #818cf8;
+        }
+        body.theme-minimal {
+            --surface: rgba(12,12,16,.95);
+            --border2: rgba(255,255,255,.14);
+            --brand:   #e0e0f0;
+            --brand2:  #ffffff;
+            --yellow:  #e0e0f0;
+            --green:   #ffffff;
+        }
+
         /* ─── SSE status ─── */
         #sse-status {
             position: fixed; bottom: 8px; left: 10px;
@@ -198,7 +232,83 @@
         }
     </style>
 </head>
-<body>
+<body class="@php
+    $ws = $streamer->getWidgetSettings()['leaderboard'] ?? [];
+    $preset = $ws['preset'] ?? 'default';
+    $themeMap = ['neon'=>'theme-neon','fire'=>'theme-fire','ice'=>'theme-ice','minimal'=>'theme-minimal'];
+    echo $themeMap[$preset] ?? '';
+@endphp">
+
+<style id="widget-custom-vars">
+@php
+    $ws = $streamer->getWidgetSettings()['leaderboard'] ?? [];
+    $preset = $ws['preset'] ?? 'default';
+    $vars = [];
+    if ($preset === 'custom'):
+        if (!empty($ws['surface'])) $vars[] = '--surface: ' . $ws['surface'] . ';';
+        if (!empty($ws['border']))  $vars[] = '--border2: ' . $ws['border']  . ';';
+        if (!empty($ws['brand']))   $vars[] = '--brand: '   . $ws['brand']   . ';';
+        if (!empty($ws['brand2']))  $vars[] = '--brand2: '  . $ws['brand2']  . ';';
+        if (!empty($ws['yellow']))  $vars[] = '--yellow: '  . $ws['yellow']  . ';';
+        if (!empty($ws['green']))   $vars[] = '--green: '   . $ws['green']   . ';';
+        if (!empty($ws['radius']))  $vars[] = '--radius-lb: ' . intval($ws['radius']) . 'px;';
+    elseif ($preset === 'neon'):
+        $vars[] = '--surface: rgba(2,4,18,.97);';
+        $vars[] = '--border2: rgba(0,255,200,.22);';
+        $vars[] = '--brand: #00ffc8;';
+        $vars[] = '--brand2: #00e5ff;';
+        $vars[] = '--yellow: #00ffc8;';
+        $vars[] = '--green: #00e5ff;';
+    elseif ($preset === 'fire'):
+        $vars[] = '--surface: rgba(10,4,2,.97);';
+        $vars[] = '--border2: rgba(249,115,22,.22);';
+        $vars[] = '--brand: #f97316;';
+        $vars[] = '--brand2: #fbbf24;';
+        $vars[] = '--yellow: #f97316;';
+        $vars[] = '--green: #fbbf24;';
+    elseif ($preset === 'ice'):
+        $vars[] = '--surface: rgba(2,8,22,.96);';
+        $vars[] = '--border2: rgba(147,210,255,.18);';
+        $vars[] = '--brand: #38bdf8;';
+        $vars[] = '--brand2: #818cf8;';
+        $vars[] = '--yellow: #38bdf8;';
+        $vars[] = '--green: #818cf8;';
+    elseif ($preset === 'minimal'):
+        $vars[] = '--surface: rgba(12,12,16,.95);';
+        $vars[] = '--border2: rgba(255,255,255,.14);';
+        $vars[] = '--brand: #e0e0f0;';
+        $vars[] = '--brand2: #ffffff;';
+        $vars[] = '--yellow: #e0e0f0;';
+        $vars[] = '--green: #ffffff;';
+    endif;
+    // Radius for non-default presets
+    if ($preset !== 'default' && $preset !== 'custom' && !empty($ws['radius'])):
+        $vars[] = '--radius-lb: ' . intval($ws['radius']) . 'px;';
+    endif;
+    // Width / position
+    $lbWidth = !empty($ws['width']) ? intval($ws['width']) : 300;
+    $lbPos   = $ws['position'] ?? 'top-left';
+@endphp
+@if(!empty($vars))
+:root {
+    {!! implode("\n    ", $vars) !!}
+}
+@endif
+#leaderboard-panel {
+    width: {{ $lbWidth }}px !important;
+@php
+    $posMap = [
+        'top-left'     => ['top:60px',      'left:60px',   'bottom:auto', 'right:auto'],
+        'top-right'    => ['top:60px',       'right:60px',  'bottom:auto', 'left:auto'],
+        'bottom-left'  => ['bottom:60px',    'left:60px',   'top:auto',    'right:auto'],
+        'bottom-right' => ['bottom:60px',    'right:60px',  'top:auto',    'left:auto'],
+        'center'       => ['top:50%',        'left:50%',    'transform:translate(-50%,-50%)', 'bottom:auto', 'right:auto'],
+    ];
+    $posStyles = $posMap[$lbPos] ?? $posMap['top-left'];
+    echo implode(";\n    ", $posStyles) . ';';
+@endphp
+}
+</style>
 
 <div id="sse-status">connecting…</div>
 

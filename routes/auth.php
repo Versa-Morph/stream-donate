@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -33,6 +34,11 @@ Route::middleware('guest')->group(function () {
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
+
+    // OTP Verification (setelah register, sebelum user dibuat)
+    Route::get('otp/verify', [OtpController::class, 'show'])->name('otp.show');
+    Route::post('otp/verify', [OtpController::class, 'verify'])->name('otp.verify');
+    Route::post('otp/resend', [OtpController::class, 'resend'])->name('otp.resend');
 });
 
 Route::middleware('auth')->group(function () {

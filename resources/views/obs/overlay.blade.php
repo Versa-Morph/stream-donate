@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>StreamDonate — OBS Alert Overlay</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <style>
         /* ─── BASE ─── */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -11,7 +11,7 @@
             width: 1920px; height: 1080px;
             background: transparent !important;
             overflow: hidden;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-family-body);
             -webkit-font-smoothing: antialiased;
         }
 
@@ -33,6 +33,16 @@
             --msg-c:     rgba(241,241,246,.6);
             --top-line:  linear-gradient(90deg,#7c6cfc,#a855f7,#22d3a0);
             --prog-bar:  linear-gradient(90deg,#7c6cfc,#f97316);
+            /* ─ Typography ─ */
+            --font-family-body:    'Inter', sans-serif;
+            --font-family-display: 'Space Grotesk', sans-serif;
+            --font-size-title:  17px;
+            --font-size-amount: 24px;
+            --font-size-msg:    13px;
+            /* ─ Spacing ─ */
+            --spacing-inner: 18px;
+            /* ─ Style effects ─ */
+            --blur-amount: 12px;
         }
 
         /* ─── THEME: minimal ─── */
@@ -100,48 +110,181 @@
         body.theme-ice .alert-donor  { text-shadow: 0 0 18px rgba(56,189,248,.4); }
         body.theme-ice .alert-amount { text-shadow: 0 0 14px rgba(56,189,248,.35); }
 
-        /* ─── ANIMATIONS ─── */
+        /* ─── AESTHETIC STYLES ─── */
+
+        /* style-glass (default — translucent, subtle glow) */
+        body.style-glass {
+            --bg:     rgba(8,8,12,.82);
+            --border: rgba(255,255,255,.12);
+            --shadow: 0 8px 40px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06);
+        }
+        body.style-glass .alert-box {
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        /* style-solid — fully opaque, no blur */
+        body.style-solid {
+            --bg:     rgba(12,12,18,1);
+            --border: rgba(255,255,255,.18);
+            --shadow: 0 4px 24px rgba(0,0,0,.75), 0 0 0 2px rgba(255,255,255,.1);
+        }
+        body.style-solid .alert-box {
+            backdrop-filter: none;
+        }
+
+        /* style-neon — neon border glow */
+        body.style-neon {
+            --bg:     rgba(4,4,10,.92);
+            --border: var(--accent);
+            --shadow: 0 0 0 1px var(--accent), 0 0 32px var(--accent), 0 8px 40px rgba(0,0,0,.9);
+        }
+        body.style-neon .alert-box {
+            backdrop-filter: blur(0);
+        }
+        body.style-neon .alert-donor  { text-shadow: 0 0 18px var(--accent); }
+        body.style-neon .alert-amount { text-shadow: 0 0 16px var(--accent2); }
+
+        /* style-minimal — very clean, barely-there */
+        body.style-minimal {
+            --bg:     rgba(10,10,14,.78);
+            --border: rgba(255,255,255,.07);
+            --shadow: 0 2px 16px rgba(0,0,0,.5);
+        }
+        body.style-minimal .alert-box {
+            backdrop-filter: blur(0);
+        }
+        body.style-minimal .alert-box::before { height: 1px; opacity: .5; }
+
+        /* style-retro — bold opaque border */
+        body.style-retro {
+            --bg:     rgba(14,10,22,1);
+            --border: var(--accent);
+            --shadow: 4px 4px 0 var(--accent), 0 8px 32px rgba(0,0,0,.7);
+        }
+        body.style-retro .alert-box {
+            border-width: 3px;
+            border-radius: calc(var(--radius) * .75);
+            backdrop-filter: blur(0);
+        }
+
+        /* style-frosted → Outlined: transparent bg + strong accent border */
+        body.style-frosted {
+            --bg:     rgba(8,8,16,.04);
+            --border: var(--accent);
+            --shadow: 0 4px 24px rgba(0,0,0,.6);
+        }
+        body.style-frosted .alert-box {
+            border-width: 2px;
+            box-shadow: 0 0 0 1px var(--accent), var(--shadow, 0 4px 24px rgba(0,0,0,.6));
+        }
+
+        /* ─── LAYOUT: CENTERED ─── */
+        body.layout-centered .alert-inner {
+            padding: var(--spacing-inner) 20px 0;
+        }
+        body.layout-centered .alert-header {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        body.layout-centered .alert-meta {
+            text-align: center;
+        }
+        body.layout-centered .alert-badge {
+            display: none;
+        }
+        body.layout-centered .alert-message {
+            text-align: center;
+        }
+
+        /* ─── LAYOUT: SIDE ─── */
+        body.layout-side .alert-header { display: none; }
+        body.layout-side .alert-divider { display: none; }
+        body.layout-side .alert-message { display: none; }
+        body.layout-side .alert-side-body {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: var(--spacing-inner) 20px 0;
+        }
+        body.layout-side .alert-side-left {
+            flex: 1;
+            min-width: 0;
+        }
+        body.layout-side .alert-side-donor {
+            font-size: var(--font-size-title); font-weight: 700;
+            color: var(--donor-c);
+            letter-spacing: -.3px; line-height: 1.2;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        body.layout-side .alert-side-badge {
+            font-size: 8px; font-weight: 800; letter-spacing: 1.4px;
+            text-transform: uppercase;
+            color: var(--accent2); opacity: .7;
+            margin-top: 4px;
+        }
+        body.layout-side .alert-side-msg {
+            font-size: var(--font-size-msg);
+            color: var(--msg-c);
+            line-height: 1.55;
+            margin-top: 6px;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+        body.layout-side .alert-side-right {
+            flex-shrink: 0;
+            text-align: right;
+        }
+        body.layout-side .alert-side-amount {
+            font-family: var(--font-family-display);
+            font-size: 32px; font-weight: 800;
+            color: var(--amount-c);
+            letter-spacing: -.8px; line-height: 1;
+        }
+
+
         @keyframes alertIn {
             from { transform: translateX(-50%) translateY(80px) scale(.97); opacity: 0; }
-            to   { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+            to   { transform: translateX(-50%) translateY(0) scale(1); opacity: var(--card-opacity, 1); }
         }
         @keyframes alertOut {
-            from { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+            from { transform: translateX(-50%) translateY(0) scale(1); opacity: var(--card-opacity, 1); }
             to   { transform: translateX(-50%) translateY(60px) scale(.97); opacity: 0; }
         }
         @keyframes alertIn_minimal {
             from { transform: translateX(-50%) translateY(-16px); opacity: 0; }
-            to   { transform: translateX(-50%) translateY(0); opacity: 1; }
+            to   { transform: translateX(-50%) translateY(0); opacity: var(--card-opacity, 1); }
         }
         @keyframes alertOut_minimal {
-            from { transform: translateX(-50%) translateY(0); opacity: 1; }
+            from { transform: translateX(-50%) translateY(0); opacity: var(--card-opacity, 1); }
             to   { transform: translateX(-50%) translateY(-16px); opacity: 0; }
         }
         @keyframes alertIn_neon {
             0%   { transform: translateX(-50%) scale(.88); opacity: 0; filter: blur(6px); }
-            65%  { transform: translateX(-50%) scale(1.02); opacity: 1; filter: blur(0); }
-            100% { transform: translateX(-50%) scale(1); opacity: 1; }
+            65%  { transform: translateX(-50%) scale(1.02); opacity: var(--card-opacity, 1); filter: blur(0); }
+            100% { transform: translateX(-50%) scale(1); opacity: var(--card-opacity, 1); }
         }
         @keyframes alertOut_neon {
-            from { transform: translateX(-50%) scale(1); opacity: 1; }
+            from { transform: translateX(-50%) scale(1); opacity: var(--card-opacity, 1); }
             to   { transform: translateX(-50%) scale(.88); opacity: 0; filter: blur(6px); }
         }
         @keyframes alertIn_fire {
             0%   { transform: translateX(-50%) translateY(100px) scale(.92); opacity: 0; filter: blur(3px); }
-            70%  { transform: translateX(-50%) translateY(-6px) scale(1.01); opacity: 1; filter: blur(0); }
-            100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+            70%  { transform: translateX(-50%) translateY(-6px) scale(1.01); opacity: var(--card-opacity, 1); filter: blur(0); }
+            100% { transform: translateX(-50%) translateY(0) scale(1); opacity: var(--card-opacity, 1); }
         }
         @keyframes alertOut_fire {
-            from { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+            from { transform: translateX(-50%) translateY(0) scale(1); opacity: var(--card-opacity, 1); }
             to   { transform: translateX(-50%) translateY(-50px) scale(.95); opacity: 0; filter: blur(3px); }
         }
         @keyframes alertIn_ice {
             0%   { transform: translateX(-50%) scale(.7); opacity: 0; filter: blur(5px) brightness(1.6); }
-            65%  { transform: translateX(-50%) scale(1.03); opacity: 1; filter: blur(0) brightness(1.05); }
-            100% { transform: translateX(-50%) scale(1); opacity: 1; filter: blur(0) brightness(1); }
+            65%  { transform: translateX(-50%) scale(1.03); opacity: var(--card-opacity, 1); filter: blur(0) brightness(1.05); }
+            100% { transform: translateX(-50%) scale(1); opacity: var(--card-opacity, 1); filter: blur(0) brightness(1); }
         }
         @keyframes alertOut_ice {
-            from { transform: translateX(-50%) scale(1); opacity: 1; }
+            from { transform: translateX(-50%) scale(1); opacity: var(--card-opacity, 1); }
             to   { transform: translateX(-50%) scale(.7); opacity: 0; filter: blur(5px); }
         }
 
@@ -158,7 +301,6 @@
             opacity: 0;
             overflow: hidden;
             pointer-events: none;
-            font-family: 'Inter', sans-serif;
         }
 
         /* Top accent line */
@@ -185,7 +327,7 @@
 
         /* ─── INNER LAYOUT ─── */
         .alert-inner {
-            padding: 18px 20px 0;
+            padding: var(--spacing-inner) 20px 0;
         }
 
         /* ─── HEADER ROW: avatar + donor/amount + badge ─── */
@@ -196,27 +338,17 @@
             margin-bottom: 14px;
         }
 
-        .alert-avatar {
-            width: 48px; height: 48px;
-            border-radius: 12px;
-            background: rgba(255,255,255,.06);
-            border: 1px solid rgba(255,255,255,.1);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px; flex-shrink: 0;
-            line-height: 1;
-        }
-
         .alert-meta { flex: 1; min-width: 0; }
 
         .alert-donor {
-            font-size: 17px; font-weight: 700;
+            font-size: var(--font-size-title); font-weight: 700;
             color: var(--donor-c);
             letter-spacing: -.3px; line-height: 1.2;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .alert-amount {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 24px; font-weight: 700; letter-spacing: -.6px;
+            font-family: var(--font-family-display);
+            font-size: var(--font-size-amount); font-weight: 700; letter-spacing: -.6px;
             color: var(--amount-c); line-height: 1.1; margin-top: 2px;
         }
 
@@ -240,7 +372,7 @@
 
         /* ─── MESSAGE ─── */
         .alert-message {
-            font-size: 13px; font-weight: 400;
+            font-size: var(--font-size-msg); font-weight: 400;
             color: var(--msg-c);
             line-height: 1.65;
             padding: 12px 0 14px;
@@ -284,14 +416,107 @@
         }
     </style>
 </head>
-<body class="theme-{{ $streamer->alert_theme ?? 'default' }}">
+<body class="theme-{{ $streamer->getWidgetSettings()['alert']['preset'] ?? 'default' }} layout-{{ $streamer->getWidgetSettings()['alert']['layout'] ?? 'classic' }} style-{{ $streamer->getWidgetSettings()['alert']['style'] ?? 'glass' }}">
+
+<style id="widget-custom-vars">
+@php
+    $ws = $streamer->getWidgetSettings()['alert'] ?? [];
+    $preset = $ws['preset'] ?? 'default';
+    // Font family mapping (always applied)
+    $fontMap = [
+        'inter'        => "'Inter', sans-serif",
+        'space-grotesk'=> "'Space Grotesk', sans-serif",
+        'plus-jakarta' => "'Plus Jakarta Sans', sans-serif",
+        'poppins'      => "'Poppins', sans-serif",
+        'nunito'       => "'Nunito', sans-serif",
+    ];
+    $fontFamily = $fontMap[$ws['font_family'] ?? 'inter'] ?? "'Inter', sans-serif";
+    // Spacing mapping: 1=compact(12px), 2=default(18px), 3=spacious(26px)
+    $spacingMap = ['1' => '12', '2' => '18', '3' => '26'];
+    $spacingVal = $spacingMap[$ws['spacing'] ?? '2'] ?? '18';
+    // Always-applied vars (typography, spacing, blur)
+    $alwaysVars = [];
+    $alwaysVars[] = '--font-family-body: '    . $fontFamily . ';';
+    $alwaysVars[] = '--font-family-display: ' . $fontFamily . ';';
+    $alwaysVars[] = '--font-size-title: '     . (int)($ws['font_size_title']  ?? 17) . 'px;';
+    $alwaysVars[] = '--font-size-amount: '    . (int)($ws['font_size_amount'] ?? 24) . 'px;';
+    $alwaysVars[] = '--font-size-msg: '       . (int)($ws['font_size_msg']    ?? 13) . 'px;';
+    $alwaysVars[] = '--spacing-inner: '       . $spacingVal . 'px;';
+    $alwaysVars[] = '--blur-amount: '         . (int)($ws['blur_amount'] ?? 12) . 'px;';
+    $alwaysVars[] = '--card-opacity: '        . round((int)($ws['card_opacity'] ?? 96) / 100, 2) . ';';
+    // Color vars — selalu diinjeksi dari widget_settings yang tersimpan.
+    // <style id="widget-custom-vars"> muncul setelah <head> stylesheet, sehingga
+    // secara cascade otomatis menimpa rules body.theme-* dari stylesheet utama.
+    // Ini memastikan warna yang dikustomisasi user (preset apapun) selalu diterapkan.
+    $colorVars = [];
+    if (!empty($ws['bg']))           $colorVars[] = '--bg: '       . $ws['bg']           . ';';
+    if (!empty($ws['border']))       $colorVars[] = '--border: '   . $ws['border']       . ';';
+    if (!empty($ws['accent']))       $colorVars[] = '--accent: '   . $ws['accent']       . ';';
+    if (!empty($ws['accent2']))      $colorVars[] = '--accent2: '  . $ws['accent2']      . ';';
+    if (!empty($ws['amount_color'])) $colorVars[] = '--amount-c: ' . $ws['amount_color'] . ';';
+    if (!empty($ws['donor_color']))  $colorVars[] = '--donor-c: '  . $ws['donor_color']  . ';';
+    if (!empty($ws['top_line']))     $colorVars[] = '--top-line: ' . $ws['top_line']     . ';';
+    if (!empty($ws['prog_bar']))     $colorVars[] = '--prog-bar: ' . $ws['prog_bar']     . ';';
+    if (!empty($ws['radius']))       $colorVars[] = '--radius: '   . $ws['radius']       . 'px;';
+    // Width & position always applied
+    $alertWidth = !empty($ws['width'])      ? (int)$ws['width']      : 560;
+    $posX       = $ws['position_x'] ?? 'center';
+    $posY       = $ws['position_y'] ?? 'bottom';
+    $layout     = $ws['layout'] ?? 'classic';
+@endphp
+:root {
+    {!! implode("\n    ", $alwaysVars) !!}
+}
+@if(!empty($colorVars))
+body {
+    {!! implode("\n    ", $colorVars) !!}
+}
+@endif
+.alert-box {
+    width: {{ $alertWidth }}px;
+@if($posX === 'left')
+    left: 40px; transform: translateY(80px); transform-origin: left bottom;
+@elseif($posX === 'right')
+    left: auto; right: 40px; transform: translateY(80px); transform-origin: right bottom;
+@else
+    left: 50%; transform: translateX(-50%) translateY(80px);
+@endif
+@if($posY === 'top')
+    bottom: auto; top: 48px;
+@else
+    bottom: 48px; top: auto;
+@endif
+{{-- banner layout removed; side uses the same .alert-box, so no display:none needed --}}
+}
+.alert-box.visible {
+@if($posX === 'left')
+    animation: alertIn_pos .48s cubic-bezier(.34,1.56,.64,1) forwards;
+@elseif($posX === 'right')
+    animation: alertIn_pos .48s cubic-bezier(.34,1.56,.64,1) forwards;
+@else
+    animation: alertIn .48s cubic-bezier(.34,1.56,.64,1) forwards;
+@endif
+}
+@if($posX === 'left' || $posX === 'right')
+.alert-box.hiding {
+    animation: alertOut_pos .34s cubic-bezier(.4,0,1,1) forwards;
+}
+@endif
+@keyframes alertIn_pos {
+    from { transform: translateY(80px) scale(.97); opacity: 0; }
+    to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes alertOut_pos {
+    from { transform: translateY(0) scale(1); opacity: 1; }
+    to   { transform: translateY(60px) scale(.97); opacity: 0; }
+}
+</style>
 
 <div id="sse-status">connecting…</div>
 
 <div class="alert-box" id="alert-box">
     <div class="alert-inner">
         <div class="alert-header">
-            <div class="alert-avatar" id="alert-avatar">🎉</div>
             <div class="alert-meta">
                 <div class="alert-donor"  id="alert-donor">Nama Donatur</div>
                 <div class="alert-amount" id="alert-amount">Rp 0</div>
@@ -302,6 +527,17 @@
         <div class="alert-message" id="alert-message"></div>
         <div class="alert-yt" id="alert-yt">
             <iframe id="yt-iframe" allow="autoplay" allowfullscreen></iframe>
+        </div>
+    </div>
+    {{-- Side layout body (hidden unless layout-side) --}}
+    <div class="alert-side-body" style="display:none" id="alert-side-body">
+        <div class="alert-side-left">
+            <div class="alert-side-donor"  id="side-donor">Nama Donatur</div>
+            <div class="alert-side-badge">DONASI MASUK</div>
+            <div class="alert-side-msg"    id="side-msg"></div>
+        </div>
+        <div class="alert-side-right">
+            <div class="alert-side-amount" id="side-amount">Rp 0</div>
         </div>
     </div>
     <div class="alert-progress">
@@ -317,6 +553,8 @@ const ASSET_STORAGE  = '{{ asset("storage") }}';
 let SOUND_ON       = {{ $streamer->sound_enabled ? 'true' : 'false' }};
 let SOUND_PREF     = {!! json_encode($streamer->notification_sound ?? 'ding') !!};
 let ALERT_DURATION = {{ (int) ($streamer->alert_duration ?? 8000) }};
+let DURATION_TIERS = {!! json_encode($streamer->getAlertDurationTiers()) !!};
+let MAX_DURATION   = {{ (int) min((int)($streamer->alert_max_duration ?? 30), 120) }};
 
 // ── Kunci localStorage untuk menyimpan posisi SSE terakhir ──
 // Key di-scope per slug agar tidak bentrok antar streamer di browser yang sama
@@ -359,7 +597,8 @@ function buildSseUrl() {
 }
 
 function getSoundUrl() {
-    return (SOUND_PREF && !['ding','coin','whoosh'].includes(SOUND_PREF))
+    const synth = ['ding','coin','whoosh','chime','pop','tada','woosh_light','blip','sparkle','fanfare'];
+    return (SOUND_PREF && !synth.includes(SOUND_PREF))
         ? ASSET_STORAGE + '/' + SOUND_PREF
         : null;
 }
@@ -423,6 +662,104 @@ function playWhoosh() {
     source.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
     source.start(ctx.currentTime); source.stop(ctx.currentTime + 0.6);
 }
+function playChime() {
+    const ctx = getAudioCtx();
+    const notes = [1047, 1319, 1568, 2093];
+    notes.forEach(function(freq, i) {
+        const delay = i * 0.12;
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+        gain.gain.setValueAtTime(0.4, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.7);
+        osc.start(ctx.currentTime + delay); osc.stop(ctx.currentTime + delay + 0.8);
+    });
+}
+function playPop() {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(400, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.7, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.14);
+}
+function playTada() {
+    const ctx = getAudioCtx();
+    const notes = [523, 659, 784, 1047, 1319];
+    notes.forEach(function(freq, i) {
+        const delay = i * 0.07;
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+        gain.gain.setValueAtTime(0.35, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.35);
+        osc.start(ctx.currentTime + delay); osc.stop(ctx.currentTime + delay + 0.4);
+    });
+}
+function playWooshLight() {
+    const ctx = getAudioCtx();
+    const bufSize = ctx.sampleRate * 0.35;
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+    const source = ctx.createBufferSource(); source.buffer = buf;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.setValueAtTime(1200, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(4000, ctx.currentTime + 0.15);
+    filter.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.35);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    source.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+    source.start(ctx.currentTime); source.stop(ctx.currentTime + 0.4);
+}
+function playBlip() {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(1200, ctx.currentTime);
+    osc.frequency.setValueAtTime(1600, ctx.currentTime + 0.05);
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.18);
+}
+function playSparkle() {
+    const ctx = getAudioCtx();
+    for (let i = 0; i < 5; i++) {
+        const delay = i * 0.06;
+        const freq  = 1400 + Math.random() * 1200;
+        const osc   = ctx.createOscillator(), gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.25);
+        osc.start(ctx.currentTime + delay); osc.stop(ctx.currentTime + delay + 0.3);
+    }
+}
+function playFanfare() {
+    const ctx = getAudioCtx();
+    const sequence = [523, 659, 784, 659, 1047];
+    const timing   = [0, 0.1, 0.2, 0.32, 0.44];
+    sequence.forEach(function(freq, i) {
+        const delay = timing[i];
+        const osc   = ctx.createOscillator(), gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+        gain.gain.setValueAtTime(0.28, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.3);
+        osc.start(ctx.currentTime + delay); osc.stop(ctx.currentTime + delay + 0.35);
+    });
+}
 function _playDecodedBuffer(decoded) {
     const ctx = getAudioCtx();
     const src = ctx.createBufferSource(), gain = ctx.createGain();
@@ -448,20 +785,94 @@ function playAlertSound() {
         return;
     }
     const p = SOUND_PREF || 'ding';
-    if (p === 'coin') playCoin();
-    else if (p === 'whoosh') playWhoosh();
-    else playDing();
+    if      (p === 'coin')        playCoin();
+    else if (p === 'whoosh')      playWhoosh();
+    else if (p === 'chime')       playChime();
+    else if (p === 'pop')         playPop();
+    else if (p === 'tada')        playTada();
+    else if (p === 'woosh_light') playWooshLight();
+    else if (p === 'blip')        playBlip();
+    else if (p === 'sparkle')     playSparkle();
+    else if (p === 'fanfare')     playFanfare();
+    else                          playDing();
 }
 
-// ─── Live config from SSE stats.config ───
+/**
+ * Hitung durasi alert (ms) berdasarkan jumlah donasi.
+ * Loop tiers dari yang terbesar ke terkecil (descending by `from`).
+ * Return durasi detik × 1000. Fallback ke ALERT_DURATION.
+ */
+function getDurationForAmount(amount) {
+    if (!DURATION_TIERS || !DURATION_TIERS.length) return ALERT_DURATION;
+    const sorted = DURATION_TIERS.slice().sort(function(a, b) { return b.from - a.from; });
+    for (let i = 0; i < sorted.length; i++) {
+        if (amount >= sorted[i].from) return sorted[i].duration * 1000;
+    }
+    return ALERT_DURATION;
+}
+
+// ─── Live config dari SSE stats.config ───
 function applyConfig(config) {
     if (!config) return;
+
+    // ── Theme class (legacy alert_theme column) ──
     if (config.alertTheme) {
         const body = document.body;
         body.className = body.className.replace(/\btheme-\S+/g, '').trim();
         if (config.alertTheme !== 'default') body.classList.add('theme-' + config.alertTheme);
     }
+
+    // ── Alert colors dari widget_settings (live update tanpa reload) ──
+    if (config.alertColors) {
+        const c    = config.alertColors;
+        const body = document.body;
+
+        // Terapkan CSS vars langsung ke body (menimpa stylesheet theme-* via specificity/cascade)
+        if (c.bg)           body.style.setProperty('--bg',       c.bg);
+        if (c.border)       body.style.setProperty('--border',   c.border);
+        if (c.accent)       body.style.setProperty('--accent',   c.accent);
+        if (c.accent2)      body.style.setProperty('--accent2',  c.accent2);
+        if (c.amount_color) body.style.setProperty('--amount-c', c.amount_color);
+        if (c.donor_color)  body.style.setProperty('--donor-c',  c.donor_color);
+        if (c.top_line)     body.style.setProperty('--top-line', c.top_line);
+        if (c.prog_bar)     body.style.setProperty('--prog-bar', c.prog_bar);
+        if (c.radius)       body.style.setProperty('--radius',   c.radius + 'px');
+
+        // Layout & style class (Gaya)
+        if (c.layout) {
+            body.className = body.className.replace(/\blayout-\S+/g, '').trim();
+            body.classList.add('layout-' + c.layout);
+        }
+        if (c.style) {
+            body.className = body.className.replace(/\bstyle-\S+/g, '').trim();
+            body.classList.add('style-' + c.style);
+        }
+
+        // Typography vars
+        const fontMap = {
+            'inter':         "'Inter', sans-serif",
+            'space-grotesk': "'Space Grotesk', sans-serif",
+            'plus-jakarta':  "'Plus Jakarta Sans', sans-serif",
+            'poppins':       "'Poppins', sans-serif",
+            'nunito':        "'Nunito', sans-serif",
+        };
+        const spacingMap = {'1': '12px', '2': '18px', '3': '26px'};
+        if (c.font_family) {
+            const ff = fontMap[c.font_family] || "'Inter', sans-serif";
+            body.style.setProperty('--font-family-body',    ff);
+            body.style.setProperty('--font-family-display', ff);
+        }
+        if (c.font_size_title)  body.style.setProperty('--font-size-title',  c.font_size_title  + 'px');
+        if (c.font_size_amount) body.style.setProperty('--font-size-amount', c.font_size_amount + 'px');
+        if (c.font_size_msg)    body.style.setProperty('--font-size-msg',    c.font_size_msg    + 'px');
+        if (c.spacing)          body.style.setProperty('--spacing-inner',    spacingMap[String(c.spacing)] || '18px');
+        if (c.blur_amount)      body.style.setProperty('--blur-amount',      c.blur_amount      + 'px');
+        if (c.card_opacity !== undefined) body.style.setProperty('--card-opacity', (parseInt(c.card_opacity, 10) / 100).toFixed(2));
+    }
+
     if (config.alertDuration) ALERT_DURATION = config.alertDuration;
+    if (config.alertDurationTiers && Array.isArray(config.alertDurationTiers)) DURATION_TIERS = config.alertDurationTiers;
+    if (config.alertMaxDuration) MAX_DURATION = config.alertMaxDuration;
     if (config.soundEnabled !== undefined) SOUND_ON = !!config.soundEnabled;
     if (config.notificationSound !== undefined && config.notificationSound !== SOUND_PREF) {
         SOUND_PREF = config.notificationSound;
@@ -543,20 +954,29 @@ function showAlert(donation) {
     const divider  = document.getElementById('alert-divider');
     const msgEl    = document.getElementById('alert-message');
     const ytSection = document.getElementById('alert-yt');
-    const duration  = ALERT_DURATION;
+    const duration  = getDurationForAmount(donation.amount || 0);
+    const isSide    = document.body.classList.contains('layout-side');
 
-    document.getElementById('alert-avatar').textContent = donation.emoji || '🎉';
-    document.getElementById('alert-donor').textContent  = donation.name;
-    document.getElementById('alert-amount').textContent = formatRp(donation.amount);
+    const emoji  = donation.emoji || '🎉';
+    const name   = donation.name;
+    const amount = formatRp(donation.amount);
+    const msg    = donation.message || donation.msg || '';
 
-    const msg = donation.message || donation.msg || '';
+    // Populate classic/centered elements
+    document.getElementById('alert-donor').textContent  = name;
+    document.getElementById('alert-amount').textContent = amount;
     msgEl.textContent = msg;
-    // Show/hide divider based on whether there's a message
     divider.style.display = msg ? '' : 'none';
+
+    // Populate side elements
+    document.getElementById('side-donor').textContent  = name;
+    document.getElementById('side-amount').textContent = amount;
+    document.getElementById('side-msg').textContent    = msg;
+    document.getElementById('alert-side-body').style.display = isSide ? '' : 'none';
 
     const ytUrl     = donation.ytUrl     || donation.yt_url     || null;
     const ytEnabled = donation.ytEnabled !== undefined ? donation.ytEnabled : donation.yt_enabled;
-    if (ytUrl && ytEnabled !== false) {
+    if (!isSide && ytUrl && ytEnabled !== false) {
         const vid = extractYtId(ytUrl);
         if (vid) {
             document.getElementById('yt-iframe').src = 'https://www.youtube.com/embed/' + vid + '?autoplay=1&mute=0';
@@ -570,7 +990,6 @@ function showAlert(donation) {
     box.classList.remove('visible', 'hiding');
     void box.offsetWidth;
     box.classList.add('visible');
-
     playAlertSound();
 
     const bar = document.getElementById('progress-bar');

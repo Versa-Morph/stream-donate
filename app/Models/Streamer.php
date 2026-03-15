@@ -33,6 +33,9 @@ class Streamer extends Model
         'is_accepting_donation',
         'thank_you_message',
         'canvas_config',
+        'widget_settings',
+        'alert_duration_tiers',
+        'alert_max_duration',
     ];
 
     protected function casts(): array
@@ -46,7 +49,10 @@ class Streamer extends Model
             'alert_duration' => 'integer',
             'leaderboard_count' => 'integer',
             'min_donation' => 'integer',
-            'canvas_config' => 'array',
+            'canvas_config'          => 'array',
+            'widget_settings'        => 'array',
+            'alert_duration_tiers'   => 'array',
+            'alert_max_duration'     => 'integer',
         ];
     }
 
@@ -73,6 +79,85 @@ class Streamer extends Model
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class);
+    }
+
+    /**
+     * Kembalikan widget_settings dengan nilai default jika null/kosong.
+     */
+    public function getWidgetSettings(): array
+    {
+        $defaults = [
+            'alert' => [
+                'preset'          => 'default',
+                'bg'              => 'rgba(8,8,12,0.96)',
+                'border'          => 'rgba(255,255,255,0.1)',
+                'accent'          => '#7c6cfc',
+                'accent2'         => '#a99dff',
+                'amount_color'    => '#f97316',
+                'donor_color'     => '#f1f1f6',
+                'top_line'        => 'linear-gradient(90deg,#7c6cfc,#a855f7,#22d3a0)',
+                'prog_bar'        => 'linear-gradient(90deg,#7c6cfc,#f97316)',
+                'radius'          => '16',
+                'width'           => '560',
+                'position_x'      => 'center',
+                'position_y'      => 'bottom',
+                'layout'          => 'classic',
+                'style'           => 'glass',
+                'font_family'     => 'inter',
+                'font_size_title' => '17',
+                'font_size_amount'=> '24',
+                'font_size_msg'   => '13',
+                'spacing'         => '2',
+                'blur_amount'     => '12',
+            ],
+            'milestone' => [
+                'preset'       => 'default',
+                'surface'      => 'rgba(8,8,12,0.96)',
+                'border'       => 'rgba(124,108,252,0.2)',
+                'brand'        => '#7c6cfc',
+                'brand2'       => '#a99dff',
+                'orange'       => '#f97316',
+                'green'        => '#22d3a0',
+                'radius'       => '16',
+                'width'        => '340',
+                'position'     => 'bottom-left',
+            ],
+            'leaderboard' => [
+                'preset'       => 'default',
+                'surface'      => 'rgba(8,8,12,0.96)',
+                'border'       => 'rgba(124,108,252,0.2)',
+                'brand'        => '#7c6cfc',
+                'brand2'       => '#a99dff',
+                'yellow'       => '#fbbf24',
+                'green'        => '#22d3a0',
+                'radius'       => '16',
+                'width'        => '300',
+                'position'     => 'top-left',
+            ],
+            'qr' => [
+                'preset'       => 'default',
+                'surface'      => 'rgba(10,10,16,0.93)',
+                'border'       => 'rgba(124,108,252,0.28)',
+                'brand'        => '#7c6cfc',
+                'brand2'       => '#a99dff',
+                'radius'       => '22',
+                'width'        => '260',
+                'position'     => 'bottom-right',
+            ],
+        ];
+
+        $saved = $this->widget_settings;
+        if (empty($saved)) return $defaults;
+
+        foreach ($defaults as $widget => $def) {
+            if (!isset($saved[$widget])) {
+                $saved[$widget] = $def;
+            } else {
+                $saved[$widget] = array_merge($def, $saved[$widget]);
+            }
+        }
+
+        return $saved;
     }
 
     /**
@@ -107,6 +192,49 @@ class Streamer extends Model
     }
 
     /**
+     * Kembalikan alert_duration_tiers dengan nilai default jika null/kosong.
+     *
+     * Tier default (dari kecil ke besar berdasarkan `from`):
+     *   0        Rp → 5 detik
+     *   1.000    Rp → 8 detik
+     *   10.000   Rp → 12 detik
+     *   100.000  Rp → 20 detik
+     */
+    public function getAlertDurationTiers(): array
+    {
+        $defaults = [
+            ['from' => 0,       'duration' => 5],
+            ['from' => 1000,    'duration' => 8],
+            ['from' => 10000,   'duration' => 12],
+            ['from' => 100000,  'duration' => 20],
+        ];
+
+        return $this->alert_duration_tiers ?: $defaults;
+    }
+
+    /**
+     * Hitung durasi alert (dalam milidetik) berdasarkan jumlah donasi dan tier yang aktif.
+     * Kembalikan durasi tier tertinggi yang `from`-nya <= amount.
+     */
+    public function getAlertDurationForAmount(int $amount): int
+    {
+        $tiers   = $this->getAlertDurationTiers();
+        $maxSecs = min((int) ($this->alert_max_duration ?? 30), 120); // system cap 120 s
+
+        // Sort descending by `from` dan ambil tier pertama yang cocok
+        usort($tiers, fn($a, $b) => $b['from'] <=> $a['from']);
+        foreach ($tiers as $tier) {
+            if ($amount >= (int) $tier['from']) {
+                $secs = min((int) $tier['duration'], $maxSecs);
+                return $secs * 1000; // ms
+            }
+        }
+
+        // Fallback ke legacy alert_duration
+        return (int) ($this->alert_duration ?? 8000);
+    }
+
+    /**
      * Total donasi semua waktu
      */
     public function getTotalDonationsAttribute(): int
@@ -124,30 +252,38 @@ class Streamer extends Model
 
     /**
      * Statistik lengkap untuk dashboard & SSE
+     * Semua aggregasi dilakukan di SQL — tidak ada get() ke memori.
      */
     public function buildStats(): array
     {
-        $donations = $this->donations()->orderBy('created_at', 'desc')->get();
-        $total = $donations->sum('amount');
-        $count = $donations->count();
-        $uniqueDonors = $donations->pluck('name')->unique()->count();
-        $ytCount = $donations->whereNotNull('yt_url')->count();
+        $base = $this->donations();
 
-        $biggest = $donations->sortByDesc('amount')->first();
+        // Scalar aggregates — satu query
+        $agg = $base->selectRaw(
+            'SUM(amount) as total, COUNT(*) as cnt, COUNT(DISTINCT name) as unique_donors, SUM(CASE WHEN yt_url IS NOT NULL THEN 1 ELSE 0 END) as yt_count'
+        )->first();
 
-        // Leaderboard
-        $leaderboard = $donations
+        $total        = (int) ($agg->total         ?? 0);
+        $count        = (int) ($agg->cnt            ?? 0);
+        $uniqueDonors = (int) ($agg->unique_donors  ?? 0);
+        $ytCount      = (int) ($agg->yt_count       ?? 0);
+
+        // Donasi terbesar — satu query ringan
+        $biggest = $base->orderByDesc('amount')->first(['name', 'amount']);
+
+        // Leaderboard — aggregasi + limit di SQL
+        $leaderboard = $this->donations()
+            ->selectRaw('name, MAX(emoji) as emoji, SUM(amount) as total, COUNT(*) as cnt')
             ->groupBy('name')
-            ->map(function ($group) {
-                return [
-                    'name' => $group->first()->name,
-                    'emoji' => $group->first()->emoji,
-                    'total' => $group->sum('amount'),
-                    'count' => $group->count(),
-                ];
-            })
-            ->sortByDesc('total')
-            ->take($this->leaderboard_count)
+            ->orderByDesc('total')
+            ->limit($this->leaderboard_count)
+            ->get()
+            ->map(fn ($r) => [
+                'name'  => $r->name,
+                'emoji' => $r->emoji,
+                'total' => (int) $r->total,
+                'count' => (int) $r->cnt,
+            ])
             ->values()
             ->toArray();
 
@@ -155,7 +291,7 @@ class Streamer extends Model
         $milestoneQuery = $this->milestone_reset
             ? $this->donations()->whereDate('created_at', today())
             : $this->donations();
-        $milestoneCurrent = $milestoneQuery->sum('amount');
+        $milestoneCurrent = (int) $milestoneQuery->sum('amount');
 
         return [
             'total' => $total,
@@ -174,15 +310,18 @@ class Streamer extends Model
                 'reached' => $milestoneCurrent >= $this->milestone_target,
             ],
             'config' => [
-                'milestoneTitle' => $this->milestone_title,
-                'milestoneTarget' => $this->milestone_target,
-                'leaderboardTitle' => $this->leaderboard_title,
-                'leaderboardCount' => $this->leaderboard_count,
-                'alertDuration' => $this->alert_duration,
-                'ytEnabled' => $this->yt_enabled,
-                'soundEnabled' => $this->sound_enabled,
-                'notificationSound' => $this->notification_sound,
-                'alertTheme' => $this->alert_theme,
+                'milestoneTitle'       => $this->milestone_title,
+                'milestoneTarget'      => $this->milestone_target,
+                'leaderboardTitle'     => $this->leaderboard_title,
+                'leaderboardCount'     => $this->leaderboard_count,
+                'alertDuration'        => $this->alert_duration,
+                'alertDurationTiers'   => $this->getAlertDurationTiers(),
+                'alertMaxDuration'     => min((int) ($this->alert_max_duration ?? 30), 120),
+                'ytEnabled'            => $this->yt_enabled,
+                'soundEnabled'         => $this->sound_enabled,
+                'notificationSound'    => $this->notification_sound,
+                'alertTheme'           => $this->alert_theme,
+                'alertColors'          => $this->getWidgetSettings()['alert'] ?? [],
             ],
         ];
     }
