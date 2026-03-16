@@ -2202,6 +2202,11 @@
                 <span class="ws-nav-badge live">SSE</span>
             </div>
 
+            <div class="ws-nav-item" data-tab="running-text" onclick="wsTab('running-text',this)">
+                <span class="iconify" data-icon="solar:text-bold-duotone" style="color:var(--brand)"></span>
+                Running Text
+            </div>
+
             <div class="ws-nav-divider"></div>
             <div class="ws-nav-label">Lanjutan</div>
 
@@ -4120,6 +4125,181 @@
 
             </div>
 
+            {{-- ══ TAB: Running Text ══ --}}
+            @php $ws_rt = $widgetSettings['running_text'] ?? []; @endphp
+            <div class="ws-panel" id="tab-running-text">
+                <div class="ws-card">
+                    <div class="ws-card-head">
+                        <div class="ws-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
+                            <span class="iconify" data-icon="solar:text-bold-duotone" style="color:var(--brand-light)"></span>
+                        </div>
+                        <div>
+                            <div class="ws-card-title">Running Text</div>
+                            <div class="ws-card-sub">Teks berjalan horizontal di bawah layar</div>
+                        </div>
+                    </div>
+
+                    <div class="ws-opt-row">
+                        <div class="ws-opt-label">
+                            <div>Aktifkan Running Text</div>
+                            <div class="ws-opt-sub">Teks akan berjalan di layar</div>
+                        </div>
+                        <label class="ws-toggle">
+                            <input type="checkbox" id="running-text-enabled" {{ ($ws_rt['enabled'] ?? false) ? 'checked' : '' }}>
+                            <span class="ws-toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="ws-section-label" style="margin-top:16px">
+                        <span class="iconify" data-icon="solar:text" style="width:12px;height:12px"></span>
+                        Isi Teks
+                    </div>
+                    <div class="form-group">
+                        <textarea id="running-text-content" rows="2" style="width:100%;padding:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px">{{ $ws_rt['text'] ?? 'Terima kasih atas donasi Anda! Semangat terus streamnya!' }}</textarea>
+                        <div class="hint">
+                            <span class="iconify" data-icon="solar:info-circle-bold"></span>
+                            Teks yang akan berjalan di layar
+                        </div>
+                    </div>
+
+                    <div class="ws-section-label" style="margin-top:16px">
+                        <span class="iconify" data-icon="solar:link-bold" style="width:12px;height:12px"></span>
+                        URL Browser Source OBS
+                    </div>
+
+                    <div class="obs-url-grid">
+                        <div class="obs-url-row">
+                            <div class="obs-url-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
+                                <span class="iconify" data-icon="solar:text-bold-duotone" style="color:var(--brand-light)"></span>
+                            </div>
+                            <div class="obs-url-info">
+                                <div class="obs-url-label">
+                                    Running Text
+                                    <code style="font-size:9px;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px">?key=</code>
+                                    sudah termasuk
+                                </div>
+                                @php $rtUrl = route('obs.running-text', $streamer->slug) . '?key=' . $streamer->api_key; @endphp
+                                <input class="obs-url-input" readonly value="{{ $rtUrl }}" id="url-running-text" />
+                            </div>
+                            <div class="obs-url-actions">
+                                <button class="obs-btn primary" onclick="copyText('{{ $rtUrl }}', 'URL Running Text')">
+                                    <span class="iconify" data-icon="solar:copy-bold-duotone"></span>Copy URL
+                                </button>
+                                <a class="obs-btn" href="{{ $rtUrl }}" target="_blank">
+                                    <span class="iconify" data-icon="solar:eye-bold-duotone"></span>Buka
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ws-card">
+                    <div class="ws-card-head">
+                        <div class="ws-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
+                            <span class="iconify" data-icon="solar:palette-bold-duotone" style="color:var(--brand-light)"></span>
+                        </div>
+                        <div>
+                            <div class="ws-card-title">Kustomisasi Tampilan</div>
+                            <div class="ws-card-sub">Atur kecepatan, warna, dan tampilan</div>
+                        </div>
+                    </div>
+
+                    <div class="ws-section-label">
+                        <span class="iconify" data-icon="solar:magic-stick-bold" style="width:12px;height:12px"></span>
+                        Preset Tema
+                    </div>
+
+                    <div class="wc-presets" id="running-text-presets">
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? 'default') === 'default' ? 'active' : '' }}" data-preset="default" onclick="wcSelectPreset('running-text','default',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(90deg,rgba(8,8,12,0.9),#7c6cfc);border-color:rgba(124,108,252,.2)"></div>
+                            <div class="wc-preset-name">Default</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'neon' ? 'active' : '' }}" data-preset="neon" onclick="wcSelectPreset('running-text','neon',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(90deg,rgba(0,0,0,0.95),#00ffc8);border-color:rgba(0,255,200,.3)"></div>
+                            <div class="wc-preset-name">Neon</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'fire' ? 'active' : '' }}" data-preset="fire" onclick="wcSelectPreset('running-text','fire',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(90deg,rgba(20,5,0,0.95),#ff4400);border-color:rgba(255,68,0,.3)"></div>
+                            <div class="wc-preset-name">Fire</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'gold' ? 'active' : '' }}" data-preset="gold" onclick="wcSelectPreset('running-text','gold',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(90deg,rgba(20,15,0,0.95),#ffd700);border-color:rgba(255,215,0,.3)"></div>
+                            <div class="wc-preset-name">Gold</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                    </div>
+
+                    <div class="ws-section-label" style="margin-top:20px">
+                        <span class="iconify" data-icon="solar:settings-bold" style="width:12px;height:12px"></span>
+                        Pengaturan
+                    </div>
+
+                    <div class="ws-opt-row">
+                        <div class="ws-opt-label">
+                            <div>Kecepatan</div>
+                            <div class="ws-opt-sub">Semakin kecil semakin cepat</div>
+                        </div>
+                        <div class="ws-opt-input">
+                            <input type="number" id="running-text-speed" value="{{ $ws_rt['speed'] ?? 50 }}" min="10" max="200" style="width:80px">
+                            <span class="ws-opt-unit">detik</span>
+                        </div>
+                    </div>
+
+                    <div class="ws-opt-row">
+                        <div class="ws-opt-label">
+                            <div>Arah Pergerakan</div>
+                        </div>
+                        <select id="running-text-direction" style="padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text)">
+                            <option value="left" {{ ($ws_rt['direction'] ?? 'left') === 'left' ? 'selected' : '' }}>Kiri → Kanan</option>
+                            <option value="right" {{ ($ws_rt['direction'] ?? '') === 'right' ? 'selected' : '' }}>Kanan → Kiri</option>
+                        </select>
+                    </div>
+
+                    <div class="ws-opt-row">
+                        <div class="ws-opt-label">
+                            <div>Ukuran Font</div>
+                        </div>
+                        <div class="ws-opt-input">
+                            <input type="number" id="running-text-font-size" value="{{ $ws_rt['font_size'] ?? 18 }}" min="12" max="32" style="width:80px">
+                            <span class="ws-opt-unit">px</span>
+                        </div>
+                    </div>
+
+                    <div class="ws-section-label" style="margin-top:16px">
+                        <span class="iconify" data-icon="solar:palette-bold" style="width:12px;height:12px"></span>
+                        Warna
+                    </div>
+
+                    <div class="form-row" style="margin-top:12px">
+                        <div class="form-group">
+                            <label>Warna Teks</label>
+                            <div style="display:flex;align-items:center;gap:8px">
+                                <input type="color" id="running-text-color-text" value="{{ $ws_rt['text'] ?? '#ffffff' }}" style="width:40px;height:32px;padding:0;border:none;border-radius:6px;cursor:pointer">
+                                <input type="text" id="running-text-color-text-text" value="{{ $ws_rt['text'] ?? '#ffffff' }}" style="width:100px;font-size:12px;font-family:monospace">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Warna Background</label>
+                            <div style="display:flex;align-items:center;gap:8px">
+                                <input type="color" id="running-text-color-bg" value="{{ substr($ws_rt['bg'] ?? '#08080c', 0, 7) }}" style="width:40px;height:32px;padding:0;border:none;border-radius:6px;cursor:pointer">
+                                <input type="text" id="running-text-color-bg-text" value="{{ substr($ws_rt['bg'] ?? '#08080c', 0, 7) }}" style="width:100px;font-size:12px;font-family:monospace">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ws-save-row" style="margin-top:20px">
+                        <button class="ws-save-btn" onclick="saveRunningTextSettings()">
+                            <span class="iconify" data-icon="solar:floppy-disk-bold"></span>
+                            Simpan Pengaturan
+                        </button>
+                        <span class="ws-save-msg" id="msg-running-text"></span>
+                    </div>
+                </div>
+            </div>
+
             {{-- ══ TAB: OBS Canvas ══ --}}
             <div class="ws-panel" id="tab-canvas">
                 <div class="ws-card">
@@ -4198,6 +4378,7 @@ var wcState = {
     leaderboard: @json($widgetSettings['leaderboard']),
     qr:          @json($widgetSettings['qr']),
     subathon:    @json($widgetSettings['subathon'] ?? []),
+    running_text: @json($widgetSettings['running_text'] ?? []),
 };
 
 // ── Defaults (mirrors Streamer::getWidgetSettings) ──
@@ -4231,6 +4412,15 @@ var wcDefaults = {
         preset:'default', bg:'rgba(8,8,12,0.95)', border:'rgba(124,108,252,0.25)',
         brand:'#7c6cfc', brand2:'#a99dff', text:'#f1f1f6', text2:'#a0a0b4',
         radius:'16', width:'320',
+    },
+    running_text: {
+        preset:'default', enabled:false,
+        text:'Terima kasih atas donasi Anda! Semangat terus streamnya!',
+        speed:'50', direction:'left',
+        bg:'rgba(8,8,12,0.9)', border:'rgba(124,108,252,0.2)',
+        brand:'#7c6cfc', text:'#ffffff',
+        font_size:'18', font_family:'inter',
+        radius:'0', opacity:'90',
     },
 };
 
@@ -5293,6 +5483,58 @@ function addSubathonTimeManual() {
         if (res.ok) {
             document.getElementById('ws-timer-current').textContent = res.timer;
             wsToast('+' + mins + ' menit ditambahkan!', 'success');
+        }
+    });
+}
+
+function saveRunningTextSettings() {
+    var enabled = document.getElementById('running-text-enabled').checked;
+    var text = document.getElementById('running-text-content').value;
+    var speed = parseInt(document.getElementById('running-text-speed').value) || 50;
+    var direction = document.getElementById('running-text-direction').value;
+    var fontSize = parseInt(document.getElementById('running-text-font-size').value) || 18;
+    var textColor = document.getElementById('running-text-color-text').value;
+    var bgColor = document.getElementById('running-text-color-bg').value;
+    
+    var btn = document.querySelector('#msg-running-text').previousElementSibling;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="iconify spin" data-icon="solar:spinner-bold-duotone"></span> Menyimpan...';
+    }
+    
+    var payload = {
+        enabled: enabled,
+        text: text,
+        speed: speed,
+        direction: direction,
+        font_size: fontSize,
+        text: textColor,
+        bg: bgColor,
+        preset: 'default'
+    };
+    
+    fetch('{{ route("streamer.widgets.save") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ widget: 'running_text', data: payload }),
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.ok) {
+            wsToast('Pengaturan Running Text berhasil disimpan!', 'success');
+        } else {
+            wsToast('Gagal menyimpan: ' + (res.error || 'unknown error'), 'error');
+        }
+    })
+    .catch(function() { wsToast('Koneksi gagal. Coba lagi.', 'error'); })
+    .finally(function() {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="iconify" data-icon="solar:floppy-disk-bold"></span> Simpan Pengaturan';
         }
     });
 }

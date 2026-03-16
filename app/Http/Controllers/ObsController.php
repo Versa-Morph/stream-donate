@@ -55,4 +55,18 @@ class ObsController extends Controller
 
         return view('obs.subathon', compact('streamer', 'apiKey', 'widget'));
     }
+
+    /**
+     * Running text widget untuk OBS
+     */
+    public function runningText(Request $request, string $slug)
+    {
+        $streamer = Streamer::where('slug', $slug)->firstOrFail();
+        $apiKey = $request->query('key', '');
+
+        $widgetSettings = $streamer->getWidgetSettings();
+        $widget = $widgetSettings['running_text'] ?? [];
+
+        return view('obs.running_text', compact('streamer', 'apiKey', 'widget'));
+    }
 }

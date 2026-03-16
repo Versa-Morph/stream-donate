@@ -340,6 +340,29 @@
     bottom: 12px;
 }
 
+/* Running Text preview */
+.preview-running-text {
+    width: 100%; height: 100%;
+    background: rgba(8,8,12,.9);
+    border-top: 2px solid transparent;
+    border-image: linear-gradient(90deg,#7c6cfc,#a855f7,#22d3a0) 1;
+    display: flex; align-items: center;
+    overflow: hidden;
+}
+.preview-rt-track {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    animation: scroll-left 8s linear infinite;
+}
+.preview-rt-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    padding: 0 20px;
+}
+
 /* ── Resize handle ── */
 .resize-handle {
     position: absolute; bottom: 0; right: 0;
@@ -479,6 +502,18 @@
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" id="toggle-subathon" onchange="toggleWidget('subathon', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="widget-row" id="row-running-text">
+                        <div class="widget-icon" style="background:linear-gradient(135deg, rgba(124,108,252,.15), rgba(168,85,247,.1));border:1px solid rgba(124,108,252,.25)">📜</div>
+                        <div class="widget-info">
+                            <div class="widget-name">Running Text</div>
+                            <div class="widget-size-display" id="size-running-text">–</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggle-running-text" onchange="toggleWidget('running-text', this.checked)">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
@@ -638,6 +673,24 @@
                             </div>
                         </div>
 
+                        {{-- Widget: Running Text --}}
+                        <div class="wbox" id="wbox-running-text" data-widget="running-text">
+                            <div class="wbox-header">
+                                <span class="wbox-header-label">📜 Running Text</span>
+                                <span class="wbox-coords" id="coords-running-text"></span>
+                            </div>
+                            <div class="wbox-content">
+                                <div class="preview-running-text">
+                                    <div class="preview-rt-track">
+                                        <div class="preview-rt-text">Terima kasih donasi! Semangat terus!</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="resize-handle" data-widget="running-text">
+                                <svg viewBox="0 0 10 10" fill="none"><path d="M2 9L9 2M5 9L9 5M8 9L9 8" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+                            </div>
+                        </div>
+
                     </div>{{-- /canvas-surface --}}
                 </div>{{-- /canvas-surface-outer --}}
             </div>{{-- /canvas-stage-wrap --}}
@@ -662,8 +715,8 @@ const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 let cfg = JSON.parse(JSON.stringify(INITIAL_CONFIG)); // deep clone
 
 // Widget min sizes (dalam koordinat asli/resolusi penuh)
-const MIN_W = { notification: 300, leaderboard: 180, milestone: 200, qrcode: 140, subathon: 200 };
-const MIN_H = { notification: 100, leaderboard: 150, milestone:  80, qrcode: 140, subathon: 100 };
+const MIN_W = { notification: 300, leaderboard: 180, milestone: 200, qrcode: 140, subathon: 200, running_text: 400 };
+const MIN_H = { notification: 100, leaderboard: 150, milestone:  80, qrcode: 140, subathon: 100, running_text: 40 };
 
 // ── Canvas DOM refs ──
 const surface   = document.getElementById('canvas-surface');
@@ -682,7 +735,7 @@ function init() {
     applyResolution(w, h);
 
     // Set toggle dan posisi widget dari config
-    ['notification', 'leaderboard', 'milestone', 'qrcode', 'subathon'].forEach(function(key) {
+    ['notification', 'leaderboard', 'milestone', 'qrcode', 'subathon', 'running-text'].forEach(function(key) {
         const wdata = cfg.widgets[key];
         const toggle = document.getElementById('toggle-' + key);
         if (toggle) toggle.checked = !!wdata.active;
@@ -1071,7 +1124,7 @@ async function saveCanvas() {
             widgets: {}
         };
 
-        ['notification', 'leaderboard', 'milestone', 'qrcode'].forEach(function(key) {
+        ['notification', 'leaderboard', 'milestone', 'qrcode', 'subathon', 'running-text'].forEach(function(key) {
             const w = cfg.widgets[key];
             payload.widgets[key] = {
                 active: w.active ? true : false,

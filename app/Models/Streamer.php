@@ -167,6 +167,21 @@ class Streamer extends Model
                 'showLabel'    => true,
                 'labelText'    => 'Sisa Waktu',
             ],
+            'running_text' => [
+                'preset'       => 'default',
+                'enabled'      => false,
+                'text'         => 'Terima kasih atas donasi Anda! Semangat terus streamnya!',
+                'speed'        => '50',
+                'direction'    => 'left',
+                'bg'           => 'rgba(8,8,12,0.9)',
+                'border'       => 'rgba(124,108,252,0.2)',
+                'brand'        => '#7c6cfc',
+                'text'         => '#ffffff',
+                'font_size'    => '18',
+                'font_family'  => 'inter',
+                'radius'       => '0',
+                'opacity'      => '90',
+            ],
         ];
 
         $saved = $this->widget_settings;
@@ -197,6 +212,7 @@ class Streamer extends Model
                 'milestone'    => ['active' => false, 'x' => 40,   'y' => 800, 'w' => 340, 'h' => 130],
                 'qrcode'       => ['active' => false, 'x' => 1620, 'y' => 760, 'w' => 260, 'h' => 300],
                 'subathon'     => ['active' => false, 'x' => 800,  'y' => 100, 'w' => 320, 'h' => 150],
+                'running_text' => ['active' => false, 'x' => 0,    'y' => 1040, 'w' => 1920, 'h' => 40],
             ],
         ];
 

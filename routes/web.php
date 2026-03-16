@@ -186,3 +186,4 @@ Route::get('/{slug}/obs/milestone',   [ObsController::class, 'milestone'])->name
 Route::get('/{slug}/obs/qr',          [QrController::class, 'obsWidget'])->name('obs.qr');
 Route::get('/{slug}/obs/canvas',      [ObsCanvasController::class, 'render'])->name('obs.canvas');
 Route::get('/{slug}/obs/subathon',    [ObsController::class, 'subathon'])->name('obs.subathon');
+Route::get('/{slug}/obs/running-text', [ObsController::class, 'runningText'])->name('obs.running-text');

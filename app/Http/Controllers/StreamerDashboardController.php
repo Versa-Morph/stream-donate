@@ -572,10 +572,10 @@ class StreamerDashboardController extends Controller
             return response()->json(['ok' => false, 'error' => 'Profil tidak ditemukan.'], 404);
         }
 
-        $widget = $request->input('widget'); // 'alert','milestone','leaderboard','qr','subathon'
+        $widget = $request->input('widget'); // 'alert','milestone','leaderboard','qr','subathon','running_text'
         $data   = $request->input('data', []);
 
-        $allowed = ['alert', 'milestone', 'leaderboard', 'qr', 'subathon'];
+        $allowed = ['alert', 'milestone', 'leaderboard', 'qr', 'subathon', 'running_text'];
         if (!in_array($widget, $allowed)) {
             return response()->json(['ok' => false, 'error' => 'Widget tidak dikenal.'], 422);
         }
