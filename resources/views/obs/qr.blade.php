@@ -38,7 +38,7 @@
 
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 22px;
+            border-radius: var(--radius-qr, 22px);
             padding: 20px 20px 16px;
             width: 260px;
 
@@ -140,9 +140,100 @@
             word-break: break-all; text-align: center;
             line-height: 1.4;
         }
+        /* ── THEMES ── */
+        body.theme-neon {
+            --surface: rgba(2,4,18,.97);
+            --border:  rgba(0,255,200,.22);
+            --brand:   #00ffc8;
+            --brand2:  #00e5ff;
+        }
+        body.theme-fire {
+            --surface: rgba(10,4,2,.97);
+            --border:  rgba(249,115,22,.22);
+            --brand:   #f97316;
+            --brand2:  #fbbf24;
+        }
+        body.theme-ice {
+            --surface: rgba(2,8,22,.96);
+            --border:  rgba(147,210,255,.18);
+            --brand:   #38bdf8;
+            --brand2:  #818cf8;
+        }
+        body.theme-minimal {
+            --surface: rgba(12,12,16,.95);
+            --border:  rgba(255,255,255,.14);
+            --brand:   #e0e0f0;
+            --brand2:  #ffffff;
+        }
     </style>
 </head>
-<body>
+<body class="@php
+    $ws = $streamer->getWidgetSettings()['qr'] ?? [];
+    $preset = $ws['preset'] ?? 'default';
+    $themeMap = ['neon'=>'theme-neon','fire'=>'theme-fire','ice'=>'theme-ice','minimal'=>'theme-minimal'];
+    echo $themeMap[$preset] ?? '';
+@endphp">
+
+<style id="widget-custom-vars">
+@php
+    $ws = $streamer->getWidgetSettings()['qr'] ?? [];
+    $preset = $ws['preset'] ?? 'default';
+    $vars = [];
+    if ($preset === 'custom'):
+        if (!empty($ws['surface'])) $vars[] = '--surface: ' . $ws['surface'] . ';';
+        if (!empty($ws['border']))  $vars[] = '--border: '  . $ws['border']  . ';';
+        if (!empty($ws['brand']))   $vars[] = '--brand: '   . $ws['brand']   . ';';
+        if (!empty($ws['brand2']))  $vars[] = '--brand2: '  . $ws['brand2']  . ';';
+        if (!empty($ws['radius']))  $vars[] = '--radius-qr: ' . intval($ws['radius']) . 'px;';
+    elseif ($preset === 'neon'):
+        $vars[] = '--surface: rgba(2,4,18,.97);';
+        $vars[] = '--border: rgba(0,255,200,.22);';
+        $vars[] = '--brand: #00ffc8;';
+        $vars[] = '--brand2: #00e5ff;';
+    elseif ($preset === 'fire'):
+        $vars[] = '--surface: rgba(10,4,2,.97);';
+        $vars[] = '--border: rgba(249,115,22,.22);';
+        $vars[] = '--brand: #f97316;';
+        $vars[] = '--brand2: #fbbf24;';
+    elseif ($preset === 'ice'):
+        $vars[] = '--surface: rgba(2,8,22,.96);';
+        $vars[] = '--border: rgba(147,210,255,.18);';
+        $vars[] = '--brand: #38bdf8;';
+        $vars[] = '--brand2: #818cf8;';
+    elseif ($preset === 'minimal'):
+        $vars[] = '--surface: rgba(12,12,16,.95);';
+        $vars[] = '--border: rgba(255,255,255,.14);';
+        $vars[] = '--brand: #e0e0f0;';
+        $vars[] = '--brand2: #ffffff;';
+    endif;
+    // Radius for non-default presets
+    if ($preset !== 'default' && $preset !== 'custom' && !empty($ws['radius'])):
+        $vars[] = '--radius-qr: ' . intval($ws['radius']) . 'px;';
+    endif;
+    // Width / position
+    $qrWidth = !empty($ws['width']) ? intval($ws['width']) : 260;
+    $qrPos   = $ws['position'] ?? 'bottom-right';
+@endphp
+@if(!empty($vars))
+:root {
+    {!! implode("\n    ", $vars) !!}
+}
+@endif
+.qr-widget {
+    width: {{ $qrWidth }}px !important;
+@php
+    $posMap = [
+        'top-left'     => ['top:40px',    'left:48px',   'bottom:auto', 'right:auto'],
+        'top-right'    => ['top:40px',     'right:48px',  'bottom:auto', 'left:auto'],
+        'bottom-left'  => ['bottom:40px',  'left:48px',   'top:auto',    'right:auto'],
+        'bottom-right' => ['bottom:40px',  'right:48px',  'top:auto',    'left:auto'],
+        'center'       => ['top:50%',      'left:50%',    'transform:translate(-50%,-50%) scale(1)', 'bottom:auto', 'right:auto'],
+    ];
+    $posStyles = $posMap[$qrPos] ?? $posMap['bottom-right'];
+    echo implode(";\n    ", $posStyles) . ';';
+@endphp
+}
+</style>
 
 <div class="qr-widget">
     <!-- Header -->

@@ -12,6 +12,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SseController;
 use App\Http\Controllers\StreamerDashboardController;
 use App\Http\Controllers\Streamer\BannedWordController as StreamerBannedWordController;
+use App\Http\Controllers\PolicyController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,7 +21,16 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
+
+/*
+|--------------------------------------------------------------------------
+| Public Routes — Policies
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/policies', [PolicyController::class, 'index'])->name('policies.index');
+Route::get('/policies/{slug}', [PolicyController::class, 'show'])->name('policies.show');
 
 /*
 |--------------------------------------------------------------------------
@@ -37,10 +47,10 @@ Route::get('/policies/{slug}', [PolicyController::class, 'show'])->name('policie
 |--------------------------------------------------------------------------
 */
 
-// Halaman utama redirect ke login
+// Halaman utama — landing page / company profile
 Route::get('/', function () {
-    return redirect()->route('login');
-});
+    return view('welcome');
+})->name('home');
 
 /*
 |--------------------------------------------------------------------------
@@ -108,6 +118,11 @@ Route::middleware(['auth', 'verified', 'streamer'])->prefix('streamer')->name('s
     // OBS Canvas Editor
     Route::get('/obs-canvas',  [ObsCanvasController::class, 'editor'])->name('obs-canvas');
     Route::post('/obs-canvas', [ObsCanvasController::class, 'save'])->name('obs-canvas.save');
+
+    // Widget Studio
+    Route::get('/widgets',  [StreamerDashboardController::class, 'widgets'])->name('widgets');
+    Route::post('/widgets', [StreamerDashboardController::class, 'saveWidgets'])->name('widgets.save');
+    Route::post('/widgets/alert-settings', [StreamerDashboardController::class, 'saveAlertSettings'])->name('widgets.alert-settings');
 });
 
 /*

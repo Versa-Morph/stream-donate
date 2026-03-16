@@ -98,6 +98,9 @@ class SseController extends Controller
                         echo "event: stats\n";
                         echo "data: " . json_encode($stats) . "\n\n";
                         flush();
+
+                        // Reset heartbeat timer — stats sudah dikirim, tidak perlu ulang di heartbeat
+                        $lastPing = time();
                     }
 
                     // ── Heartbeat setiap 20 detik ──

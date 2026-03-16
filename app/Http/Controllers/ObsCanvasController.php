@@ -37,8 +37,8 @@ class ObsCanvasController extends Controller
         }
 
         $validated = $request->validate([
-            'width'                        => 'required|integer|in:1920,1280,1366',
-            'height'                       => 'required|integer|in:1080,720,768',
+            'width'                        => 'required|integer|min:320|max:7680',
+            'height'                       => 'required|integer|min:180|max:4320',
             'widgets'                      => 'required|array',
             'widgets.notification'         => 'required|array',
             'widgets.notification.active'  => 'required|boolean',
