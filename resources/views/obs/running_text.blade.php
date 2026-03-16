@@ -6,13 +6,13 @@
     <title>Running Text</title>
     @php
         $enabled = $widget['enabled'] ?? false;
-        $text = $widget['text'] ?? 'Terima kasih atas donasi Anda! Semangat terus streamnya!';
+        $streamerMessage = isset($streamerMessage) ? $streamerMessage : 'Terima kasih atas donasi Anda! Semangat terus streamnya!';
         $speed = $widget['speed'] ?? '50';
         $direction = $widget['direction'] ?? 'left';
         $bg = $widget['bg'] ?? 'rgba(8,8,12,0.9)';
         $border = $widget['border'] ?? 'rgba(124,108,252,0.2)';
         $brand = $widget['brand'] ?? '#7c6cfc';
-        $textColor = $widget['text'] ?? '#ffffff';
+        $textColor = $widget['text_color'] ?? '#ffffff';
         $fontSize = $widget['font_size'] ?? '18';
         $fontFamily = $widget['font_family'] ?? 'inter';
         $radius = $widget['radius'] ?? '0';
@@ -71,21 +71,15 @@
     <div class="running-text-widget">
         <div class="running-text-container" id="running-text">
             <span class="running-text-item">
-                <span class="running-text-icon">🎉</span>
-                {{ $text }}
+                <span class="running-text-icon">📢</span>
+                {{ $streamerMessage }}
             </span>
+            @foreach($donations as $donation)
             <span class="running-text-item">
-                <span class="running-text-icon">❤️</span>
-                {{ $text }}
+                <span class="running-text-icon">{{ $donation->emoji ?? '💖' }}</span>
+                {{ $donation->name }}: {{ $donation->message }}
             </span>
-            <span class="running-text-item">
-                <span class="running-text-icon">🎁</span>
-                {{ $text }}
-            </span>
-            <span class="running-text-item">
-                <span class="running-text-icon">💪</span>
-                {{ $text }}
-            </span>
+            @endforeach
         </div>
     </div>
     @else

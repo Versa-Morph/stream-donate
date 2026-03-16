@@ -67,6 +67,15 @@ class ObsController extends Controller
         $widgetSettings = $streamer->getWidgetSettings();
         $widget = $widgetSettings['running_text'] ?? [];
 
-        return view('obs.running_text', compact('streamer', 'apiKey', 'widget'));
+        $streamerMessage = $widget['text'] ?? 'Terima kasih atas donasi Anda! Semangat terus streamnya!';
+        
+        $donations = $streamer->donations()
+            ->whereNotNull('message')
+            ->where('message', '!=', '')
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        return view('obs.running_text', compact('streamer', 'apiKey', 'widget', 'streamerMessage', 'donations'));
     }
 }

@@ -4128,38 +4128,57 @@
             {{-- ══ TAB: Running Text ══ --}}
             @php $ws_rt = $widgetSettings['running_text'] ?? []; @endphp
             <div class="ws-panel" id="tab-running-text">
+
                 <div class="ws-card">
                     <div class="ws-card-head">
                         <div class="ws-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
                             <span class="iconify" data-icon="solar:text-bold-duotone" style="color:var(--brand-light)"></span>
                         </div>
                         <div>
-                            <div class="ws-card-title">Running Text</div>
+                            <div class="ws-card-title">Running Text Widget</div>
                             <div class="ws-card-sub">Teks berjalan horizontal di bawah layar</div>
                         </div>
+                        <div class="ws-card-head-right">
+                            <div class="status-live">
+                                <span class="status-live-dot"></span>
+                                Real-time via SSE
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="ws-opt-row">
-                        <div class="ws-opt-label">
-                            <div>Aktifkan Running Text</div>
-                            <div class="ws-opt-sub">Teks akan berjalan di layar</div>
-                        </div>
-                        <label class="ws-toggle">
-                            <input type="checkbox" id="running-text-enabled" {{ ($ws_rt['enabled'] ?? false) ? 'checked' : '' }}>
-                            <span class="ws-toggle-slider"></span>
-                        </label>
+                    <div class="ws-tags">
+                        <span class="ws-tag purple">
+                            <span class="iconify" data-icon="solar:text"></span>
+                            Teks Berjalan
+                        </span>
+                        <span class="ws-tag green">
+                            <span class="iconify" data-icon="solar:refresh-bold"></span>
+                            Auto Update
+                        </span>
+                        <span class="ws-tag blue">
+                            <span class="iconify" data-icon="solar:money-bold"></span>
+                            Pesan Donasi
+                        </span>
                     </div>
 
-                    <div class="ws-section-label" style="margin-top:16px">
-                        <span class="iconify" data-icon="solar:text" style="width:12px;height:12px"></span>
-                        Isi Teks
+                    <div class="ws-size-chips">
+                        <span class="ws-size-chip">
+                            <span class="iconify" data-icon="solar:ruler-bold"></span>
+                            Default 1920 × 40 px
+                        </span>
+                        <span class="ws-size-chip">
+                            <span class="iconify" data-icon="solar:monitor-bold"></span>
+                            Canvas 1920 × 1080
+                        </span>
+                        <span class="ws-size-chip">
+                            <span class="iconify" data-icon="solar:list-bold"></span>
+                            Max 20 pesan
+                        </span>
                     </div>
-                    <div class="form-group">
-                        <textarea id="running-text-content" rows="2" style="width:100%;padding:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px">{{ $ws_rt['text'] ?? 'Terima kasih atas donasi Anda! Semangat terus streamnya!' }}</textarea>
-                        <div class="hint">
-                            <span class="iconify" data-icon="solar:info-circle-bold"></span>
-                            Teks yang akan berjalan di layar
-                        </div>
+
+                    <div class="ws-info-box">
+                        <span class="iconify" data-icon="solar:info-circle-bold-duotone"></span>
+                        <span>Widget ini tampil permanen di layar. Posisi default: <strong>bawah tengah</strong> canvas.</span>
                     </div>
 
                     <div class="ws-section-label" style="margin-top:16px">
@@ -4174,7 +4193,7 @@
                             </div>
                             <div class="obs-url-info">
                                 <div class="obs-url-label">
-                                    Running Text
+                                    Running Text Widget
                                     <code style="font-size:9px;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px">?key=</code>
                                     sudah termasuk
                                 </div>
@@ -4193,48 +4212,79 @@
                     </div>
                 </div>
 
+                {{-- ── Live Preview Running Text ── --}}
+                <div class="ws-card wc-preview-card">
+                    <div class="ws-card-head">
+                        <div class="ws-card-icon" style="background:rgba(34,211,160,.1);border:1px solid rgba(34,211,160,.2)">
+                            <span class="iconify" data-icon="solar:eye-bold-duotone" style="color:var(--green)"></span>
+                        </div>
+                        <div>
+                            <div class="ws-card-title">Live Preview</div>
+                            <div class="ws-card-sub">Tampilan Running Text sesuai pengaturan kamu</div>
+                        </div>
+                    </div>
+                    <div class="wc-preview-viewport" id="preview-running-text-viewport">
+                        <span class="wc-preview-label">
+                            <span class="wc-preview-dot"></span>PREVIEW
+                        </span>
+                        <div class="wc-preview-frame" style="width:100%;height:60px">
+                            <div class="wc-preview-stage" id="preview-running-text-stage" style="transform:scale(.65);transform-origin:top center;width:600px">
+                                <div class="wc-prev-rt" style="background:{{ $ws_rt['bg'] ?? 'rgba(8,8,12,0.9)' }};border-top:1px solid {{ $ws_rt['border'] ?? 'rgba(124,108,252,0.2)' }};border-bottom:1px solid {{ $ws_rt['border'] ?? 'rgba(124,108,252,0.2)' }};height:40px;display:flex;align-items:center;overflow:hidden">
+                                    <div style="display:flex;align-items:center;white-space:nowrap;animation:scroll-left-{{ $ws_rt['speed'] ?? 50 }}s linear infinite">
+                                        <span style="font-family:inter,sans-serif;font-size:18px;font-weight:600;color:{{ $ws_rt['text_color'] ?? '#ffffff' }};padding:0 50px;display:inline-flex;align-items:center;gap:10px">
+                                            <span style="color:var(--brand-light)">📢</span>
+                                            {{ $ws_rt['text'] ?? 'Terima kasih atas donasi Anda!' }}
+                                        </span>
+                                        <span style="font-family:inter,sans-serif;font-size:18px;font-weight:600;color:{{ $ws_rt['text_color'] ?? '#ffffff' }};padding:0 50px;display:inline-flex;align-items:center;gap:10px">
+                                            <span style="color:var(--brand-light)">💖</span>
+                                            Contoh pesan donasi...
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ── Pengaturan Running Text ── --}}
                 <div class="ws-card">
                     <div class="ws-card-head">
                         <div class="ws-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
-                            <span class="iconify" data-icon="solar:palette-bold-duotone" style="color:var(--brand-light)"></span>
+                            <span class="iconify" data-icon="solar:settings-bold-duotone" style="color:var(--brand-light)"></span>
                         </div>
                         <div>
-                            <div class="ws-card-title">Kustomisasi Tampilan</div>
-                            <div class="ws-card-sub">Atur kecepatan, warna, dan tampilan</div>
+                            <div class="ws-card-title">Pengaturan Running Text</div>
+                            <div class="ws-card-sub">Aktifkan dan atur pesan</div>
                         </div>
                     </div>
 
-                    <div class="ws-section-label">
-                        <span class="iconify" data-icon="solar:magic-stick-bold" style="width:12px;height:12px"></span>
-                        Preset Tema
+                    <div class="ws-opt-row">
+                        <div class="ws-opt-label">
+                            <div>Aktifkan Running Text</div>
+                            <div class="ws-opt-sub">Teks akan berjalan di layar</div>
+                        </div>
+                        <label class="ws-toggle">
+                            <input type="checkbox" id="running-text-enabled" {{ ($ws_rt['enabled'] ?? false) ? 'checked' : '' }}>
+                            <span class="ws-toggle-slider"></span>
+                        </label>
                     </div>
 
-                    <div class="wc-presets" id="running-text-presets">
-                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? 'default') === 'default' ? 'active' : '' }}" data-preset="default" onclick="wcSelectPreset('running-text','default',this)">
-                            <div class="wc-preset-swatch" style="background:linear-gradient(90deg,rgba(8,8,12,0.9),#7c6cfc);border-color:rgba(124,108,252,.2)"></div>
-                            <div class="wc-preset-name">Default</div>
-                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
-                        </div>
-                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'neon' ? 'active' : '' }}" data-preset="neon" onclick="wcSelectPreset('running-text','neon',this)">
-                            <div class="wc-preset-swatch" style="background:linear-gradient(90deg,rgba(0,0,0,0.95),#00ffc8);border-color:rgba(0,255,200,.3)"></div>
-                            <div class="wc-preset-name">Neon</div>
-                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
-                        </div>
-                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'fire' ? 'active' : '' }}" data-preset="fire" onclick="wcSelectPreset('running-text','fire',this)">
-                            <div class="wc-preset-swatch" style="background:linear-gradient(90deg,rgba(20,5,0,0.95),#ff4400);border-color:rgba(255,68,0,.3)"></div>
-                            <div class="wc-preset-name">Fire</div>
-                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
-                        </div>
-                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'gold' ? 'active' : '' }}" data-preset="gold" onclick="wcSelectPreset('running-text','gold',this)">
-                            <div class="wc-preset-swatch" style="background:linear-gradient(90deg,rgba(20,15,0,0.95),#ffd700);border-color:rgba(255,215,0,.3)"></div>
-                            <div class="wc-preset-name">Gold</div>
-                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                    <div class="ws-section-label" style="margin-top:16px">
+                        <span class="iconify" data-icon="solar:text" style="width:12px;height:12px"></span>
+                        Isi Teks
+                    </div>
+
+                    <div class="form-group">
+                        <textarea id="running-text-content" rows="2" style="width:100%;padding:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px">{{ $ws_rt['text'] ?? 'Terima kasih atas donasi Anda! Semangat terus streamnya!' }}</textarea>
+                        <div class="hint">
+                            <span class="iconify" data-icon="solar:info-circle-bold"></span>
+                            Pesan utama yang akan berjalan di layar
                         </div>
                     </div>
 
-                    <div class="ws-section-label" style="margin-top:20px">
-                        <span class="iconify" data-icon="solar:settings-bold" style="width:12px;height:12px"></span>
-                        Pengaturan
+                    <div class="ws-section-label" style="margin-top:16px">
+                        <span class="iconify" data-icon="solar:gauge-bold" style="width:12px;height:12px"></span>
+                        Kecepatan &amp; Arah
                     </div>
 
                     <div class="ws-opt-row">
@@ -4267,25 +4317,102 @@
                             <span class="ws-opt-unit">px</span>
                         </div>
                     </div>
+                </div>
 
-                    <div class="ws-section-label" style="margin-top:16px">
-                        <span class="iconify" data-icon="solar:palette-bold" style="width:12px;height:12px"></span>
-                        Warna
+                <div class="ws-card">
+                    <div class="ws-card-head">
+                        <div class="ws-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
+                            <span class="iconify" data-icon="solar:palette-bold-duotone" style="color:var(--brand-light)"></span>
+                        </div>
+                        <div>
+                            <div class="ws-card-title">Kustomisasi Tampilan</div>
+                            <div class="ws-card-sub">Atur kecepatan, warna, dan tampilan</div>
+                        </div>
                     </div>
 
-                    <div class="form-row" style="margin-top:12px">
-                        <div class="form-group">
-                            <label>Warna Teks</label>
-                            <div style="display:flex;align-items:center;gap:8px">
-                                <input type="color" id="running-text-color-text" value="{{ $ws_rt['text'] ?? '#ffffff' }}" style="width:40px;height:32px;padding:0;border:none;border-radius:6px;cursor:pointer">
-                                <input type="text" id="running-text-color-text-text" value="{{ $ws_rt['text'] ?? '#ffffff' }}" style="width:100px;font-size:12px;font-family:monospace">
+                    <div class="ws-section-label">
+                        <span class="iconify" data-icon="solar:magic-stick-bold" style="width:12px;height:12px"></span>
+                        Preset Tema
+                    </div>
+
+                    <div class="wc-presets" id="running-text-presets">
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? 'default') === 'default' ? 'active' : '' }}" data-preset="default" onclick="wcSelectPreset('running_text','default',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,8,12,0.96),#1a1a2e);border-color:rgba(124,108,252,.2)"></div>
+                            <div class="wc-preset-name">Default</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'neon' ? 'active' : '' }}" data-preset="neon" onclick="wcSelectPreset('running_text','neon',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(2,4,18,.97),#001a14);border-color:rgba(0,255,200,.22)"></div>
+                            <div class="wc-preset-name">Neon</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'fire' ? 'active' : '' }}" data-preset="fire" onclick="wcSelectPreset('running_text','fire',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(10,4,2,.97),#2a0a00);border-color:rgba(249,115,22,.22)"></div>
+                            <div class="wc-preset-name">Fire</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'ice' ? 'active' : '' }}" data-preset="ice" onclick="wcSelectPreset('running_text','ice',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(2,8,22,.96),#001830);border-color:rgba(147,210,255,.18)"></div>
+                            <div class="wc-preset-name">Ice</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'minimal' ? 'active' : '' }}" data-preset="minimal" onclick="wcSelectPreset('running_text','minimal',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(12,12,16,.95),#1a1a1e);border-color:rgba(255,255,255,.14)"></div>
+                            <div class="wc-preset-name">Minimal</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'custom' ? 'active' : '' }}" data-preset="custom" onclick="wcSelectPreset('running_text','custom',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,var(--brand),var(--purple));border-color:rgba(124,108,252,.3)"></div>
+                            <div class="wc-preset-name">Custom</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                    </div>
+
+                    @php
+                        $rtTextColor = $ws_rt['text_color'] ?? '#ffffff';
+                        $rtBgColor = substr($ws_rt['bg'] ?? '#08080c', 0, 7);
+                    @endphp
+
+                    <div class="wc-custom-panel {{ ($ws_rt['preset'] ?? 'default') === 'custom' ? 'visible' : '' }}" id="running_text-custom">
+                        <div class="ws-section-label" style="margin-bottom:4px">
+                            <span class="iconify" data-icon="solar:pen-bold" style="width:12px;height:12px"></span>
+                            Warna &amp; Gaya
+                        </div>
+
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:text-bold"></span>Warna Teks</div>
+                            <div class="wc-row-ctrl">
+                                <div class="wc-color-wrap">
+                                    <div class="wc-color-swatch" id="running_text-swatch-text_color" style="background:{{ $rtTextColor }}"></div>
+                                    <input type="color" class="wc-color-input" id="running_text-color-text_color" value="{{ $rtTextColor }}" oninput="wcColorChange('running_text','text_color',this)">
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Warna Background</label>
-                            <div style="display:flex;align-items:center;gap:8px">
-                                <input type="color" id="running-text-color-bg" value="{{ substr($ws_rt['bg'] ?? '#08080c', 0, 7) }}" style="width:40px;height:32px;padding:0;border:none;border-radius:6px;cursor:pointer">
-                                <input type="text" id="running-text-color-bg-text" value="{{ substr($ws_rt['bg'] ?? '#08080c', 0, 7) }}" style="width:100px;font-size:12px;font-family:monospace">
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:square-bold"></span>Background</div>
+                            <div class="wc-row-ctrl">
+                                <div class="wc-color-wrap">
+                                    <div class="wc-color-swatch" id="running_text-swatch-bg" style="background:{{ $rtBgColor }}"></div>
+                                    <input type="color" class="wc-color-input" id="running_text-color-bg" value="{{ $rtBgColor }}" oninput="wcColorChange('running_text','bg',this)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:paint-roll-bold"></span>Border</div>
+                            <div class="wc-row-ctrl">
+                                <div class="wc-color-wrap">
+                                    <div class="wc-color-swatch" id="running_text-swatch-border" style="background:{{ $ws_rt['border'] ?? '#7c6cfc' }}"></div>
+                                    <input type="color" class="wc-color-input" id="running_text-color-border" value="{{ $ws_rt['border'] ?? '#7c6cfc' }}" oninput="wcColorChange('running_text','border',this)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:stars-bold"></span>Brand Color</div>
+                            <div class="wc-row-ctrl">
+                                <div class="wc-color-wrap">
+                                    <div class="wc-color-swatch" id="running_text-swatch-brand" style="background:{{ $ws_rt['brand'] ?? '#7c6cfc' }}"></div>
+                                    <input type="color" class="wc-color-input" id="running_text-color-brand" value="{{ $ws_rt['brand'] ?? '#7c6cfc' }}" oninput="wcColorChange('running_text','brand',this)">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -4418,7 +4545,7 @@ var wcDefaults = {
         text:'Terima kasih atas donasi Anda! Semangat terus streamnya!',
         speed:'50', direction:'left',
         bg:'rgba(8,8,12,0.9)', border:'rgba(124,108,252,0.2)',
-        brand:'#7c6cfc', text:'#ffffff',
+        brand:'#7c6cfc', text_color:'#ffffff',
         font_size:'18', font_family:'inter',
         radius:'0', opacity:'90',
     },
@@ -5493,8 +5620,14 @@ function saveRunningTextSettings() {
     var speed = parseInt(document.getElementById('running-text-speed').value) || 50;
     var direction = document.getElementById('running-text-direction').value;
     var fontSize = parseInt(document.getElementById('running-text-font-size').value) || 18;
-    var textColor = document.getElementById('running-text-color-text').value;
-    var bgColor = document.getElementById('running-text-color-bg').value;
+    var textColorEl = document.getElementById('running_text-color-text_color');
+    var bgColorEl = document.getElementById('running_text-color-bg');
+    var borderColorEl = document.getElementById('running_text-color-border');
+    var brandColorEl = document.getElementById('running_text-color-brand');
+    var textColor = textColorEl ? textColorEl.value : '#ffffff';
+    var bgColor = bgColorEl ? bgColorEl.value : '#08080c';
+    var borderColor = borderColorEl ? borderColorEl.value : '#7c6cfc';
+    var brandColor = brandColorEl ? brandColorEl.value : '#7c6cfc';
     
     var btn = document.querySelector('#msg-running-text').previousElementSibling;
     if (btn) {
@@ -5510,6 +5643,8 @@ function saveRunningTextSettings() {
         font_size: fontSize,
         text_color: textColor,
         bg: bgColor,
+        border: borderColor,
+        brand: brandColor,
         preset: 'default'
     };
     
