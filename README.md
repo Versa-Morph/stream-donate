@@ -6,14 +6,21 @@ Platform donasi real-time untuk streamer. Penonton bisa kirim donasi langsung da
 
 ## Fitur
 
-- **Alert donasi real-time** di OBS via Server-Sent Events (SSE)
-- **Antrian donasi** — beberapa donasi masuk diproses satu per satu, tidak saling tumpang tindih
+### Widget OBS
+- **Alert donasi real-time** — muncul otomatis di OBS via Server-Sent Events (SSE)
 - **Request video YouTube** — donatur bisa request video yang diputar langsung di alert
 - **Leaderboard overlay** — panel top donatur yang update otomatis
 - **Milestone overlay** — progress bar target donasi stream
+- **Subathon Timer** — countdown timer yang bertambah saat ada donasi masuk
+- **Running Text** — teks berjalan horizontal menampilkan pesan streamer & pesan donasi
+
+### Fitur Platform
+- **Antrian donasi** — beberapa donasi masuk diproses satu per satu, tidak saling tumpang tindih
 - **Dashboard streamer** — riwayat, statistik, laporan CSV/PDF
 - **Panel admin** — manajemen user, impersonate, log aktivitas
-- **Notifikasi suara** synthesized via Web Audio API (5 tema: default, minimal, neon, fire, ice)
+- **Widget Studio** — kustomisasi tampilan widget dengan presets (default, neon, fire, ice, minimal, custom)
+- **OBS Canvas** — drag & drop posisi widget di kanvas 1920×1080
+- **Notifikasi suara** — 5 tema suara synthesized via Web Audio API
 - **Live config sync** — ganti tema/suara di Settings langsung berlaku di OBS tanpa refresh
 
 ---
@@ -168,8 +175,17 @@ $user->markEmailAsVerified();
 | Alert donasi | `http://[domain]/[slug]/obs/overlay?key=[api_key]` | Posisi bebas di kanvas OBS |
 | Leaderboard | `http://[domain]/[slug]/obs/leaderboard?key=[api_key]` | Panel `300px`, posisikan via crop/transform OBS |
 | Milestone | `http://[domain]/[slug]/obs/milestone?key=[api_key]` | Panel `340px` bottom-left |
+| Subathon Timer | `http://[domain]/[slug]/obs/subathon?key=[api_key]` | Panel `320px`, countdown timer |
+| Running Text | `http://[domain]/[slug]/obs/running-text?key=[api_key]` | Full width, teks berjalan horizontal |
 
-URL lengkap sudah tersedia di halaman **Dashboard → tab Overlay** milik masing-masing streamer, tinggal copy-paste.
+URL lengkap sudah tersedia di halaman **Widget Studio** milik masing-masing streamer, tinggal copy-paste.
+
+### Widget Studio & OBS Canvas
+
+Streamer bisa mengkustomisasi widget melalui **Widget Studio**:
+- **Preview** — lihat tampilan widget secara langsung
+- **Preset tema** — Default, Neon, Fire, Ice, Minimal, Custom
+- **OBS Canvas** — drag & drop posisi widget di kanvas 1920×1080
 
 ### Mendapatkan API Key
 
@@ -193,15 +209,20 @@ streamdonate-versamorph/
 │   │   └── ProcessDonationJob.php      # Proses donasi → simpan + broadcast SSE
 │   └── Models/
 │       ├── Streamer.php                # buildStats() untuk leaderboard & milestone
-│       └── Donation.php
+│       ├── Donation.php
+│       └── AlertQueue.php
 │
 ├── resources/views/
 │   ├── obs/
 │   │   ├── overlay.blade.php           # Alert donasi (5 tema, flat minimal)
 │   │   ├── leaderboard.blade.php       # Top donatur floating panel
-│   │   └── milestone.blade.php         # Progress bar compact panel
+│   │   ├── milestone.blade.php          # Progress bar compact panel
+│   │   ├── subathon.blade.php          # Subathon countdown timer
+│   │   └── running_text.blade.php      # Running text marquee
 │   └── streamer/
 │       ├── dashboard.blade.php
+│       ├── widgets.blade.php           # Widget Studio
+│       ├── obs_canvas.blade.php        # OBS Canvas editor
 │       └── settings.blade.php
 │
 ├── routes/web.php
@@ -235,3 +256,5 @@ php artisan pail
 - Untuk deploy ke server publik, pastikan `APP_DEBUG=false` dan `QUEUE_CONNECTION=database` dengan queue worker aktif (`php artisan queue:work`).
 - SSE reconnect otomatis setiap 3 detik jika koneksi terputus.
 - Perubahan tema/suara di halaman Settings akan berlaku di OBS dalam ~20 detik tanpa perlu refresh Browser Source.
+- Subathon Timer: durasi countdown bertambah otomatis berdasarkan nominal donasi (konfigurasi di Settings → Subathon).
+- Running Text: menampilkan pesan streamer dan 20 pesan donasi terakhir dalam efek teks berjalan horizontal.
