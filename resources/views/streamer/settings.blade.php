@@ -306,6 +306,9 @@ input[type="file"].file-input-hidden{display:none}
             <div class="nav-item" data-tab="leaderboard" onclick="switchTab('leaderboard',this)">
                 <span class="iconify" data-icon="solar:ranking-bold-duotone"></span>Leaderboard
             </div>
+            <div class="nav-item" data-tab="subathon" onclick="switchTab('subathon',this)">
+                <span class="iconify" data-icon="solar:clock-bold-duotone"></span>Subathon
+            </div>
             <div class="nav-divider"></div>
             <div class="nav-section-label">Fitur</div>
             <div class="nav-item" data-tab="banned-words" onclick="switchTab('banned-words',this)">
@@ -625,6 +628,127 @@ input[type="file"].file-input-hidden{display:none}
                 </div>
                 <div class="save-bar">
                     <span class="save-bar-hint">Perubahan pada Leaderboard</span>
+                    <button type="submit" class="btn-primary">
+                        <span class="iconify" data-icon="solar:floppy-disk-bold-duotone" style="width:16px;height:16px"></span>
+                        Simpan
+                    </button>
+                </div>
+            </div>
+
+            {{-- ══ TAB: Subathon ══ --}}
+            <div class="settings-panel" id="tab-subathon">
+                <div class="panel-card">
+                    <div class="panel-card-head">
+                        <div class="panel-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
+                            <span class="iconify" data-icon="solar:clock-bold-duotone" style="color:var(--brand-light)"></span>
+                        </div>
+                        <div>
+                            <div class="panel-card-title">Subathon Timer</div>
+                            <div class="panel-card-sub">Timer countdown yang bertambah saat ada donasi</div>
+                        </div>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div>
+                            <div class="toggle-label">Aktifkan Subathon</div>
+                            <div class="toggle-sub">Timer akan muncul di widget OBS</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="subathon_enabled" {{ $streamer->subathon_enabled ? 'checked' : '' }}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-row" style="margin-top:20px">
+                        <div class="form-group">
+                            <label>Durasi Default (menit)</label>
+                            <input type="number" name="subathon_duration_minutes" value="{{ $streamer->subathon_duration_minutes ?? 60 }}" min="1" max="1440">
+                            <div class="hint">
+                                <span class="iconify" data-icon="solar:info-circle-bold"></span>
+                                Timer akan dimulai dengan durasi ini saat di-reset
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Timer Saat Ini (menit)</label>
+                            <input type="number" value="{{ $streamer->subathon_current_minutes ?? 0 }}" disabled style="opacity:0.6">
+                            <div class="hint">
+                                <span class="iconify" data-icon="solar:info-circle-bold"></span>
+                                Reset atau tambah manual di bawah
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-card-head">
+                        <div class="panel-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
+                            <span class="iconify" data-icon="solar:money-bold-duotone" style="color:var(--brand-light)"></span>
+                        </div>
+                        <div>
+                            <div class="panel-card-title">Konversi Donasi ke Waktu</div>
+                            <div class="panel-card-sub">Tentukan berapa menit ditambahkan per nominal donasi</div>
+                        </div>
+                    </div>
+
+                    @php
+                        $subValues = $streamer->subathon_additional_values ?? [['from' => 0, 'minutes' => 1], ['from' => 10000, 'minutes' => 2], ['from' => 50000, 'minutes' => 5], ['from' => 100000, 'minutes' => 10], ['from' => 500000, 'minutes' => 30]];
+                    @endphp
+                    @foreach($subValues as $i => $v)
+                    <div class="form-row" style="margin-bottom:8px">
+                        <div class="form-group" style="margin-bottom:0;display:flex;align-items:center;gap:8px">
+                            <span style="font-size:13px;color:var(--text-2)">Donasi Rp</span>
+                            <input type="number" name="subathon_values[{{ $i }}][from]" value="{{ $v['from'] }}" min="0" step="1000" style="width:120px">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;display:flex;align-items:center;gap:8px">
+                            <span style="font-size:13px;color:var(--text-2)">→ Tambah</span>
+                            <input type="number" name="subathon_values[{{ $i }}][minutes]" value="{{ $v['minutes'] }}" min="1" max="60" style="width:80px">
+                            <span style="font-size:13px;color:var(--text-2)">menit</span>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-card-head">
+                        <div class="panel-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
+                            <span class="iconify" data-icon="solar:refresh-bold-duotone" style="color:var(--brand-light)"></span>
+                        </div>
+                        <div>
+                            <div class="panel-card-title">Kontrol Timer</div>
+                            <div class="panel-card-sub">Reset atau tambah waktu secara manual</div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:10px;justify-content:center;padding:16px 0">
+                        <button type="button" class="btn-sm" onclick="addSubathonTime()">
+                            <span class="iconify" data-icon="solar:plus-bold"></span>Tambah Waktu
+                        </button>
+                        <button type="button" class="btn-sm" style="background:var(--brand);border-color:var(--brand);color:#fff" onclick="resetSubathonTimer()">
+                            <span class="iconify" data-icon="solar:refresh-bold"></span>Reset Timer
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-card-head">
+                        <div class="panel-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
+                            <span class="iconify" data-icon="solar:link-bold-duotone" style="color:var(--brand-light)"></span>
+                        </div>
+                        <div>
+                            <div class="panel-card-title">Widget OBS</div>
+                            <div class="panel-card-sub">URL untuk OBS Browser Source</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px">
+                        <input type="text" readonly value="{{ route('obs.subathon', $streamer->slug) }}?key={{ $streamer->api_key }}" style="flex:1;font-size:12px;font-family:monospace">
+                        <button type="button" class="btn-sm" onclick="copySubathonUrl()">
+                            <span class="iconify" data-icon="solar:copy-bold"></span>Salin
+                        </button>
+                    </div>
+                </div>
+
+                <div class="save-bar">
+                    <span class="save-bar-hint">Perubahan pada Subathon</span>
                     <button type="submit" class="btn-primary">
                         <span class="iconify" data-icon="solar:floppy-disk-bold-duotone" style="width:16px;height:16px"></span>
                         Simpan
@@ -1025,6 +1149,53 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.addEventListener('DOMContentLoaded', loadWords);
 })();
+
+// ── Subathon Functions ──
+function resetSubathonTimer() {
+    if (!confirm('Reset timer ke durasi default?')) return;
+    
+    fetch('{{ route("streamer.subathon.reset-timer") }}', {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.ok) {
+            document.getElementById('subathon-timer-display').textContent = res.timer;
+            showToast('Timer di-reset!');
+        }
+    });
+}
+
+function addSubathonTime() {
+    var mins = prompt('Berapa menit yang ingin ditambahkan?', '10');
+    if (!mins || isNaN(parseInt(mins))) return;
+    
+    fetch('{{ route("streamer.subathon.add-time") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ minutes: parseInt(mins) })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.ok) {
+            document.getElementById('subathon-timer-display').textContent = res.timer;
+            showToast('+' + mins + ' menit ditambahkan!');
+        }
+    });
+}
+
+function copySubathonUrl() {
+    var url = '{{ route("obs.subathon", $streamer->slug) }}?key={{ $streamer->api_key }}';
+    navigator.clipboard.writeText(url).then(function() {
+        showToast('URL disalin!');
+    }).catch(function() {
+        showToast('Gagal menyalin URL.');
+    });
+}
 </script>
 @endpush
 </x-app-layout>

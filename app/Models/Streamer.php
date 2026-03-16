@@ -36,6 +36,11 @@ class Streamer extends Model
         'widget_settings',
         'alert_duration_tiers',
         'alert_max_duration',
+        'subathon_enabled',
+        'subathon_duration_minutes',
+        'subathon_additional_values',
+        'subathon_current_minutes',
+        'subathon_last_updated',
     ];
 
     protected function casts(): array
@@ -53,6 +58,11 @@ class Streamer extends Model
             'widget_settings'        => 'array',
             'alert_duration_tiers'   => 'array',
             'alert_max_duration'     => 'integer',
+            'subathon_enabled'       => 'boolean',
+            'subathon_duration_minutes' => 'integer',
+            'subathon_additional_values' => 'array',
+            'subathon_current_minutes' => 'integer',
+            'subathon_last_updated'  => 'datetime',
         ];
     }
 
@@ -144,6 +154,19 @@ class Streamer extends Model
                 'width'        => '260',
                 'position'     => 'bottom-right',
             ],
+            'subathon' => [
+                'preset'       => 'default',
+                'bg'           => 'rgba(8,8,12,0.95)',
+                'border'       => 'rgba(124,108,252,0.25)',
+                'brand'        => '#7c6cfc',
+                'brand2'       => '#a99dff',
+                'text'         => '#f1f1f6',
+                'text2'        => '#a0a0b4',
+                'radius'       => '16',
+                'width'        => '320',
+                'showLabel'    => true,
+                'labelText'    => 'Sisa Waktu',
+            ],
         ];
 
         $saved = $this->widget_settings;
@@ -173,6 +196,7 @@ class Streamer extends Model
                 'leaderboard'  => ['active' => false, 'x' => 60,   'y' => 60,  'w' => 300, 'h' => 420],
                 'milestone'    => ['active' => false, 'x' => 40,   'y' => 800, 'w' => 340, 'h' => 130],
                 'qrcode'       => ['active' => false, 'x' => 1620, 'y' => 760, 'w' => 260, 'h' => 300],
+                'subathon'     => ['active' => false, 'x' => 800,  'y' => 100, 'w' => 320, 'h' => 150],
             ],
         ];
 
@@ -232,6 +256,90 @@ class Streamer extends Model
 
         // Fallback ke legacy alert_duration
         return (int) ($this->alert_duration ?? 8000);
+    }
+
+    /**
+     * Kembalikan additional values dengan nilai default jika null/kosong.
+     * Default: setiap Rp10.000 = tambah 1 menit
+     */
+    public function getSubathonAdditionalValuesAttribute($value): array
+    {
+        $defaults = [
+            ['from' => 0, 'minutes' => 1],
+            ['from' => 10000, 'minutes' => 2],
+            ['from' => 50000, 'minutes' => 5],
+            ['from' => 100000, 'minutes' => 10],
+            ['from' => 500000, 'minutes' => 30],
+        ];
+
+        if (empty($value)) return $defaults;
+
+        $decoded = is_array($value) ? $value : json_decode($value, true);
+        if (empty($decoded)) return $defaults;
+
+        return $decoded;
+    }
+
+    /**
+     * Hitung tambahan menit berdasarkan jumlah donasi.
+     * Kembalikan menit tambahan dari tier tertinggi yang `from` <= amount.
+     */
+    public function getSubathonMinutesForAmount(int $amount): int
+    {
+        $values = $this->subathon_additional_values;
+        usort($values, fn($a, $b) => $b['from'] <=> $a['from']);
+
+        foreach ($values as $v) {
+            if ($amount >= (int) $v['from']) {
+                return (int) $v['minutes'];
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Format timer remaining dalam format HH:MM:SS
+     */
+    public function getSubathonTimerFormattedAttribute(): string
+    {
+        $minutes = $this->subathon_current_minutes ?? 0;
+        $hours = floor($minutes / 60);
+        $mins = $minutes % 60;
+        return sprintf('%02d:%02d:00', $hours, $mins);
+    }
+
+    /**
+     * Reset timer ke durasi default
+     */
+    public function resetSubathonTimer(): void
+    {
+        $this->subathon_current_minutes = $this->subathon_duration_minutes ?? 60;
+        $this->subathon_last_updated = now();
+        $this->save();
+    }
+
+    /**
+     * Tambah waktu ke timer berdasarkan donasi
+     */
+    public function addSubathonTime(int $donationAmount): array
+    {
+        if (!$this->subathon_enabled) {
+            return ['added' => 0, 'new_total' => $this->subathon_current_minutes];
+        }
+
+        $addedMinutes = $this->getSubathonMinutesForAmount($donationAmount);
+
+        if ($addedMinutes > 0) {
+            $this->subathon_current_minutes = ($this->subathon_current_minutes ?? 0) + $addedMinutes;
+            $this->subathon_last_updated = now();
+            $this->save();
+        }
+
+        return [
+            'added' => $addedMinutes,
+            'new_total' => $this->subathon_current_minutes,
+        ];
     }
 
     /**
@@ -322,6 +430,12 @@ class Streamer extends Model
                 'notificationSound'    => $this->notification_sound,
                 'alertTheme'           => $this->alert_theme,
                 'alertColors'          => $this->getWidgetSettings()['alert'] ?? [],
+            ],
+            'subathon' => [
+                'enabled'      => $this->subathon_enabled ?? false,
+                'currentMinutes' => $this->subathon_current_minutes ?? 0,
+                'durationMinutes' => $this->subathon_duration_minutes ?? 60,
+                'formatted'    => $this->subathon_timer_formatted,
             ],
         ];
     }

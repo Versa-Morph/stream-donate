@@ -83,6 +83,12 @@ class DonationController extends Controller
                 'yt_url'      => $ytUrl,
                 'ip_address'  => $request->ip(),
             ]);
+
+            // ── Update Subathon timer jika enabled ──
+            $subathonUpdate = null;
+            if ($streamer->subathon_enabled) {
+                $subathonUpdate = $streamer->addSubathonTime((int) $validated['amount']);
+            }
         } catch (\Throwable $e) {
             Log::error('DonationController: gagal menyimpan donasi', [
                 'streamer_id' => $streamer->id,

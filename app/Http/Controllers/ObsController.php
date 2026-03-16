@@ -41,4 +41,18 @@ class ObsController extends Controller
 
         return view('obs.milestone', compact('streamer', 'apiKey'));
     }
+
+    /**
+     * Subathon timer widget untuk OBS
+     */
+    public function subathon(Request $request, string $slug)
+    {
+        $streamer = Streamer::where('slug', $slug)->firstOrFail();
+        $apiKey = $request->query('key', '');
+
+        $widgetSettings = $streamer->getWidgetSettings();
+        $widget = $widgetSettings['subathon'] ?? [];
+
+        return view('obs.subathon', compact('streamer', 'apiKey', 'widget'));
+    }
 }

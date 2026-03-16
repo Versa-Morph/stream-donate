@@ -99,6 +99,7 @@
 .widget-icon.lb     { background: rgba(251,191,36,.1);  border: 1px solid rgba(251,191,36,.2); }
 .widget-icon.ms     { background: rgba(34,211,160,.1);  border: 1px solid rgba(34,211,160,.2); }
 .widget-icon.qr     { background: rgba(124,108,252,.12); border: 1px solid rgba(124,108,252,.2); }
+.widget-icon.subathon { background: linear-gradient(135deg, rgba(249,115,22,.15), rgba(251,191,36,.1)); border: 1px solid rgba(249,115,22,.25); }
 .widget-info { flex: 1; }
 .widget-name { font-size: 12px; font-weight: 600; color: var(--text); }
 .widget-size-display { font-size: 10px; color: var(--text-3); margin-top: 2px; font-family: monospace; }
@@ -306,6 +307,39 @@
 .preview-qr-box .iconify { width: 50%; height: 50%; color: rgba(124,108,252,.4); }
 .preview-qr-scan { font-size: 8px; font-weight: 700; color: rgba(169,157,255,.7); letter-spacing: .5px; }
 
+/* Subathon preview */
+.preview-subathon {
+    width: 100%; height: 100%;
+    background: rgba(8,8,12,.9);
+    border-top: 2px solid transparent;
+    border-image: linear-gradient(90deg,#7c6cfc,#a855f7,#22d3a0) 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 12px; box-sizing: border-box;
+    position: relative;
+}
+.preview-subathon-timer {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px; font-weight: 700;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+.preview-subathon-label {
+    font-size: 10px; font-weight: 700;
+    color: rgba(255,255,255,.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.preview-subathon-bar {
+    height: 3px;
+    width: 70%;
+    background: linear-gradient(90deg,#7c6cfc,#a855f7);
+    border-radius: 2px;
+    margin-top: auto;
+    position: absolute;
+    bottom: 12px;
+}
+
 /* ── Resize handle ── */
 .resize-handle {
     position: absolute; bottom: 0; right: 0;
@@ -433,6 +467,18 @@
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" id="toggle-qrcode" onchange="toggleWidget('qrcode', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="widget-row" id="row-subathon">
+                        <div class="widget-icon subathon">⏱️</div>
+                        <div class="widget-info">
+                            <div class="widget-name">Subathon</div>
+                            <div class="widget-size-display" id="size-subathon">–</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggle-subathon" onchange="toggleWidget('subathon', this.checked)">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
@@ -574,6 +620,24 @@
                             </div>
                         </div>
 
+                        {{-- Widget: Subathon --}}
+                        <div class="wbox" id="wbox-subathon" data-widget="subathon">
+                            <div class="wbox-header">
+                                <span class="wbox-header-label">⏱️ Subathon</span>
+                                <span class="wbox-coords" id="coords-subathon"></span>
+                            </div>
+                            <div class="wbox-content">
+                                <div class="preview-subathon">
+                                    <div class="preview-subathon-timer" id="preview-subathon-timer">00:00:00</div>
+                                    <div class="preview-subathon-label">SISA WAKTU</div>
+                                    <div class="preview-subathon-bar"></div>
+                                </div>
+                            </div>
+                            <div class="resize-handle" data-widget="subathon">
+                                <svg viewBox="0 0 10 10" fill="none"><path d="M2 9L9 2M5 9L9 5M8 9L9 8" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+                            </div>
+                        </div>
+
                     </div>{{-- /canvas-surface --}}
                 </div>{{-- /canvas-surface-outer --}}
             </div>{{-- /canvas-stage-wrap --}}
@@ -598,8 +662,8 @@ const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 let cfg = JSON.parse(JSON.stringify(INITIAL_CONFIG)); // deep clone
 
 // Widget min sizes (dalam koordinat asli/resolusi penuh)
-const MIN_W = { notification: 300, leaderboard: 180, milestone: 200, qrcode: 140 };
-const MIN_H = { notification: 100, leaderboard: 150, milestone:  80, qrcode: 140 };
+const MIN_W = { notification: 300, leaderboard: 180, milestone: 200, qrcode: 140, subathon: 200 };
+const MIN_H = { notification: 100, leaderboard: 150, milestone:  80, qrcode: 140, subathon: 100 };
 
 // ── Canvas DOM refs ──
 const surface   = document.getElementById('canvas-surface');
@@ -618,7 +682,7 @@ function init() {
     applyResolution(w, h);
 
     // Set toggle dan posisi widget dari config
-    ['notification', 'leaderboard', 'milestone', 'qrcode'].forEach(function(key) {
+    ['notification', 'leaderboard', 'milestone', 'qrcode', 'subathon'].forEach(function(key) {
         const wdata = cfg.widgets[key];
         const toggle = document.getElementById('toggle-' + key);
         if (toggle) toggle.checked = !!wdata.active;

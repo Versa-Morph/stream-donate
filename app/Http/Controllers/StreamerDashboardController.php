@@ -194,6 +194,8 @@ class StreamerDashboardController extends Controller
             'leaderboard_count'    => ['required', 'integer', 'min:3', 'max:20'],
             'is_accepting_donation'=> ['boolean'],
             'thank_you_message'    => ['required', 'string', 'max:200'],
+            'subathon_enabled'     => ['boolean'],
+            'subathon_duration_minutes' => ['nullable', 'integer', 'min:1', 'max:1440'],
         ]);
 
         // ── Handle avatar upload (atomic: upload baru dulu, hapus lama hanya jika berhasil) ──
@@ -312,7 +314,28 @@ class StreamerDashboardController extends Controller
             'leaderboard_count'     => $validated['leaderboard_count'],
             'is_accepting_donation' => $request->boolean('is_accepting_donation'),
             'thank_you_message'     => $validated['thank_you_message'],
+            'subathon_enabled'      => $request->boolean('subathon_enabled'),
+            'subathon_duration_minutes' => $validated['subathon_duration_minutes'] ?? 60,
         ]);
+
+        // Handle subathon additional values (array)
+        $subathonValues = $request->input('subathon_values', []);
+        if (!empty($subathonValues)) {
+            $values = [];
+            foreach ($subathonValues as $v) {
+                if (isset($v['from']) && isset($v['minutes'])) {
+                    $values[] = [
+                        'from' => (int) $v['from'],
+                        'minutes' => (int) $v['minutes'],
+                    ];
+                }
+            }
+            if (!empty($values)) {
+                usort($values, fn($a, $b) => $a['from'] <=> $b['from']);
+                $streamer->subathon_additional_values = $values;
+                $streamer->save();
+            }
+        }
 
         // Save avatar separately if updated
         if ($streamer->isDirty('avatar')) {
@@ -528,12 +551,13 @@ class StreamerDashboardController extends Controller
             return redirect()->route('streamer.setup');
         }
 
-        $streamer       = $user->streamer;
-        $widgetSettings = $streamer->getWidgetSettings();
-        $alertTiers     = $streamer->getAlertDurationTiers();
-        $alertMaxDur    = min((int) ($streamer->alert_max_duration ?? 30), 120);
+        $streamer        = $user->streamer;
+        $widgetSettings  = $streamer->getWidgetSettings();
+        $alertTiers      = $streamer->getAlertDurationTiers();
+        $alertMaxDur     = min((int) ($streamer->alert_max_duration ?? 30), 120);
+        $subathonValues  = $streamer->subathon_additional_values;
 
-        return view('streamer.widgets', compact('streamer', 'widgetSettings', 'alertTiers', 'alertMaxDur'));
+        return view('streamer.widgets', compact('streamer', 'widgetSettings', 'alertTiers', 'alertMaxDur', 'subathonValues'));
     }
 
     /**
@@ -548,10 +572,10 @@ class StreamerDashboardController extends Controller
             return response()->json(['ok' => false, 'error' => 'Profil tidak ditemukan.'], 404);
         }
 
-        $widget = $request->input('widget'); // 'alert','milestone','leaderboard','qr'
+        $widget = $request->input('widget'); // 'alert','milestone','leaderboard','qr','subathon'
         $data   = $request->input('data', []);
 
-        $allowed = ['alert', 'milestone', 'leaderboard', 'qr'];
+        $allowed = ['alert', 'milestone', 'leaderboard', 'qr', 'subathon'];
         if (!in_array($widget, $allowed)) {
             return response()->json(['ok' => false, 'error' => 'Widget tidak dikenal.'], 422);
         }
@@ -631,5 +655,125 @@ class StreamerDashboardController extends Controller
         );
 
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Halaman Subathon Settings - redirect ke Widget Studio tab Subathon
+     */
+    public function subathon(): RedirectResponse
+    {
+        $user = Auth::user();
+
+        if (!$user->streamer) {
+            return redirect()->route('streamer.setup');
+        }
+
+        return redirect()->route('streamer.widgets', ['#' => 'subathon']);
+    }
+
+    /**
+     * Simpan pengaturan Subathon (AJAX)
+     */
+    public function saveSubathonSettings(Request $request): JsonResponse
+    {
+        $user     = Auth::user();
+        $streamer = $user->streamer;
+
+        if (!$streamer) {
+            return response()->json(['ok' => false, 'error' => 'Profil tidak ditemukan.'], 404);
+        }
+
+        $validated = $request->validate([
+            'subathon_enabled'           => ['boolean'],
+            'subathon_duration_minutes'  => ['required', 'integer', 'min:1', 'max:1440'],
+            'subathon_additional_values' => ['required', 'array', 'min:1'],
+            'subathon_additional_values.*.from'     => ['required', 'integer', 'min:0'],
+            'subathon_additional_values.*.minutes'   => ['required', 'integer', 'min:1', 'max:60'],
+        ]);
+
+        $values = array_map(function ($v) {
+            return [
+                'from'    => (int) $v['from'],
+                'minutes' => (int) $v['minutes'],
+            ];
+        }, $validated['subathon_additional_values']);
+
+        usort($values, fn($a, $b) => $a['from'] <=> $b['from']);
+
+        $streamer->fill([
+            'subathon_enabled'           => $request->boolean('subathon_enabled'),
+            'subathon_duration_minutes'  => $validated['subathon_duration_minutes'],
+            'subathon_additional_values'  => $values,
+        ])->save();
+
+        ActivityLog::log(
+            action: 'streamer.subathon.saved',
+            description: 'Pengaturan Subathon disimpan',
+            streamerId: $streamer->id,
+        );
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Reset timer Subathon (AJAX)
+     */
+    public function resetSubathonTimer(Request $request): JsonResponse
+    {
+        $user     = Auth::user();
+        $streamer = $user->streamer;
+
+        if (!$streamer) {
+            return response()->json(['ok' => false, 'error' => 'Profil tidak ditemukan.'], 404);
+        }
+
+        $streamer->resetSubathonTimer();
+
+        ActivityLog::log(
+            action: 'streamer.subathon.timer.reset',
+            description: 'Timer Subathon di-reset ke default',
+            streamerId: $streamer->id,
+        );
+
+        return response()->json([
+            'ok'    => true,
+            'timer' => $streamer->subathon_current_minutes,
+            'formatted' => $streamer->subathon_timer_formatted,
+        ]);
+    }
+
+    /**
+     * Tambah waktu Subathon secara manual (AJAX)
+     */
+    public function addSubathonTimeManual(Request $request): JsonResponse
+    {
+        $user     = Auth::user();
+        $streamer = $user->streamer;
+
+        if (!$streamer) {
+            return response()->json(['ok' => false, 'error' => 'Profil tidak ditemukan.'], 404);
+        }
+
+        $minutes = $request->input('minutes', 0);
+
+        if ($minutes < 1 || $minutes > 60) {
+            return response()->json(['ok' => false, 'error' => 'Menit harus antara 1-60.'], 422);
+        }
+
+        $streamer->subathon_current_minutes = ($streamer->subathon_current_minutes ?? 0) + $minutes;
+        $streamer->subathon_last_updated = now();
+        $streamer->save();
+
+        ActivityLog::log(
+            action: 'streamer.subathon.timer.add',
+            description: "Timer Subathon ditambah {$minutes} menit",
+            streamerId: $streamer->id,
+        );
+
+        return response()->json([
+            'ok'    => true,
+            'timer' => $streamer->subathon_current_minutes,
+            'formatted' => $streamer->subathon_timer_formatted,
+        ]);
     }
 }

@@ -315,6 +315,177 @@
 }
 .ws-info-box.warning .iconify { color: var(--yellow); }
 
+/* ── Subathon Timer Styles ── */
+.ws-tier-rows { margin-top: 12px; }
+.ws-tier-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-2);
+}
+.ws-tier-row:last-child { border-bottom: none; }
+.ws-tier-row input {
+    width: 90px;
+    padding: 6px 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 12px;
+}
+.ws-tier-row input:focus {
+    border-color: var(--brand);
+    outline: none;
+}
+.ws-tier-remove {
+    background: none;
+    border: none;
+    color: var(--text-3);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+}
+.ws-tier-remove:hover { color: var(--red); background: rgba(244,63,94,.1); }
+.ws-tier-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: none;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    color: var(--text-3);
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all .15s;
+}
+.ws-tier-add:hover { border-color: var(--brand); color: var(--brand); }
+.ws-tier-add .iconify { width: 14px; height: 14px; }
+
+.ws-timer-display {
+    background: linear-gradient(135deg, var(--surface), var(--surface-2));
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+.ws-timer-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 6px;
+}
+.ws-timer-label {
+    font-size: 12px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.ws-timer-actions { display: flex; gap: 10px; justify-content: center; }
+.ws-timer-btn {
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-2);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ws-timer-btn:hover { border-color: var(--border-2); color: var(--text); }
+.ws-timer-btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.ws-timer-btn.primary:hover { opacity: .9; }
+.ws-timer-btn .iconify { width: 14px; height: 14px; }
+
+.ws-opt-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+}
+.ws-opt-row:first-of-type { padding-top: 0; }
+.ws-opt-row:last-of-type { border-bottom: none; }
+.ws-opt-label { flex: 1; }
+.ws-opt-label > div:first-child { font-size: 13px; font-weight: 500; color: var(--text); }
+.ws-opt-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.ws-opt-input { display: flex; align-items: center; gap: 6px; }
+.ws-opt-input input {
+    width: 80px;
+    padding: 8px 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 13px;
+}
+.ws-opt-unit { font-size: 12px; color: var(--text-3); }
+
+.ws-toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+.ws-toggle input { opacity: 0; width: 0; height: 0; }
+.ws-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: var(--surface-3);
+    border-radius: 24px;
+    transition: .25s;
+}
+.ws-toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: .25s;
+}
+.ws-toggle input:checked + .ws-toggle-slider { background: var(--brand); }
+.ws-toggle input:checked + .ws-toggle-slider::before { transform: translateX(20px); }
+
+.ws-save-row { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
+.ws-save-btn {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, var(--brand), #6356e8);
+    border: none;
+    border-radius: var(--radius);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.ws-save-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px var(--brand-glow); }
+.ws-save-btn:disabled { opacity: .55; cursor: not-allowed; }
+.ws-save-btn .iconify { width: 14px; height: 14px; }
+.ws-save-msg { color: var(--green); font-size: 12px; opacity: 0; transition: opacity .3s; }
+.ws-save-msg.show { opacity: 1; }
+
+.ws-url-box {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 20px;
+}
+
 /* ── Widget meta tags ── */
 .ws-tags {
     display: flex;
@@ -1359,6 +1530,52 @@
     border-radius: 4px;
 }
 
+/* ── SUBATHON preview mock ── */
+.wc-prev-subathon {
+    --p-surface: rgba(8,8,12,.96);
+    --p-border:  rgba(124,108,252,.2);
+    --p-brand:   #7c6cfc;
+    --p-brand2:  #a855f7;
+    --p-orange:  #f97316;
+    --p-yellow:  #fbbf24;
+    width: 280px;
+}
+.subathon-mock-wrap {
+    width: 100%; height: 100%;
+    background: rgba(8,8,12,.9);
+    border-top: 2px solid transparent;
+    border-image: linear-gradient(90deg,var(--p-brand),var(--p-brand2),#22d3a0) 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; box-sizing: border-box;
+}
+.subathon-mock-timer {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 32px; font-weight: 700;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+.subathon-mock-label {
+    font-size: 10px; font-weight: 700;
+    color: rgba(255,255,255,.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+.subathon-mock-bar {
+    width: 80%;
+    height: 4px;
+    background: rgba(255,255,255,.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.subathon-mock-bar-fill {
+    height: 100%;
+    width: 75%;
+    background: linear-gradient(90deg, var(--p-brand), var(--p-brand2));
+    border-radius: 2px;
+}
+
 /* ── LEADERBOARD preview mock ── */
 .wc-prev-leaderboard {
     --p-surface: rgba(8,8,12,.96);
@@ -1977,6 +2194,12 @@
                 <span class="iconify" data-icon="solar:qr-code-bold-duotone" style="color:var(--green)"></span>
                 Barcode / QR
                 <span class="ws-nav-badge">Static</span>
+            </div>
+
+            <div class="ws-nav-item" data-tab="subathon" onclick="wsTab('subathon',this)">
+                <span class="iconify" data-icon="solar:timer-bold-duotone" style="color:var(--brand)"></span>
+                Subathon
+                <span class="ws-nav-badge live">SSE</span>
             </div>
 
             <div class="ws-nav-divider"></div>
@@ -3556,6 +3779,347 @@
 
             </div>{{-- /tab-qr --}}
 
+            {{-- ══ TAB: Subathon ══ --}}
+            <div class="ws-panel" id="tab-subathon">
+
+                <div class="ws-card">
+                    <div class="ws-card-head">
+                        <div class="ws-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
+                            <span class="iconify" data-icon="solar:timer-bold-duotone" style="color:var(--brand-light)"></span>
+                        </div>
+                        <div>
+                            <div class="ws-card-title">Subathon Timer</div>
+                            <div class="ws-card-sub">Timer countdown yang bertambah saat ada donasi</div>
+                        </div>
+                        <div class="ws-card-head-right">
+                            <div class="status-live">
+                                <span class="status-live-dot"></span>
+                                Real-time via SSE
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ws-tags">
+                        <span class="ws-tag orange">
+                            <span class="iconify" data-icon="solar:timer-bold"></span>
+                            Countdown Timer
+                        </span>
+                        <span class="ws-tag green">
+                            <span class="iconify" data-icon="solar:refresh-bold"></span>
+                            Auto Update
+                        </span>
+                        <span class="ws-tag blue">
+                            <span class="iconify" data-icon="solar:money-bold"></span>
+                            Tambah via Donasi
+                        </span>
+                    </div>
+
+                    <div class="ws-size-chips">
+                        <span class="ws-size-chip">
+                            <span class="iconify" data-icon="solar:ruler-bold"></span>
+                            Default 320 × 150 px
+                        </span>
+                        <span class="ws-size-chip">
+                            <span class="iconify" data-icon="solar:monitor-bold"></span>
+                            Canvas 1920 × 1080
+                        </span>
+                    </div>
+
+                    <div class="ws-info-box">
+                        <span class="iconify" data-icon="solar:info-circle-bold-duotone"></span>
+                        <span>Widget ini tampil permanen di layar. Ubah pengaturan Subathon di menu <a href="{{ route('streamer.settings') }}#subathon" style="color:var(--brand-light)">Settings → Subathon</a>.</span>
+                    </div>
+
+                    <div class="ws-section-label">
+                        <span class="iconify" data-icon="solar:link-bold" style="width:12px;height:12px"></span>
+                        URL Browser Source OBS
+                    </div>
+
+                    <div class="obs-url-grid">
+                        <div class="obs-url-row">
+                            <div class="obs-url-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
+                                <span class="iconify" data-icon="solar:timer-bold-duotone" style="color:var(--brand-light)"></span>
+                            </div>
+                            <div class="obs-url-info">
+                                <div class="obs-url-label">
+                                    Subathon Timer
+                                    <code style="font-size:9px;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px">?key=</code>
+                                    sudah termasuk
+                                </div>
+                                @php $subUrl = route('obs.subathon', $streamer->slug) . '?key=' . $streamer->api_key; @endphp
+                                <input class="obs-url-input" readonly value="{{ $subUrl }}" id="url-subathon" />
+                            </div>
+                            <div class="obs-url-actions">
+                                <button class="obs-btn primary" onclick="copyText('{{ $subUrl }}', 'URL Subathon')">
+                                    <span class="iconify" data-icon="solar:copy-bold-duotone"></span>Copy URL
+                                </button>
+                                <a class="obs-btn" href="{{ $subUrl }}" target="_blank">
+                                    <span class="iconify" data-icon="solar:eye-bold-duotone"></span>Buka
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ── Live Preview Subathon ── --}}
+                <div class="ws-card wc-preview-card">
+                    <div class="ws-card-head">
+                        <div class="ws-card-icon" style="background:rgba(34,211,160,.1);border:1px solid rgba(34,211,160,.2)">
+                            <span class="iconify" data-icon="solar:eye-bold-duotone" style="color:var(--green)"></span>
+                        </div>
+                        <div>
+                            <div class="ws-card-title">Live Preview</div>
+                            <div class="ws-card-sub">Tampilan Subathon sesuai pengaturan kamu</div>
+                        </div>
+                    </div>
+                    <div class="wc-preview-viewport" id="preview-subathon-viewport">
+                        <span class="wc-preview-label">
+                            <span class="wc-preview-dot"></span>PREVIEW
+                        </span>
+                        <div class="wc-preview-frame" style="width:100%;height:160px">
+                            <div class="wc-preview-stage" id="preview-subathon-stage" style="transform:scale(.5);transform-origin:top center;width:320px">
+                                <div class="wc-prev-subathon subathon-mock-wrap">
+                                    <div class="subathon-mock-timer">00:45:00</div>
+                                    <div class="subathon-mock-label">SISA WAKTU</div>
+                                    <div class="subathon-mock-bar">
+                                        <div class="subathon-mock-bar-fill"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ── Pengaturan Subathon ── --}}
+                <div class="ws-card">
+                    <div class="ws-card-head">
+                        <div class="ws-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
+                            <span class="iconify" data-icon="solar:settings-bold-duotone" style="color:var(--brand-light)"></span>
+                        </div>
+                        <div>
+                            <div class="ws-card-title">Pengaturan Subathon</div>
+                            <div class="ws-card-sub">Aktifkan, durasi, dan konversi donasi</div>
+                        </div>
+                    </div>
+
+                    <div class="ws-opt-row">
+                        <div class="ws-opt-label">
+                            <div>Aktifkan Subathon</div>
+                            <div class="ws-opt-sub">Timer akan muncul di widget OBS</div>
+                        </div>
+                        <label class="ws-toggle">
+                            <input type="checkbox" id="subathon-enabled" {{ $streamer->subathon_enabled ? 'checked' : '' }}>
+                            <span class="ws-toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="ws-opt-row">
+                        <div class="ws-opt-label">
+                            <div>Durasi Default</div>
+                            <div class="ws-opt-sub">Timer dimulai dengan durasi ini saat di-reset</div>
+                        </div>
+                        <div class="ws-opt-input">
+                            <input type="number" id="subathon-duration" value="{{ $streamer->subathon_duration_minutes ?? 60 }}" min="1" max="1440" style="width:100px">
+                            <span class="ws-opt-unit">menit</span>
+                        </div>
+                    </div>
+
+                    <div class="ws-opt-row" style="align-items:flex-start;padding-top:16px;border-top:1px solid var(--border);margin-top:8px">
+                        <div class="ws-opt-label">
+                            <div>Konversi Donasi → Waktu</div>
+                            <div class="ws-opt-sub">Tentukan menit ditambahkan per nominal</div>
+                        </div>
+                    </div>
+
+                    <div class="ws-tier-rows" id="subathon-tiers">
+                        @php
+                            $subathonValues = $streamer->subathon_additional_values ?? [['from' => 0, 'minutes' => 1], ['from' => 10000, 'minutes' => 2], ['from' => 50000, 'minutes' => 5], ['from' => 100000, 'minutes' => 10], ['from' => 500000, 'minutes' => 30]];
+                        @endphp
+                        @foreach($subathonValues as $i => $v)
+                        <div class="ws-tier-row">
+                            <span>Donasi Rp</span>
+                            <input type="number" class="ws-tier-from" value="{{ $v['from'] }}" min="0" step="1000" data-idx="{{ $i }}">
+                            <span>→ Tambah</span>
+                            <input type="number" class="ws-tier-to" value="{{ $v['minutes'] }}" min="1" max="60" data-idx="{{ $i }}">
+                            <span>menit</span>
+                            @if($i > 0)
+                            <button type="button" class="ws-tier-remove" onclick="removeSubathonTier(this)">
+                                <span class="iconify" data-icon="solar:trash-bold"></span>
+                            </button>
+                            @endif
+                        </div>
+                        @endforeach
+                    </div>
+                    <button type="button" class="ws-tier-add" onclick="addSubathonTier()">
+                        <span class="iconify" data-icon="solar:plus-bold"></span>
+                        Tambah Rule
+                    </button>
+
+                    <div class="ws-save-row" style="margin-top:20px">
+                        <button class="ws-save-btn" onclick="saveSubathonSettings()">
+                            <span class="iconify" data-icon="solar:floppy-disk-bold"></span>
+                            Simpan Pengaturan
+                        </button>
+                        <span class="ws-save-msg" id="msg-subathon"></span>
+                    </div>
+                </div>
+
+                {{-- ── Phase 2: Customizer — Subathon ── --}}
+                @php $ws_sub = $widgetSettings['subathon'] ?? []; @endphp
+                <div class="ws-card">
+                    <div class="ws-card-head">
+                        <div class="ws-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
+                            <span class="iconify" data-icon="solar:palette-bold-duotone" style="color:var(--brand-light)"></span>
+                        </div>
+                        <div>
+                            <div class="ws-card-title">Kustomisasi Tampilan</div>
+                            <div class="ws-card-sub">Pilih preset atau atur warna custom untuk Subathon widget</div>
+                        </div>
+                    </div>
+
+                    <div class="ws-section-label">
+                        <span class="iconify" data-icon="solar:magic-stick-bold" style="width:12px;height:12px"></span>
+                        Preset Tema
+                    </div>
+
+                    <div class="wc-presets" id="subathon-presets">
+                        <div class="wc-preset-card {{ ($ws_sub['preset'] ?? 'default') === 'default' ? 'active' : '' }}" data-preset="default" onclick="wcSelectPreset('subathon','default',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,8,12,.96),#1a1a2e);border-color:rgba(124,108,252,.2)"></div>
+                            <div class="wc-preset-name">Default</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'neon' ? 'active' : '' }}" data-preset="neon" onclick="wcSelectPreset('subathon','neon',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(2,4,18,.97),#001a14);border-color:rgba(0,255,200,.22)"></div>
+                            <div class="wc-preset-name">Neon</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'fire' ? 'active' : '' }}" data-preset="fire" onclick="wcSelectPreset('subathon','fire',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(10,4,2,.97),#2a0a00);border-color:rgba(249,115,22,.22)"></div>
+                            <div class="wc-preset-name">Fire</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'ice' ? 'active' : '' }}" data-preset="ice" onclick="wcSelectPreset('subathon','ice',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(2,8,22,.96),#001830);border-color:rgba(147,210,255,.18)"></div>
+                            <div class="wc-preset-name">Ice</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'minimal' ? 'active' : '' }}" data-preset="minimal" onclick="wcSelectPreset('subathon','minimal',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(12,12,16,.95),#1a1a1e);border-color:rgba(255,255,255,.14)"></div>
+                            <div class="wc-preset-name">Minimal</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'custom' ? 'active' : '' }}" data-preset="custom" onclick="wcSelectPreset('subathon','custom',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,var(--brand),var(--purple));border-color:rgba(124,108,252,.3)"></div>
+                            <div class="wc-preset-name">Custom</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                    </div>
+
+                    @php
+                        $subSurfaceHex = '#08080c';
+                        $subSurfaceOpacity = 95;
+                        $subBorderHex = '#7c6cfc';
+                        $subBorderOpacity = 25;
+                    @endphp
+                    <div class="wc-custom-panel {{ ($ws_sub['preset'] ?? 'default') === 'custom' ? 'visible' : '' }}" id="subathon-custom">
+                        <div class="ws-section-label" style="margin-bottom:4px">
+                            <span class="iconify" data-icon="solar:pen-bold" style="width:12px;height:12px"></span>
+                            Warna &amp; Gaya Custom
+                        </div>
+
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:square-bold"></span>Surface</div>
+                            <div class="wc-row-ctrl">
+                                <div class="wc-color-wrap">
+                                    <div class="wc-color-swatch" id="subathon-swatch-surface" style="background:{{ $ws_sub['bg'] ?? 'rgba(8,8,12,0.95)' }}"></div>
+                                    <input type="color" class="wc-color-input" id="subathon-color-surface" value="{{ $subSurfaceHex }}" oninput="wcRgbaColorChange('subathon','surface',this)">
+                                </div>
+                                <div class="wc-opacity-wrap">
+                                    <span class="wc-opacity-label">Opacity</span>
+                                    <input type="range" class="wc-slider" min="0" max="100" value="{{ $subSurfaceOpacity }}" id="subathon-opacity-surface" oninput="wcOpacityChange('subathon','surface',this)">
+                                    <span class="wc-opacity-val" id="subathon-opacityval-surface">{{ $subSurfaceOpacity }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:border-bold"></span>Border</div>
+                            <div class="wc-row-ctrl">
+                                <div class="wc-color-wrap">
+                                    <div class="wc-color-swatch" id="subathon-swatch-border" style="background:{{ $ws_sub['border'] ?? 'rgba(124,108,252,0.25)' }}"></div>
+                                    <input type="color" class="wc-color-input" id="subathon-color-border" value="{{ $subBorderHex }}" oninput="wcRgbaColorChange('subathon','border',this)">
+                                </div>
+                                <div class="wc-opacity-wrap">
+                                    <span class="wc-opacity-label">Opacity</span>
+                                    <input type="range" class="wc-slider" min="0" max="100" value="{{ $subBorderOpacity }}" id="subathon-opacity-border" oninput="wcOpacityChange('subathon','border',this)">
+                                    <span class="wc-opacity-val" id="subathon-opacityval-border">{{ $subBorderOpacity }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:star-bold"></span>Brand</div>
+                            <div class="wc-row-ctrl">
+                                <div class="wc-color-wrap">
+                                    <div class="wc-color-swatch" id="subathon-swatch-brand" style="background:{{ $ws_sub['brand'] ?? '#7c6cfc' }}"></div>
+                                    <input type="color" class="wc-color-input" id="subathon-color-brand" value="{{ $ws_sub['brand'] ?? '#7c6cfc' }}" oninput="wcColorChange('subathon','brand',this)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:star-shine-bold"></span>Brand 2</div>
+                            <div class="wc-row-ctrl">
+                                <div class="wc-color-wrap">
+                                    <div class="wc-color-swatch" id="subathon-swatch-brand2" style="background:{{ $ws_sub['brand2'] ?? '#a99dff' }}"></div>
+                                    <input type="color" class="wc-color-input" id="subathon-color-brand2" value="{{ $ws_sub['brand2'] ?? '#a99dff' }}" oninput="wcColorChange('subathon','brand2',this)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:text-bold"></span>Warna Text</div>
+                            <div class="wc-row-ctrl">
+                                <div class="wc-color-wrap">
+                                    <div class="wc-color-swatch" id="subathon-swatch-text" style="background:{{ $ws_sub['text'] ?? '#f1f1f6' }}"></div>
+                                    <input type="color" class="wc-color-input" id="subathon-color-text" value="{{ $ws_sub['text'] ?? '#f1f1f6' }}" oninput="wcColorChange('subathon','text',this)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:text-bold"></span>Warna Text 2</div>
+                            <div class="wc-row-ctrl">
+                                <div class="wc-color-wrap">
+                                    <div class="wc-color-swatch" id="subathon-swatch-text2" style="background:{{ $ws_sub['text2'] ?? '#a0a0b4' }}"></div>
+                                    <input type="color" class="wc-color-input" id="subathon-color-text2" value="{{ $ws_sub['text2'] ?? '#a0a0b4' }}" oninput="wcColorChange('subathon','text2',this)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:rounded-bold"></span>Border Radius</div>
+                            <div class="wc-row-ctrl">
+                                <div class="wc-slider-wrap">
+                                    <input type="range" class="wc-slider" min="0" max="32" value="{{ $ws_sub['radius'] ?? 16 }}" id="subathon-slider-radius" oninput="wcSliderChange('subathon','radius',this)">
+                                    <span class="wc-slider-val" id="subathon-sliderval-radius">{{ $ws_sub['radius'] ?? 16 }}px</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:ruler-cross-pen-bold"></span>Lebar Widget</div>
+                            <div class="wc-row-ctrl">
+                                <input type="number" class="wc-number" min="200" max="600" value="{{ $ws_sub['width'] ?? 320 }}" id="subathon-num-width" oninput="wcNumChange('subathon','width',this)">
+                                <span class="wc-unit">px</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wc-save-row">
+                        <button class="wc-save-btn" id="subathon-save-btn" onclick="wcSave('subathon')">
+                            <span class="iconify" data-icon="solar:floppy-disk-bold"></span>
+                            Simpan Tampilan
+                        </button>
+                        <button class="wc-reset-link" onclick="wcReset('subathon')">Reset ke default</button>
+                    </div>
+                </div>
+
+            </div>
+
             {{-- ══ TAB: OBS Canvas ══ --}}
             <div class="ws-panel" id="tab-canvas">
                 <div class="ws-card">
@@ -3633,6 +4197,7 @@ var wcState = {
     milestone:   @json($widgetSettings['milestone']),
     leaderboard: @json($widgetSettings['leaderboard']),
     qr:          @json($widgetSettings['qr']),
+    subathon:    @json($widgetSettings['subathon'] ?? []),
 };
 
 // ── Defaults (mirrors Streamer::getWidgetSettings) ──
@@ -3659,8 +4224,13 @@ var wcDefaults = {
     },
     qr: {
         preset:'default', surface:'rgba(10,10,16,0.93)', border:'rgba(124,108,252,0.28)',
-        brand:'#7c6cfc', brand2:'#a99dff',
-        radius:'22', width:'260', position:'bottom-right',
+        brand:'#7c6cfc', brand2:'#a855f7',
+        radius:'16', width:'320', position:'top-center',
+    },
+    subathon: {
+        preset:'default', bg:'rgba(8,8,12,0.95)', border:'rgba(124,108,252,0.25)',
+        brand:'#7c6cfc', brand2:'#a99dff', text:'#f1f1f6', text2:'#a0a0b4',
+        radius:'16', width:'320',
     },
 };
 
@@ -4616,6 +5186,113 @@ function wasSave() {
         if (btn) {
             btn.disabled = false;
             btn.innerHTML = '<span class="iconify" data-icon="solar:floppy-disk-bold"></span> Simpan Pengaturan';
+        }
+    });
+}
+
+/* ── Subathon Timer Functions ── */
+let subathonTierCount = {{ count($subathonValues) }};
+
+function addSubathonTier() {
+    var container = document.getElementById('subathon-tiers');
+    var html = '<div class="ws-tier-row">' +
+        '<span>Donasi Rp</span>' +
+        '<input type="number" class="ws-tier-from" value="0" min="0" step="1000" data-idx="' + subathonTierCount + '">' +
+        '<span>→ Tambah</span>' +
+        '<input type="number" class="ws-tier-to" value="1" min="1" max="60" data-idx="' + subathonTierCount + '">' +
+        '<span>menit</span>' +
+        '<button type="button" class="ws-tier-remove" onclick="removeSubathonTier(this)">' +
+        '<span class="iconify" data-icon="solar:trash-bold"></span></button></div>';
+    container.insertAdjacentHTML('beforeend', html);
+    subathonTierCount++;
+}
+
+function removeSubathonTier(btn) {
+    var row = btn.closest('.ws-tier-row');
+    if (document.querySelectorAll('#subathon-tiers .ws-tier-row').length > 1) {
+        row.remove();
+    }
+}
+
+function saveSubathonSettings() {
+    var enabled = document.getElementById('subathon-enabled').checked;
+    var duration = parseInt(document.getElementById('subathon-duration').value) || 60;
+    
+    var tiers = [];
+    document.querySelectorAll('#subathon-tiers .ws-tier-row').forEach(function(row) {
+        var from = parseInt(row.querySelector('.ws-tier-from').value) || 0;
+        var minutes = parseInt(row.querySelector('.ws-tier-to').value) || 1;
+        tiers.push({ from: from, minutes: minutes });
+    });
+    
+    var btn = document.querySelector('#msg-subathon-settings').previousElementSibling;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="iconify spin" data-icon="solar:spinner-bold-duotone"></span> Menyimpan...';
+    }
+    
+    fetch('{{ route("streamer.subathon.save") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            subathon_enabled: enabled,
+            subathon_duration_minutes: duration,
+            subathon_additional_values: tiers
+        })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.ok) {
+            wsToast('Pengaturan Subathon berhasil disimpan!', 'success');
+        } else {
+            wsToast('Gagal menyimpan: ' + (res.error || 'unknown error'), 'error');
+        }
+    })
+    .catch(function() { wsToast('Koneksi gagal. Coba lagi.', 'error'); })
+    .finally(function() {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="iconify" data-icon="solar:floppy-disk-bold"></span> Simpan Pengaturan';
+        }
+    });
+}
+
+function resetSubathonTimer() {
+    if (!confirm('Reset timer ke durasi default?')) return;
+    
+    fetch('{{ route("streamer.subathon.reset-timer") }}', {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.ok) {
+            document.getElementById('ws-timer-current').textContent = res.timer;
+            wsToast('Timer di-reset!', 'success');
+        }
+    });
+}
+
+function addSubathonTimeManual() {
+    var mins = prompt('Berapa menit yang ingin ditambahkan?', '10');
+    if (!mins || isNaN(parseInt(mins))) return;
+    
+    fetch('{{ route("streamer.subathon.add-time") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ minutes: parseInt(mins) })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.ok) {
+            document.getElementById('ws-timer-current').textContent = res.timer;
+            wsToast('+' + mins + ' menit ditambahkan!', 'success');
         }
     });
 }

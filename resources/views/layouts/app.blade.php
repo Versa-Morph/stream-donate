@@ -897,8 +897,51 @@
         @endauth
 
     {{-- Nav links --}}
+        <div class="topbar-nav">
+            <a href="{{ route('policies.index') }}" class="nav-link {{ request()->routeIs('policies.*') ? 'active' : '' }}">
+                <span class="iconify" data-icon="solar:document-text-bold-duotone"></span>Policies
+            </a>
+            @auth
+                @if(auth()->user()->isAdmin())
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                        <span class="iconify" data-icon="solar:widget-bold-duotone"></span>Dashboard
+                    </a>
+                    <a href="{{ route('admin.users') }}" class="nav-link {{ request()->routeIs('admin.users*') ? 'active' : '' }}">
+                        <span class="iconify" data-icon="solar:users-group-rounded-bold-duotone"></span>Users
+                    </a>
+                    <a href="{{ route('admin.donations') }}" class="nav-link {{ request()->routeIs('admin.donations*') ? 'active' : '' }}">
+                        <span class="iconify" data-icon="solar:wallet-money-bold-duotone"></span>Donasi
+                    </a>
+                    <a href="{{ route('admin.logs') }}" class="nav-link {{ request()->routeIs('admin.logs*') ? 'active' : '' }}">
+                        <span class="iconify" data-icon="solar:document-text-bold-duotone"></span>Logs
+                    </a>
+                @elseif(auth()->user()->isStreamer())
+                    <a href="{{ route('streamer.dashboard') }}" class="nav-link {{ request()->routeIs('streamer.dashboard') ? 'active' : '' }}">
+                        <span class="iconify" data-icon="solar:widget-bold-duotone"></span>Dashboard
+                    </a>
+                    <a href="{{ route('streamer.settings') }}" class="nav-link {{ request()->routeIs('streamer.settings*') ? 'active' : '' }}">
+                        <span class="iconify" data-icon="solar:settings-bold-duotone"></span>Settings
+                    </a>
+                    <a href="{{ route('streamer.reports') }}" class="nav-link {{ request()->routeIs('streamer.reports*') ? 'active' : '' }}">
+                        <span class="iconify" data-icon="solar:chart-bold-duotone"></span>Laporan
+                    </a>
+                    <a href="{{ route('streamer.obs-canvas') }}" class="nav-link {{ request()->routeIs('streamer.obs-canvas*') ? 'active' : '' }}">
+                        <span class="iconify" data-icon="solar:monitor-bold-duotone"></span>OBS Canvas
+                    </a>
+                    <a href="{{ route('streamer.widgets') }}" class="nav-link {{ request()->routeIs('streamer.widgets*') ? 'active' : '' }}">
+                        <span class="iconify" data-icon="solar:palette-bold-duotone"></span>Widget Studio
+                    </a>
+                    @if(auth()->user()->streamer)
+                        <a href="{{ route('donate.show', auth()->user()->streamer->slug) }}" class="nav-link nav-external" target="_blank">
+                            <span class="iconify" data-icon="solar:heart-send-bold-duotone"></span>Form Donasi
+                            <span class="iconify" data-icon="solar:arrow-right-up-bold" style="width:11px;height:11px;opacity:.5"></span>
+                        </a>
+                    @endif
+                @endif
+            @endauth
+        </div>
 
-        {{-- Right side --}}
+    {{-- Right side --}}
         <div class="topbar-right">
             @auth
                 {{-- Impersonate stop button --}}

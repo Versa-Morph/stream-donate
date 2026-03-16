@@ -12,7 +12,6 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SseController;
 use App\Http\Controllers\StreamerDashboardController;
 use App\Http\Controllers\Streamer\BannedWordController as StreamerBannedWordController;
-use App\Http\Controllers\PolicyController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,15 +21,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 require __DIR__ . '/auth.php';
-
-/*
-|--------------------------------------------------------------------------
-| Public Routes — Policies
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/policies', [PolicyController::class, 'index'])->name('policies.index');
-Route::get('/policies/{slug}', [PolicyController::class, 'show'])->name('policies.show');
 
 /*
 |--------------------------------------------------------------------------
@@ -123,6 +113,12 @@ Route::middleware(['auth', 'verified', 'streamer'])->prefix('streamer')->name('s
     Route::get('/widgets',  [StreamerDashboardController::class, 'widgets'])->name('widgets');
     Route::post('/widgets', [StreamerDashboardController::class, 'saveWidgets'])->name('widgets.save');
     Route::post('/widgets/alert-settings', [StreamerDashboardController::class, 'saveAlertSettings'])->name('widgets.alert-settings');
+
+    // Subathon
+    Route::get('/subathon', [StreamerDashboardController::class, 'subathon'])->name('subathon');
+    Route::post('/subathon', [StreamerDashboardController::class, 'saveSubathonSettings'])->name('subathon.save');
+    Route::post('/subathon/reset-timer', [StreamerDashboardController::class, 'resetSubathonTimer'])->name('subathon.reset-timer');
+    Route::post('/subathon/add-time', [StreamerDashboardController::class, 'addSubathonTimeManual'])->name('subathon.add-time');
 });
 
 /*
@@ -189,3 +185,4 @@ Route::get('/{slug}/obs/leaderboard', [ObsController::class, 'leaderboard'])->na
 Route::get('/{slug}/obs/milestone',   [ObsController::class, 'milestone'])->name('obs.milestone');
 Route::get('/{slug}/obs/qr',          [QrController::class, 'obsWidget'])->name('obs.qr');
 Route::get('/{slug}/obs/canvas',      [ObsCanvasController::class, 'render'])->name('obs.canvas');
+Route::get('/{slug}/obs/subathon',    [ObsController::class, 'subathon'])->name('obs.subathon');
