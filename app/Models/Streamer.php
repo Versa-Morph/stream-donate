@@ -176,7 +176,7 @@ class Streamer extends Model
                 'bg'           => 'rgba(8,8,12,0.9)',
                 'border'       => 'rgba(124,108,252,0.2)',
                 'brand'        => '#7c6cfc',
-                'text'         => '#ffffff',
+                'text_color'   => '#ffffff',
                 'font_size'    => '18',
                 'font_family'  => 'inter',
                 'radius'       => '0',

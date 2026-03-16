@@ -5508,7 +5508,7 @@ function saveRunningTextSettings() {
         speed: speed,
         direction: direction,
         font_size: fontSize,
-        text: textColor,
+        text_color: textColor,
         bg: bgColor,
         preset: 'default'
     };

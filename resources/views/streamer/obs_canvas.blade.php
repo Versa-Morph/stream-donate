@@ -100,6 +100,7 @@
 .widget-icon.ms     { background: rgba(34,211,160,.1);  border: 1px solid rgba(34,211,160,.2); }
 .widget-icon.qr     { background: rgba(124,108,252,.12); border: 1px solid rgba(124,108,252,.2); }
 .widget-icon.subathon { background: linear-gradient(135deg, rgba(249,115,22,.15), rgba(251,191,36,.1)); border: 1px solid rgba(249,115,22,.25); }
+.widget-icon.rt     { background: rgba(124,108,252,.12); border: 1px solid rgba(124,108,252,.2); }
 .widget-info { flex: 1; }
 .widget-name { font-size: 12px; font-weight: 600; color: var(--text); }
 .widget-size-display { font-size: 10px; color: var(--text-3); margin-top: 2px; font-family: monospace; }
@@ -341,7 +342,7 @@
 }
 
 /* Running Text preview */
-.preview-running-text {
+.preview-running_text {
     width: 100%; height: 100%;
     background: rgba(8,8,12,.9);
     border-top: 2px solid transparent;
@@ -506,14 +507,14 @@
                         </label>
                     </div>
 
-                    <div class="widget-row" id="row-running-text">
-                        <div class="widget-icon" style="background:linear-gradient(135deg, rgba(124,108,252,.15), rgba(168,85,247,.1));border:1px solid rgba(124,108,252,.25)">📜</div>
+                    <div class="widget-row" id="row-running_text">
+                        <div class="widget-icon rt">📜</div>
                         <div class="widget-info">
                             <div class="widget-name">Running Text</div>
-                            <div class="widget-size-display" id="size-running-text">–</div>
+                            <div class="widget-size-display" id="size-running_text">–</div>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="toggle-running-text" onchange="toggleWidget('running-text', this.checked)">
+                            <input type="checkbox" id="toggle-running_text" onchange="toggleWidget('running_text', this.checked)">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
@@ -674,19 +675,19 @@
                         </div>
 
                         {{-- Widget: Running Text --}}
-                        <div class="wbox" id="wbox-running-text" data-widget="running-text">
+                        <div class="wbox" id="wbox-running_text" data-widget="running_text">
                             <div class="wbox-header">
                                 <span class="wbox-header-label">📜 Running Text</span>
-                                <span class="wbox-coords" id="coords-running-text"></span>
+                                <span class="wbox-coords" id="coords-running_text"></span>
                             </div>
                             <div class="wbox-content">
-                                <div class="preview-running-text">
+                                <div class="preview-running_text">
                                     <div class="preview-rt-track">
                                         <div class="preview-rt-text">Terima kasih donasi! Semangat terus!</div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="resize-handle" data-widget="running-text">
+                            <div class="resize-handle" data-widget="running_text">
                                 <svg viewBox="0 0 10 10" fill="none"><path d="M2 9L9 2M5 9L9 5M8 9L9 8" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
                             </div>
                         </div>
@@ -735,7 +736,7 @@ function init() {
     applyResolution(w, h);
 
     // Set toggle dan posisi widget dari config
-    ['notification', 'leaderboard', 'milestone', 'qrcode', 'subathon', 'running-text'].forEach(function(key) {
+    ['notification', 'leaderboard', 'milestone', 'qrcode', 'subathon', 'running_text'].forEach(function(key) {
         const wdata = cfg.widgets[key];
         const toggle = document.getElementById('toggle-' + key);
         if (toggle) toggle.checked = !!wdata.active;
@@ -1124,7 +1125,7 @@ async function saveCanvas() {
             widgets: {}
         };
 
-        ['notification', 'leaderboard', 'milestone', 'qrcode', 'subathon', 'running-text'].forEach(function(key) {
+        ['notification', 'leaderboard', 'milestone', 'qrcode', 'subathon', 'running_text'].forEach(function(key) {
             const w = cfg.widgets[key];
             payload.widgets[key] = {
                 active: w.active ? true : false,
