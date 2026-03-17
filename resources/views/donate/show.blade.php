@@ -356,14 +356,28 @@ const MIN_AMT   = {{ $streamer->min_donation }};
 })();
 
 // ── SSE Stats ──
+let currentEventSource = null;
+let sseHandlers = { onopen: null, stats: null, onerror: null };
+
 function connectSSE() {
     const connEl = document.getElementById('conn-status');
-    const es = new EventSource(SSE_URL);
-    es.onopen = () => {
+    
+    // Clean up existing connection and handlers
+    if (currentEventSource) {
+        if (sseHandlers.stats) currentEventSource.removeEventListener('stats', sseHandlers.stats);
+        currentEventSource.close();
+        currentEventSource = null;
+    }
+
+    currentEventSource = new EventSource(SSE_URL);
+    
+    sseHandlers.onopen = () => {
         connEl.className = 'ok';
         connEl.innerHTML = '<span class="conn-dot"></span> Terhubung';
     };
-    es.addEventListener('stats', (e) => {
+    currentEventSource.onopen = sseHandlers.onopen;
+
+    sseHandlers.stats = (e) => {
         try {
             const parsed = JSON.parse(e.data);
             if (parsed) applyStats(parsed);
@@ -371,13 +385,16 @@ function connectSSE() {
             // Stats parse gagal — biarkan tampilan tetap dengan data terakhir yang valid
             console.warn('Stats parse error:', err);
         }
-    });
-    es.onerror = () => {
+    };
+    currentEventSource.addEventListener('stats', sseHandlers.stats);
+
+    sseHandlers.onerror = () => {
         connEl.className = 'err';
         connEl.innerHTML = '<span class="conn-dot"></span> Reconnecting…';
-        es.close();
+        if (currentEventSource) currentEventSource.close();
         setTimeout(connectSSE, 4000);
     };
+    currentEventSource.onerror = sseHandlers.onerror;
 }
 
 function applyStats(data) {

@@ -21,6 +21,14 @@ class Donation extends Model
         'ip_address',
     ];
 
+    /**
+     * The attributes that should be hidden for serialization.
+     * IP addresses should never be exposed in JSON responses.
+     */
+    protected $hidden = [
+        'ip_address',
+    ];
+
     protected function casts(): array
     {
         return [

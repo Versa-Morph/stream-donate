@@ -23,7 +23,9 @@ class BannedWordController extends Controller
             ->orderBy('word');
 
         if ($search) {
-            $query->where('word', 'like', '%' . $search . '%');
+            // Escape LIKE wildcards to prevent slow query attacks
+            $escapedSearch = $this->escapeLikeWildcards($search);
+            $query->where('word', 'like', '%' . $escapedSearch . '%');
         }
 
         $words = $query->paginate(50)->withQueryString();

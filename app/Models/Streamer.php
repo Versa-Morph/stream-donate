@@ -6,17 +6,21 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class Streamer extends Model
 {
     use HasFactory;
 
+    /**
+     * Attributes that should be mass assignable.
+     * Note: api_key is NOT in fillable to prevent mass assignment attacks.
+     */
     protected $fillable = [
         'user_id',
         'slug',
         'display_name',
-        'api_key',
         'bio',
         'avatar',
         'alert_duration',
@@ -41,6 +45,14 @@ class Streamer extends Model
         'subathon_additional_values',
         'subathon_current_minutes',
         'subathon_last_updated',
+    ];
+
+    /**
+     * Attributes that should be hidden from arrays/JSON.
+     * Critical: API key must never be exposed in responses.
+     */
+    protected $hidden = [
+        'api_key',
     ];
 
     protected function casts(): array
@@ -337,6 +349,7 @@ class Streamer extends Model
 
     /**
      * Tambah waktu ke timer berdasarkan donasi
+     * FIXED: Use atomic increment to prevent race conditions
      */
     public function addSubathonTime(int $donationAmount): array
     {
@@ -347,9 +360,13 @@ class Streamer extends Model
         $addedMinutes = $this->getSubathonMinutesForAmount($donationAmount);
 
         if ($addedMinutes > 0) {
-            $this->subathon_current_minutes = ($this->subathon_current_minutes ?? 0) + $addedMinutes;
+            // SECURITY FIX: Atomic increment prevents race condition when multiple donations arrive simultaneously
+            $this->increment('subathon_current_minutes', $addedMinutes);
             $this->subathon_last_updated = now();
             $this->save();
+            
+            // Refresh to get updated value after increment
+            $this->refresh();
         }
 
         return [
@@ -376,31 +393,50 @@ class Streamer extends Model
 
     /**
      * Statistik lengkap untuk dashboard & SSE
+     * PERFORMANCE FIX: Cached for 15 seconds to reduce database load
      * Semua aggregasi dilakukan di SQL — tidak ada get() ke memori.
      */
     public function buildStats(): array
     {
-        $base = $this->donations();
+        // PERFORMANCE: Cache stats for 15 seconds (SSE calls this every 20s)
+        return \Cache::remember("streamer_stats_{$this->id}", 15, function () {
+            $base = $this->donations();
 
-        // Scalar aggregates — satu query
-        $agg = $base->selectRaw(
-            'SUM(amount) as total, COUNT(*) as cnt, COUNT(DISTINCT name) as unique_donors, SUM(CASE WHEN yt_url IS NOT NULL THEN 1 ELSE 0 END) as yt_count'
-        )->first();
+            // Scalar aggregates — satu query
+            // SECURITY NOTE: Raw SQL used here is SAFE because:
+            // - All aggregation functions (SUM, COUNT) are hardcoded
+            // - No user input is interpolated into the SQL string
+            // - All WHERE conditions use Eloquent's parameter binding
+            $agg = $base->selectRaw(
+                'SUM(amount) as total, COUNT(*) as cnt, COUNT(DISTINCT name) as unique_donors, SUM(CASE WHEN yt_url IS NOT NULL THEN 1 ELSE 0 END) as yt_count'
+            )->first();
 
-        $total        = (int) ($agg->total         ?? 0);
-        $count        = (int) ($agg->cnt            ?? 0);
-        $uniqueDonors = (int) ($agg->unique_donors  ?? 0);
-        $ytCount      = (int) ($agg->yt_count       ?? 0);
+            $total        = (int) ($agg->total         ?? 0);
+            $count        = (int) ($agg->cnt            ?? 0);
+            $uniqueDonors = (int) ($agg->unique_donors  ?? 0);
+            $ytCount      = (int) ($agg->yt_count       ?? 0);
 
-        // Donasi terbesar — satu query ringan
-        $biggest = $base->orderByDesc('amount')->first(['name', 'amount']);
+            // Donasi terbesar — satu query ringan
+            $biggest = $base->orderByDesc('amount')->first(['name', 'amount']);
 
-        // Leaderboard — aggregasi + limit di SQL
-        $leaderboard = $this->donations()
-            ->selectRaw('name, MAX(emoji) as emoji, SUM(amount) as total, COUNT(*) as cnt')
-            ->groupBy('name')
-            ->orderByDesc('total')
-            ->limit($this->leaderboard_count)
+            // BUGFIX: Leaderboard emoji - get most recent emoji instead of MAX()
+            // MAX(emoji) is wrong - gets lexicographically highest, not most recent
+            // SECURITY NOTE: Raw SQL used here is SAFE because:
+            // - The subquery uses whereColumn() which is parameterized by Eloquent
+            // - No user input is interpolated into the SQL string
+            // - All column names are hardcoded, not user-controlled
+            $leaderboard = $this->donations()
+                ->selectRaw('name, SUM(amount) as total, COUNT(*) as cnt')
+                ->selectSub(
+                    Donation::selectRaw('emoji')
+                        ->whereColumn('name', 'donations.name')
+                        ->latest('created_at')
+                        ->limit(1),
+                    'emoji'
+                )
+                ->groupBy('name')
+                ->orderByDesc('total')
+                ->limit($this->leaderboard_count)
             ->get()
             ->map(fn ($r) => [
                 'name'  => $r->name,
@@ -453,6 +489,7 @@ class Streamer extends Model
                 'durationMinutes' => $this->subathon_duration_minutes ?? 60,
                 'formatted'    => $this->subathon_timer_formatted,
             ],
-        ];
+            ];
+        }); // End Cache::remember
     }
 }

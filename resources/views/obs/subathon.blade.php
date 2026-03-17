@@ -141,11 +141,23 @@
                 : 'Subathon nonaktif';
         }
         
+        let currentEventSource = null;
+        let sseHandlers = { stats: null, donation: null, stream_error: null, onerror: null };
+        
         function connectSSE() {
+            // Clean up existing connection and handlers
+            if (currentEventSource) {
+                if (sseHandlers.stats) currentEventSource.removeEventListener('stats', sseHandlers.stats);
+                if (sseHandlers.donation) currentEventSource.removeEventListener('donation', sseHandlers.donation);
+                if (sseHandlers.stream_error) currentEventSource.removeEventListener('stream_error', sseHandlers.stream_error);
+                currentEventSource.close();
+                currentEventSource = null;
+            }
+
             const url = `/{{ $streamer->slug }}/sse?key=${API_KEY}&last_seq=0`;
-            const es = new EventSource(url);
+            currentEventSource = new EventSource(url);
             
-            es.addEventListener('stats', (e) => {
+            sseHandlers.stats = (e) => {
                 const data = JSON.parse(e.data);
                 if (data.subathon) {
                     enabled = data.subathon.enabled;
@@ -154,22 +166,27 @@
                     lastUpdate = Date.now();
                     updateDisplay();
                 }
-            });
+            };
+            currentEventSource.addEventListener('stats', sseHandlers.stats);
             
-            es.addEventListener('donation', (e) => {
+            sseHandlers.donation = (e) => {
                 const donation = JSON.parse(e.data);
                 // Subathon akan di-update via stats event
-            });
+            };
+            currentEventSource.addEventListener('donation', sseHandlers.donation);
             
-            es.addEventListener('stream_error', (e) => {
+            sseHandlers.stream_error = (e) => {
                 console.error('SSE error:', e.data);
-                setTimeout(connectSSE, 5000);
-            });
-            
-            es.onerror = () => {
-                es.close();
+                if (currentEventSource) currentEventSource.close();
                 setTimeout(connectSSE, 5000);
             };
+            currentEventSource.addEventListener('stream_error', sseHandlers.stream_error);
+            
+            sseHandlers.onerror = () => {
+                if (currentEventSource) currentEventSource.close();
+                setTimeout(connectSSE, 5000);
+            };
+            currentEventSource.onerror = sseHandlers.onerror;
         }
         
         // Polling fallback setiap 5 detik untuk memastikan timer akurat

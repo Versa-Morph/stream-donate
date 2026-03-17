@@ -33,11 +33,11 @@ class OtpController extends Controller
     public function verify(Request $request): RedirectResponse
     {
         $request->validate([
-            'otp' => ['required', 'string', 'size:6', 'regex:/^[0-9]+$/'],
+            'otp' => ['required', 'string', 'size:8', 'regex:/^[A-Z0-9]+$/'],
         ], [
             'otp.required' => 'Kode OTP wajib diisi.',
-            'otp.size'     => 'Kode OTP harus 6 digit.',
-            'otp.regex'    => 'Kode OTP hanya berisi angka.',
+            'otp.size'     => 'Kode OTP harus 8 karakter.',
+            'otp.regex'    => 'Kode OTP hanya berisi huruf kapital dan angka.',
         ]);
 
         $data = $request->session()->get('otp_register');
@@ -46,15 +46,34 @@ class OtpController extends Controller
             return redirect()->route('login')->with('status', 'Sesi pendaftaran kadaluarsa. Silakan daftar ulang.');
         }
 
+        // Check rate limiting: max 5 verification attempts per hour per email
+        $recentAttempts = OtpCode::where('email', $data['email'])
+            ->where('created_at', '>', now()->subHour())
+            ->sum('attempt_count');
+
+        if ($recentAttempts >= 5) {
+            return back()->withErrors(['otp' => 'Terlalu banyak percobaan. Coba lagi dalam 1 jam.'])->withInput();
+        }
+
         $record = OtpCode::where('email', $data['email'])
-            ->where('code', $request->otp)
             ->whereNull('used_at')
             ->where('expires_at', '>', now())
             ->latest()
             ->first();
 
         if (! $record) {
-            return back()->withErrors(['otp' => 'Kode OTP salah atau sudah kadaluarsa.'])->withInput();
+            return back()->withErrors(['otp' => 'Kode OTP tidak ditemukan atau sudah kadaluarsa.'])->withInput();
+        }
+
+        // Check if OTP is locked due to failed attempts
+        if ($record->isLocked()) {
+            return back()->withErrors(['otp' => 'Kode OTP terkunci karena terlalu banyak percobaan gagal. Minta kode baru.'])->withInput();
+        }
+
+        // Verify OTP code
+        if ($record->code !== strtoupper($request->otp)) {
+            $record->incrementAttempts();
+            return back()->withErrors(['otp' => 'Kode OTP salah. Percobaan tersisa: ' . (3 - $record->attempt_count)])->withInput();
         }
 
         // Tandai OTP sudah dipakai
@@ -107,12 +126,17 @@ class OtpController extends Controller
      */
     public static function sendOtp(string $email, string $name): string
     {
-        $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        // Generate 8-character alphanumeric code (uppercase letters and numbers only)
+        $characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude similar chars: I,O,0,1
+        $code = '';
+        for ($i = 0; $i < 8; $i++) {
+            $code .= $characters[random_int(0, strlen($characters) - 1)];
+        }
 
         OtpCode::create([
             'email'      => $email,
             'code'       => $code,
-            'expires_at' => now()->addMinutes(10),
+            'expires_at' => now()->addMinutes(5), // Reduced from 10 to 5 minutes
         ]);
 
         Mail::to($email)->queue(new OtpMail($code, $name));

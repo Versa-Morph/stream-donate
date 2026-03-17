@@ -184,7 +184,7 @@ class StreamerDashboardController extends Controller
             'yt_enabled'           => ['boolean'],
             'sound_enabled'        => ['boolean'],
             'notification_sound_preset' => ['nullable', 'string', 'in:ding,coin,whoosh,__custom__'],
-            'avatar'               => ['nullable', 'image', 'max:2048'],
+            'avatar'               => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:2048'],
             'sound_file'           => ['nullable', 'file', 'mimes:mp3,wav,ogg', 'max:5120'],
             'delete_sound'         => ['nullable', 'in:0,1'],
             'milestone_title'      => ['required', 'string', 'max:80'],
@@ -201,8 +201,16 @@ class StreamerDashboardController extends Controller
         // ── Handle avatar upload (atomic: upload baru dulu, hapus lama hanya jika berhasil) ──
         if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
             try {
-                $ext     = $request->file('avatar')->getClientOriginalExtension();
-                $newPath = $request->file('avatar')->storeAs('avatars', $streamer->id . '.' . $ext, 'public');
+                // Use guessExtension() for security - it checks MIME type, not user-provided extension
+                $ext = $this->getSecureExtension($request->file('avatar'), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                
+                if ($ext === null) {
+                    return back()->withInput()->with('error', 'Tipe file avatar tidak didukung. Gunakan JPG, PNG, GIF, atau WebP.');
+                }
+                
+                // Secure filename: streamer_id + random string + extension
+                $filename = $streamer->id . '_' . Str::random(8) . '.' . $ext;
+                $newPath = $request->file('avatar')->storeAs('avatars', $filename, 'public');
 
                 if ($newPath === false) {
                     throw new \RuntimeException('Upload file avatar gagal (storeAs returned false).');
@@ -247,8 +255,16 @@ class StreamerDashboardController extends Controller
         } elseif ($request->hasFile('sound_file') && $request->file('sound_file')->isValid()) {
             // Upload sound baru — upload dulu, baru hapus yang lama
             try {
-                $ext     = $request->file('sound_file')->getClientOriginalExtension();
-                $newPath = $request->file('sound_file')->storeAs('sounds', $streamer->id . '.' . $ext, 'public');
+                // Use guessExtension() for security - it checks MIME type, not user-provided extension
+                $ext = $this->getSecureExtension($request->file('sound_file'), ['mp3', 'wav', 'ogg']);
+                
+                if ($ext === null) {
+                    return back()->withInput()->with('error', 'Tipe file suara tidak didukung. Gunakan MP3, WAV, atau OGG.');
+                }
+                
+                // Secure filename: streamer_id + random string + extension
+                $filename = $streamer->id . '_' . Str::random(8) . '.' . $ext;
+                $newPath = $request->file('sound_file')->storeAs('sounds', $filename, 'public');
 
                 if ($newPath === false) {
                     throw new \RuntimeException('Upload file sound gagal (storeAs returned false).');
@@ -419,6 +435,10 @@ class StreamerDashboardController extends Controller
         $end   = $wibEnd->copy()->setTimezone('UTC');
 
         // Single aggregated query — date in WIB timezone (UTC+7)
+        // SECURITY NOTE: Raw SQL used here is SAFE because:
+        // - $driver is from DB::getDriverName() (controlled by config, not user input)
+        // - All other query conditions use Eloquent's parameter binding
+        // - The date expression contains no user-controllable variables
         // SQLite: datetime(created_at, '+7 hours')
         // MySQL:  CONVERT_TZ(created_at, 'UTC', 'Asia/Jakarta')
         $driver    = \Illuminate\Support\Facades\DB::getDriverName();
@@ -775,5 +795,71 @@ class StreamerDashboardController extends Controller
             'timer' => $streamer->subathon_current_minutes,
             'formatted' => $streamer->subathon_timer_formatted,
         ]);
+    }
+
+    /**
+     * Get secure file extension by checking MIME type instead of user-provided extension.
+     * Returns null if the file type is not in the allowed list.
+     *
+     * @param \Illuminate\Http\UploadedFile $file
+     * @param array $allowedExtensions List of allowed extensions (e.g., ['jpg', 'png', 'gif'])
+     * @return string|null The secure extension, or null if not allowed
+     */
+    private function getSecureExtension($file, array $allowedExtensions): ?string
+    {
+        // Use guessExtension() which checks MIME type via finfo, not user input
+        $guessedExt = strtolower($file->guessExtension() ?? '');
+        
+        // Normalize jpeg to jpg for consistency
+        if ($guessedExt === 'jpeg') {
+            $guessedExt = 'jpg';
+        }
+        
+        // Map MIME-based extension variations to standard ones
+        $extensionMap = [
+            'mpga' => 'mp3',  // audio/mpeg sometimes returns 'mpga'
+            'oga'  => 'ogg',  // audio/ogg sometimes returns 'oga'
+        ];
+        
+        if (isset($extensionMap[$guessedExt])) {
+            $guessedExt = $extensionMap[$guessedExt];
+        }
+        
+        // Check if guessed extension is in allowed list
+        if (in_array($guessedExt, $allowedExtensions, true)) {
+            return $guessedExt;
+        }
+        
+        // Fallback: Also check client extension but only if it matches MIME detection
+        // This handles edge cases where MIME detection might fail
+        $clientExt = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
+        
+        if ($clientExt === 'jpeg') {
+            $clientExt = 'jpg';
+        }
+        
+        // Only allow client extension if both:
+        // 1. It's in the allowed list
+        // 2. The MIME type is valid for that file type (extra validation)
+        if (in_array($clientExt, $allowedExtensions, true)) {
+            $mime = strtolower($file->getMimeType() ?? '');
+            
+            $validMimeMap = [
+                'jpg'  => ['image/jpeg'],
+                'jpeg' => ['image/jpeg'],
+                'png'  => ['image/png'],
+                'gif'  => ['image/gif'],
+                'webp' => ['image/webp'],
+                'mp3'  => ['audio/mpeg', 'audio/mp3'],
+                'wav'  => ['audio/wav', 'audio/x-wav', 'audio/wave'],
+                'ogg'  => ['audio/ogg', 'application/ogg'],
+            ];
+            
+            if (isset($validMimeMap[$clientExt]) && in_array($mime, $validMimeMap[$clientExt], true)) {
+                return $clientExt;
+            }
+        }
+        
+        return null;
     }
 }

@@ -881,13 +881,36 @@ function applyConfig(config) {
 }
 
 // ─── SSE ───
+let currentEventSource = null;
+let sseHandlers = {
+    onopen: null,
+    donation: null,
+    stats: null,
+    ping: null,
+    stream_error: null,
+    onerror: null
+};
+
 function connectSSE() {
-    const es = new EventSource(buildSseUrl());
-    es.onopen = function() {
+    // Clean up existing connection and handlers
+    if (currentEventSource) {
+        if (sseHandlers.donation) currentEventSource.removeEventListener('donation', sseHandlers.donation);
+        if (sseHandlers.stats) currentEventSource.removeEventListener('stats', sseHandlers.stats);
+        if (sseHandlers.ping) currentEventSource.removeEventListener('ping', sseHandlers.ping);
+        if (sseHandlers.stream_error) currentEventSource.removeEventListener('stream_error', sseHandlers.stream_error);
+        currentEventSource.close();
+        currentEventSource = null;
+    }
+
+    currentEventSource = new EventSource(buildSseUrl());
+    
+    sseHandlers.onopen = function() {
         statusEl.textContent = '● live';
         statusEl.style.color = 'rgba(34,211,160,.4)';
     };
-    es.addEventListener('donation', function(e) {
+    currentEventSource.onopen = sseHandlers.onopen;
+
+    sseHandlers.donation = function(e) {
         try {
             const d = JSON.parse(e.data);
             if (seenIds.has(d.seq ?? d.id)) return;
@@ -896,30 +919,39 @@ function connectSSE() {
             saveLastKnownSeq(d.seq ?? null);
             addToQueue(d);
         } catch(err) { console.error('SSE parse error:', err); }
-    });
-    es.addEventListener('stats', function(e) {
+    };
+    currentEventSource.addEventListener('donation', sseHandlers.donation);
+
+    sseHandlers.stats = function(e) {
         try {
             const parsed = JSON.parse(e.data);
             if (parsed && parsed.config) applyConfig(parsed.config);
         } catch(err) { console.error('SSE stats error:', err); }
-    });
-    es.addEventListener('ping', function() {});
-    es.addEventListener('stream_error', function(e) {
+    };
+    currentEventSource.addEventListener('stats', sseHandlers.stats);
+
+    sseHandlers.ping = function() {};
+    currentEventSource.addEventListener('ping', sseHandlers.ping);
+
+    sseHandlers.stream_error = function(e) {
         // Server mengirim event ini sebelum menutup koneksi karena error internal
         statusEl.textContent = '● error — reconnecting…';
         statusEl.style.color = 'rgba(249,115,22,.4)';
-        es.close();
+        if (currentEventSource) currentEventSource.close();
         // Reconnect dengan last_seq dari localStorage agar tidak melewatkan alert
         setTimeout(connectSSE, 5000);
-    });
-    es.onerror = function() {
+    };
+    currentEventSource.addEventListener('stream_error', sseHandlers.stream_error);
+
+    sseHandlers.onerror = function() {
         statusEl.textContent = '● reconnecting…';
         statusEl.style.color = 'rgba(249,115,22,.4)';
-        es.close();
+        if (currentEventSource) currentEventSource.close();
         // lastKnownSeq sudah tersimpan di localStorage — buildSseUrl() akan membacanya
         // sehingga alert yang masuk selama disconnect tetap akan diputar ulang
         setTimeout(connectSSE, 3000);
     };
+    currentEventSource.onerror = sseHandlers.onerror;
 }
 connectSSE();
 

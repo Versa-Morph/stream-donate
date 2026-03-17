@@ -735,26 +735,40 @@ function sendTestAlert() {
         }
     }
 
+    let sseHandlers = { donation: null, stats: null, ping: null, onerror: null };
+
     function connect() {
-        if (es) { try { es.close(); } catch(e) {} }
+        // Clean up existing connection and handlers
+        if (es) {
+            try {
+                if (sseHandlers.donation) es.removeEventListener('donation', sseHandlers.donation);
+                if (sseHandlers.stats) es.removeEventListener('stats', sseHandlers.stats);
+                if (sseHandlers.ping) es.removeEventListener('ping', sseHandlers.ping);
+                es.close();
+            } catch(e) {}
+        }
 
         es = new EventSource(SSE_URL);
 
-        es.addEventListener('donation', function (e) {
+        sseHandlers.donation = function (e) {
             try { onDonation(JSON.parse(e.data)); } catch (err) {}
-        });
+        };
+        es.addEventListener('donation', sseHandlers.donation);
 
-        es.addEventListener('stats', function (e) {
+        sseHandlers.stats = function (e) {
             try { onStats(JSON.parse(e.data)); } catch (err) {}
-        });
+        };
+        es.addEventListener('stats', sseHandlers.stats);
 
-        es.addEventListener('ping', function () { /* keep-alive — no-op */ });
+        sseHandlers.ping = function () { /* keep-alive — no-op */ };
+        es.addEventListener('ping', sseHandlers.ping);
 
-        es.onerror = function () {
+        sseHandlers.onerror = function () {
             // On error, close and reconnect after 5s
-            try { es.close(); } catch(e) {}
+            try { if (es) es.close(); } catch(e) {}
             setTimeout(connect, 5000);
         };
+        es.onerror = sseHandlers.onerror;
     }
 
     // Only connect if EventSource is supported

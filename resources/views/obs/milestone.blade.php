@@ -362,27 +362,42 @@ async function loadInitial() {
     }
 }
 
-function connectSSE() {
-    const es = new EventSource(SSE_URL);
+let currentEventSource = null;
+let sseHandlers = { onopen: null, stats: null, ping: null, onerror: null };
 
-    es.onopen = () => {
+function connectSSE() {
+    // Clean up existing connection and handlers
+    if (currentEventSource) {
+        if (sseHandlers.stats) currentEventSource.removeEventListener('stats', sseHandlers.stats);
+        if (sseHandlers.ping) currentEventSource.removeEventListener('ping', sseHandlers.ping);
+        currentEventSource.close();
+        currentEventSource = null;
+    }
+
+    currentEventSource = new EventSource(SSE_URL);
+
+    sseHandlers.onopen = () => {
         statusEl.textContent = '● live';
         statusEl.style.color = 'rgba(34,211,160,.3)';
     };
+    currentEventSource.onopen = sseHandlers.onopen;
 
-    es.addEventListener('stats', (e) => {
+    sseHandlers.stats = (e) => {
         try { applyStats(JSON.parse(e.data)); }
         catch(err) { console.error('SSE stats error:', err); }
-    });
+    };
+    currentEventSource.addEventListener('stats', sseHandlers.stats);
 
-    es.addEventListener('ping', () => {});
+    sseHandlers.ping = () => {};
+    currentEventSource.addEventListener('ping', sseHandlers.ping);
 
-    es.onerror = () => {
+    sseHandlers.onerror = () => {
         statusEl.textContent = '● reconnecting…';
         statusEl.style.color = 'rgba(249,115,22,.3)';
-        es.close();
+        if (currentEventSource) currentEventSource.close();
         setTimeout(connectSSE, 3000);
     };
+    currentEventSource.onerror = sseHandlers.onerror;
 }
 
 function applyStats(data) {

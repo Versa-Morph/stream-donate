@@ -24,9 +24,13 @@ class SseController extends Controller
     {
         $streamer = Streamer::where('slug', $slug)->firstOrFail();
 
-        // Validasi API key
+        // Validasi API key dengan hash_equals untuk mencegah timing attack
         $apiKey = $request->query('key');
-        abort_unless($apiKey === $streamer->api_key, 401, 'API key tidak valid.');
+        abort_unless(
+            $apiKey && hash_equals($streamer->api_key, $apiKey),
+            401,
+            'API key tidak valid.'
+        );
 
         // ── Tentukan posisi awal SSE ──
         // Prioritas: Last-Event-ID header > ?last_seq query param > fresh connect
@@ -156,9 +160,13 @@ class SseController extends Controller
     {
         $streamer = Streamer::where('slug', $slug)->firstOrFail();
 
-        // Validasi API key
+        // Validasi API key dengan hash_equals untuk mencegah timing attack
         $apiKey = $request->query('key');
-        abort_unless($apiKey === $streamer->api_key, 401, 'API key tidak valid.');
+        abort_unless(
+            $apiKey && hash_equals($streamer->api_key, $apiKey),
+            401,
+            'API key tidak valid.'
+        );
 
         try {
             return response()->json($streamer->buildStats());

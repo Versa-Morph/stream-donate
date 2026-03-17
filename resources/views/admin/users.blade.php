@@ -206,10 +206,10 @@
 
                                 {{-- Impersonate (hanya streamer) --}}
                                 @if($user->isStreamer())
-                                <form method="POST" action="{{ route('admin.impersonate', $user) }}" style="display:inline">
-                                    @csrf
-                                    <button type="submit" class="btn-xs">Login As</button>
-                                </form>
+                                <button type="button" class="btn-xs"
+                                    onclick="openImpersonateModal({{ $user->id }}, '{{ addslashes($user->name) }}')">
+                                    Login As
+                                </button>
                                 @endif
                             </div>
                         </td>
@@ -254,10 +254,36 @@
         </div>
     </div>
 
+    <!-- Modal Impersonate Confirmation -->
+    <div class="modal-overlay" id="impersonate-modal">
+        <div class="modal">
+            <div class="modal-title">Konfirmasi Impersonate</div>
+            <form method="POST" id="impersonate-form" action="">
+                @csrf
+                <p style="font-size:13px; color:var(--text-3); margin-bottom:16px">
+                    Login sebagai: <strong id="impersonate-name" style="color:var(--text)"></strong>
+                </p>
+                <p style="font-size:12px; color:var(--yellow); margin-bottom:16px; padding:10px; background:rgba(251,191,36,.08); border-radius:var(--radius); border:1px solid rgba(251,191,36,.2)">
+                    Untuk keamanan, masukkan password admin Anda untuk melanjutkan.
+                </p>
+                <div class="form-group">
+                    <label>Password Admin</label>
+                    <input type="password" name="password" id="impersonate-password" required placeholder="Masukkan password Anda">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-xs" onclick="closeImpersonateModal()">Batal</button>
+                    <button type="submit" class="btn-primary" style="padding:8px 20px; font-size:13px">Login As</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     @push('scripts')
     <script>
     const BASE_RESET_URL = '{{ url("/admin/users") }}';
+    const BASE_IMPERSONATE_URL = '{{ url("/admin/impersonate") }}';
 
+    // Reset Password Modal
     function openResetModal(userId, email) {
         document.getElementById('reset-email').textContent = email;
         document.getElementById('reset-form').action = BASE_RESET_URL + '/' + userId + '/reset-password';
@@ -268,6 +294,24 @@
     }
     document.getElementById('reset-modal').addEventListener('click', function(e) {
         if (e.target === this) closeResetModal();
+    });
+
+    // Impersonate Modal
+    function openImpersonateModal(userId, userName) {
+        document.getElementById('impersonate-name').textContent = userName;
+        document.getElementById('impersonate-form').action = BASE_IMPERSONATE_URL + '/' + userId;
+        document.getElementById('impersonate-password').value = '';
+        document.getElementById('impersonate-modal').classList.add('open');
+        // Focus password field
+        setTimeout(function() {
+            document.getElementById('impersonate-password').focus();
+        }, 100);
+    }
+    function closeImpersonateModal() {
+        document.getElementById('impersonate-modal').classList.remove('open');
+    }
+    document.getElementById('impersonate-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeImpersonateModal();
     });
     </script>
     @endpush

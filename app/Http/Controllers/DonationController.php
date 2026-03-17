@@ -41,9 +41,11 @@ class DonationController extends Controller
         abort_unless($streamer->is_accepting_donation, 403, 'Streamer sedang tidak menerima donasi.');
 
         // ── Validasi input (error user / pihak ke-3 → rollback otomatis oleh Laravel) ──
+        // Max amount: Rp 100.000.000 (100 juta) - limit wajar untuk mencegah abuse
+        $maxAmount = 100000000;
         $validated = $request->validate([
             'name'   => ['required', 'string', 'max:60'],
-            'amount' => ['required', 'integer', 'min:' . $streamer->min_donation],
+            'amount' => ['required', 'integer', 'min:' . $streamer->min_donation, 'max:' . $maxAmount],
             'emoji'  => ['nullable', 'string', 'max:10'],
             'msg'    => ['nullable', 'string', 'max:200'],
             'yt_url' => [
@@ -56,6 +58,7 @@ class DonationController extends Controller
             'name.required'   => 'Nama wajib diisi.',
             'amount.required' => 'Jumlah donasi wajib diisi.',
             'amount.min'      => 'Minimum donasi adalah Rp ' . number_format($streamer->min_donation, 0, ',', '.'),
+            'amount.max'      => 'Maksimum donasi adalah Rp ' . number_format($maxAmount, 0, ',', '.'),
             'yt_url.regex'    => 'URL YouTube tidak valid. Gunakan youtube.com atau youtu.be',
         ]);
 

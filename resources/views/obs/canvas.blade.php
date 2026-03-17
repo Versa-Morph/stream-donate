@@ -522,16 +522,30 @@ function applyConfig(config) {
 }
 
 // ═══ SSE — satu koneksi untuk semua widget ═══
-function connectSSE() {
-    const es = new EventSource(buildSseUrl());
+let currentEventSource = null;
+let sseHandlers = { onopen: null, donation: null, stats: null, ping: null, stream_error: null, onerror: null };
 
-    es.onopen = function() {
+function connectSSE() {
+    // Clean up existing connection and handlers
+    if (currentEventSource) {
+        if (sseHandlers.donation) currentEventSource.removeEventListener('donation', sseHandlers.donation);
+        if (sseHandlers.stats) currentEventSource.removeEventListener('stats', sseHandlers.stats);
+        if (sseHandlers.ping) currentEventSource.removeEventListener('ping', sseHandlers.ping);
+        if (sseHandlers.stream_error) currentEventSource.removeEventListener('stream_error', sseHandlers.stream_error);
+        currentEventSource.close();
+        currentEventSource = null;
+    }
+
+    currentEventSource = new EventSource(buildSseUrl());
+
+    sseHandlers.onopen = function() {
         statusEl.textContent = '● live';
         statusEl.style.color = 'rgba(34,211,160,.3)';
     };
+    currentEventSource.onopen = sseHandlers.onopen;
 
     // Event: donasi baru → notifikasi alert
-    es.addEventListener('donation', function(e) {
+    sseHandlers.donation = function(e) {
         try {
             const d = JSON.parse(e.data);
             if (seenIds.has(d.seq ?? d.id)) return;
@@ -539,31 +553,38 @@ function connectSSE() {
             saveLastKnownSeq(d.seq ?? null);
             if (WIDGETS_ACTIVE.notification) addToQueue(d);
         } catch(err) { console.error('SSE parse error:', err); }
-    });
+    };
+    currentEventSource.addEventListener('donation', sseHandlers.donation);
 
     // Event: stats → leaderboard + milestone update
-    es.addEventListener('stats', function(e) {
+    sseHandlers.stats = function(e) {
         try {
             const data = JSON.parse(e.data);
             if (data && data.config) applyConfig(data.config);
             if (WIDGETS_ACTIVE.leaderboard) applyLeaderboard(data, true);
             if (WIDGETS_ACTIVE.milestone)   applyMilestone(data);
         } catch(err) { console.error('SSE stats error:', err); }
-    });
+    };
+    currentEventSource.addEventListener('stats', sseHandlers.stats);
 
-    es.addEventListener('ping', function() {});
+    sseHandlers.ping = function() {};
+    currentEventSource.addEventListener('ping', sseHandlers.ping);
 
-    es.addEventListener('stream_error', function() {
+    sseHandlers.stream_error = function() {
         statusEl.textContent = '● error — reconnecting…';
         statusEl.style.color = 'rgba(249,115,22,.4)';
-        es.close(); setTimeout(connectSSE, 5000);
-    });
+        if (currentEventSource) currentEventSource.close();
+        setTimeout(connectSSE, 5000);
+    };
+    currentEventSource.addEventListener('stream_error', sseHandlers.stream_error);
 
-    es.onerror = function() {
+    sseHandlers.onerror = function() {
         statusEl.textContent = '● reconnecting…';
         statusEl.style.color = 'rgba(249,115,22,.4)';
-        es.close(); setTimeout(connectSSE, 3000);
+        if (currentEventSource) currentEventSource.close();
+        setTimeout(connectSSE, 3000);
     };
+    currentEventSource.onerror = sseHandlers.onerror;
 }
 
 // ═══ NOTIFICATION QUEUE ═══

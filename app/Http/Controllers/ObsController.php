@@ -8,6 +8,34 @@ use Illuminate\Http\Request;
 class ObsController extends Controller
 {
     /**
+     * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     * SECURITY NOTE: OBS Widget API Key Policy
+     * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     * 
+     * OBS widgets (overlay, leaderboard, milestone, subathon, etc.) accept an
+     * API key via query parameter but DO NOT validate it for the following reasons:
+     * 
+     * 1. INTENTIONALLY PUBLIC:
+     *    - These widgets are displayed on the streamer's public livestream
+     *    - Thousands of viewers can see the widgets in real-time
+     *    - The data shown (donations, leaderboards) is public information
+     *    - Requiring API key validation provides no security benefit
+     * 
+     * 2. PROTECTED DATA SOURCE:
+     *    - The actual sensitive operation (SSE stream) DOES validate API keys
+     *    - SSE endpoint at /{slug}/sse requires valid API key (hash_equals check)
+     *    - Widgets only display data; they don't modify anything
+     * 
+     * 3. USER EXPERIENCE:
+     *    - Easy widget setup: just add slug to URL
+     *    - No risk of API key exposure in OBS (URLs visible in Scene Collection)
+     *    - Streamers can share widget URLs without security concerns
+     * 
+     * This is a deliberate design decision, not a security oversight.
+     * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     */
+
+    /**
      * Overlay alert widget untuk OBS
      */
     public function overlay(Request $request, string $slug)

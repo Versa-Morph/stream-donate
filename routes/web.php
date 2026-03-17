@@ -84,21 +84,33 @@ Route::middleware(['auth', 'verified', 'streamer'])->prefix('streamer')->name('s
 
     // Settings
     Route::get('/settings', [StreamerDashboardController::class, 'settings'])->name('settings');
-    Route::post('/settings', [StreamerDashboardController::class, 'updateSettings'])->name('settings.update');
+    Route::post('/settings', [StreamerDashboardController::class, 'updateSettings'])
+        ->middleware('throttle:settings-update')
+        ->name('settings.update');
 
     // Regenerate API key
-    Route::post('/regenerate-key', [StreamerDashboardController::class, 'regenerateApiKey'])->name('regenerate-key');
+    Route::post('/regenerate-key', [StreamerDashboardController::class, 'regenerateApiKey'])
+        ->middleware('throttle:api-key-regen')
+        ->name('regenerate-key');
 
     // Test Alert — kirim fake donation ke SSE tanpa simpan ke DB
-    Route::post('/test-alert', [StreamerDashboardController::class, 'testAlert'])->name('test-alert');
+    Route::post('/test-alert', [StreamerDashboardController::class, 'testAlert'])
+        ->middleware('throttle:test-alert')
+        ->name('test-alert');
 
     // Heatmap data AJAX — navigasi bulan prev/next
-    Route::get('/heatmap-data', [StreamerDashboardController::class, 'heatmapData'])->name('heatmap-data');
+    Route::get('/heatmap-data', [StreamerDashboardController::class, 'heatmapData'])
+        ->middleware('throttle:heatmap')
+        ->name('heatmap-data');
 
     // Reports
     Route::get('/reports', [ReportController::class, 'index'])->name('reports');
-    Route::get('/reports/export/csv', [ReportController::class, 'exportCsv'])->name('reports.csv');
-    Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.pdf');
+    Route::get('/reports/export/csv', [ReportController::class, 'exportCsv'])
+        ->middleware('throttle:report-export')
+        ->name('reports.csv');
+    Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])
+        ->middleware('throttle:report-export')
+        ->name('reports.pdf');
 
     // Banned words — streamer's own custom words (AJAX)
     Route::get('/banned-words',              [StreamerBannedWordController::class, 'index'])->name('banned-words.index');
@@ -107,18 +119,30 @@ Route::middleware(['auth', 'verified', 'streamer'])->prefix('streamer')->name('s
 
     // OBS Canvas Editor
     Route::get('/obs-canvas',  [ObsCanvasController::class, 'editor'])->name('obs-canvas');
-    Route::post('/obs-canvas', [ObsCanvasController::class, 'save'])->name('obs-canvas.save');
+    Route::post('/obs-canvas', [ObsCanvasController::class, 'save'])
+        ->middleware('throttle:settings-update')
+        ->name('obs-canvas.save');
 
     // Widget Studio
     Route::get('/widgets',  [StreamerDashboardController::class, 'widgets'])->name('widgets');
-    Route::post('/widgets', [StreamerDashboardController::class, 'saveWidgets'])->name('widgets.save');
-    Route::post('/widgets/alert-settings', [StreamerDashboardController::class, 'saveAlertSettings'])->name('widgets.alert-settings');
+    Route::post('/widgets', [StreamerDashboardController::class, 'saveWidgets'])
+        ->middleware('throttle:settings-update')
+        ->name('widgets.save');
+    Route::post('/widgets/alert-settings', [StreamerDashboardController::class, 'saveAlertSettings'])
+        ->middleware('throttle:settings-update')
+        ->name('widgets.alert-settings');
 
     // Subathon
     Route::get('/subathon', [StreamerDashboardController::class, 'subathon'])->name('subathon');
-    Route::post('/subathon', [StreamerDashboardController::class, 'saveSubathonSettings'])->name('subathon.save');
-    Route::post('/subathon/reset-timer', [StreamerDashboardController::class, 'resetSubathonTimer'])->name('subathon.reset-timer');
-    Route::post('/subathon/add-time', [StreamerDashboardController::class, 'addSubathonTimeManual'])->name('subathon.add-time');
+    Route::post('/subathon', [StreamerDashboardController::class, 'saveSubathonSettings'])
+        ->middleware('throttle:settings-update')
+        ->name('subathon.save');
+    Route::post('/subathon/reset-timer', [StreamerDashboardController::class, 'resetSubathonTimer'])
+        ->middleware('throttle:settings-update')
+        ->name('subathon.reset-timer');
+    Route::post('/subathon/add-time', [StreamerDashboardController::class, 'addSubathonTimeManual'])
+        ->middleware('throttle:settings-update')
+        ->name('subathon.add-time');
 });
 
 /*
@@ -140,24 +164,38 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     // Manajemen user
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::get('/users/create', [AdminController::class, 'createUser'])->name('users.create');
-    Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
-    Route::post('/users/{user}/toggle', [AdminController::class, 'toggleUser'])->name('users.toggle');
-    Route::post('/users/{user}/reset-password', [AdminController::class, 'resetPassword'])->name('users.reset-password');
+    Route::post('/users', [AdminController::class, 'storeUser'])
+        ->middleware('throttle:admin-actions')
+        ->name('users.store');
+    Route::post('/users/{user}/toggle', [AdminController::class, 'toggleUser'])
+        ->middleware('throttle:admin-actions')
+        ->name('users.toggle');
+    Route::post('/users/{user}/reset-password', [AdminController::class, 'resetPassword'])
+        ->middleware('throttle:admin-actions')
+        ->name('users.reset-password');
 
     // Semua donasi
     Route::get('/donations', [AdminController::class, 'donations'])->name('donations');
-    Route::delete('/donations/{donation}', [AdminController::class, 'deleteDonation'])->name('donations.delete');
+    Route::delete('/donations/{donation}', [AdminController::class, 'deleteDonation'])
+        ->middleware('throttle:admin-actions')
+        ->name('donations.delete');
 
     // Activity logs
     Route::get('/logs', [AdminController::class, 'logs'])->name('logs');
 
     // Impersonate — /stop harus SEBELUM /{user} agar tidak ditangkap sebagai model binding
-    Route::post('/impersonate/{user}', [AdminController::class, 'impersonate'])->name('impersonate');
+    Route::post('/impersonate/{user}', [AdminController::class, 'impersonate'])
+        ->middleware('throttle:admin-actions')
+        ->name('impersonate');
 
     // Banned words — global list management
     Route::get('/banned-words',                 [AdminBannedWordController::class, 'index'])->name('banned-words.index');
-    Route::post('/banned-words',                [AdminBannedWordController::class, 'store'])->name('banned-words.store');
-    Route::delete('/banned-words/{bannedWord}', [AdminBannedWordController::class, 'destroy'])->name('banned-words.destroy');
+    Route::post('/banned-words',                [AdminBannedWordController::class, 'store'])
+        ->middleware('throttle:admin-actions')
+        ->name('banned-words.store');
+    Route::delete('/banned-words/{bannedWord}', [AdminBannedWordController::class, 'destroy'])
+        ->middleware('throttle:admin-actions')
+        ->name('banned-words.destroy');
 });
 
 /*
@@ -173,17 +211,37 @@ Route::post('/{slug}/donate', [DonationController::class, 'store'])
     ->name('donate.store');
 
 // QR Code per streamer (SVG inline)
-Route::get('/{slug}/qr', [QrController::class, 'show'])->name('qr.show');
+Route::get('/{slug}/qr', [QrController::class, 'show'])
+    ->middleware('throttle:qr-code')
+    ->name('qr.show');
 
 // SSE endpoint (diakses dari OBS widget / browser)
-Route::get('/{slug}/sse', [SseController::class, 'stream'])->name('sse.stream');
-Route::get('/{slug}/stats', [SseController::class, 'stats'])->name('sse.stats');
+Route::get('/{slug}/sse', [SseController::class, 'stream'])
+    ->middleware('throttle:sse')
+    ->name('sse.stream');
+Route::get('/{slug}/stats', [SseController::class, 'stats'])
+    ->middleware('throttle:stats-api')
+    ->name('sse.stats');
 
 // OBS Widgets (tanpa auth, diakses dari OBS Browser Source)
-Route::get('/{slug}/obs/overlay',     [ObsController::class, 'overlay'])->name('obs.overlay');
-Route::get('/{slug}/obs/leaderboard', [ObsController::class, 'leaderboard'])->name('obs.leaderboard');
-Route::get('/{slug}/obs/milestone',   [ObsController::class, 'milestone'])->name('obs.milestone');
-Route::get('/{slug}/obs/qr',          [QrController::class, 'obsWidget'])->name('obs.qr');
-Route::get('/{slug}/obs/canvas',      [ObsCanvasController::class, 'render'])->name('obs.canvas');
-Route::get('/{slug}/obs/subathon',    [ObsController::class, 'subathon'])->name('obs.subathon');
-Route::get('/{slug}/obs/running-text', [ObsController::class, 'runningText'])->name('obs.running-text');
+Route::get('/{slug}/obs/overlay',     [ObsController::class, 'overlay'])
+    ->middleware('throttle:obs-widget')
+    ->name('obs.overlay');
+Route::get('/{slug}/obs/leaderboard', [ObsController::class, 'leaderboard'])
+    ->middleware('throttle:obs-widget')
+    ->name('obs.leaderboard');
+Route::get('/{slug}/obs/milestone',   [ObsController::class, 'milestone'])
+    ->middleware('throttle:obs-widget')
+    ->name('obs.milestone');
+Route::get('/{slug}/obs/qr',          [QrController::class, 'obsWidget'])
+    ->middleware('throttle:obs-widget')
+    ->name('obs.qr');
+Route::get('/{slug}/obs/canvas',      [ObsCanvasController::class, 'render'])
+    ->middleware('throttle:obs-widget')
+    ->name('obs.canvas');
+Route::get('/{slug}/obs/subathon',    [ObsController::class, 'subathon'])
+    ->middleware('throttle:obs-widget')
+    ->name('obs.subathon');
+Route::get('/{slug}/obs/running-text', [ObsController::class, 'runningText'])
+    ->middleware('throttle:obs-widget')
+    ->name('obs.running-text');

@@ -57,9 +57,11 @@ class AdminController extends Controller
         $query = User::with('streamer')->orderBy('created_at', 'desc');
 
         if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+            // Escape LIKE wildcards to prevent slow query attacks
+            $escapedSearch = $this->escapeLikeWildcards($search);
+            $query->where(function ($q) use ($escapedSearch) {
+                $q->where('name', 'like', "%{$escapedSearch}%")
+                  ->orWhere('email', 'like', "%{$escapedSearch}%");
             });
         }
 
@@ -121,6 +123,11 @@ class AdminController extends Controller
             return back()->with('error', 'Tidak bisa menonaktifkan akun sendiri.');
         }
 
+        // Protect other admins from being toggled
+        if ($user->isAdmin()) {
+            return back()->with('error', 'Tidak bisa mengubah status admin lain.');
+        }
+
         $user->update(['is_active' => !$user->is_active]);
 
         $status = $user->is_active ? 'diaktifkan' : 'dinonaktifkan';
@@ -139,6 +146,11 @@ class AdminController extends Controller
      */
     public function resetPassword(Request $request, User $user): RedirectResponse
     {
+        // Protect other admins from password reset
+        if ($user->isAdmin() && $user->id !== Auth::id()) {
+            return back()->with('error', 'Tidak bisa mereset password admin lain.');
+        }
+
         $validated = $request->validate([
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
@@ -162,9 +174,11 @@ class AdminController extends Controller
         $query = Donation::with('streamer')->orderBy('created_at', 'desc');
 
         if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('message', 'like', "%{$search}%");
+            // Escape LIKE wildcards to prevent slow query attacks
+            $escapedSearch = $this->escapeLikeWildcards($search);
+            $query->where(function ($q) use ($escapedSearch) {
+                $q->where('name', 'like', "%{$escapedSearch}%")
+                  ->orWhere('message', 'like', "%{$escapedSearch}%");
             });
         }
 
@@ -186,7 +200,9 @@ class AdminController extends Controller
         $query = ActivityLog::with(['user', 'streamer'])->orderBy('created_at', 'desc');
 
         if ($action = $request->input('action')) {
-            $query->where('action', 'like', "%{$action}%");
+            // Escape LIKE wildcards to prevent slow query attacks
+            $escapedAction = $this->escapeLikeWildcards($action);
+            $query->where('action', 'like', "%{$escapedAction}%");
         }
 
         $logs = $query->paginate(30)->withQueryString();
@@ -196,11 +212,29 @@ class AdminController extends Controller
 
     /**
      * Impersonate streamer (login as)
+     * Requires password confirmation for security
      */
-    public function impersonate(User $user): RedirectResponse
+    public function impersonate(Request $request, User $user): RedirectResponse
     {
         if ($user->id === Auth::id()) {
             return back()->with('error', 'Tidak bisa impersonate diri sendiri.');
+        }
+
+        // Prevent impersonating other admins
+        if ($user->isAdmin()) {
+            return back()->with('error', 'Tidak bisa impersonate admin lain.');
+        }
+
+        // Require password confirmation for sensitive action
+        $request->validate([
+            'password' => ['required', 'string'],
+        ], [
+            'password.required' => 'Password wajib diisi untuk konfirmasi.',
+        ]);
+
+        // Verify admin's password
+        if (!Hash::check($request->password, Auth::user()->password)) {
+            return back()->with('error', 'Password salah. Impersonasi dibatalkan.');
         }
 
         // Simpan admin ID di session
