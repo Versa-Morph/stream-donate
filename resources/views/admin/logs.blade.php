@@ -1,39 +1,9 @@
 <x-app-layout>
     @push('styles')
     <style>
-        .admin-wrap { max-width: 1300px; margin: 0 auto; padding: 28px 28px 48px; }
-        .page-header { margin-bottom: 24px; }
-        .page-title {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 24px; font-weight: 700; letter-spacing: -.5px; color: var(--text);
-        }
-        .page-subtitle { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+        /* ── Uses unified .page-container, .page-header, .filter-bar, .table-card, .pagination from app.blade.php ── */
 
-        /* ── FILTER BAR ── */
-        .filter-bar {
-            display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius-lg); padding: 14px 18px;
-            margin-bottom: 20px;
-        }
-        .filter-bar input {
-            width: auto; flex: 1; min-width: 200px; max-width: 360px;
-            padding: 8px 12px; font-size: 13px;
-        }
-        .filter-bar button {
-            padding: 8px 18px; font-size: 13px; font-weight: 600;
-            background: var(--brand); color: #fff;
-            border: none; border-radius: var(--radius); cursor: pointer;
-        }
-        .filter-bar button:hover { opacity: .85; }
-
-        /* ── TABLE ── */
-        .table-wrap {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-        }
+        /* ── TABLE (local overrides) ── */
         table { width: 100%; border-collapse: collapse; }
         thead { background: var(--surface-2); }
         th {
@@ -60,29 +30,16 @@
         .action-badge.donation { background: rgba(34,211,160,.08); color: var(--green); border-color: rgba(34,211,160,.2); }
         .action-badge.admin    { background: rgba(168,85,247,.08); color: #c084fc;       border-color: rgba(168,85,247,.2); }
         .action-badge.user     { background: rgba(251,191,36,.08); color: var(--yellow); border-color: rgba(251,191,36,.2); }
-
-        /* ── PAGINATION ── */
-        .pagination {
-            display: flex; gap: 4px; align-items: center;
-            justify-content: center; margin-top: 20px; flex-wrap: wrap;
-        }
-        .pagination a, .pagination span {
-            padding: 6px 12px; border-radius: var(--radius-sm);
-            font-size: 13px; background: var(--surface); border: 1px solid var(--border);
-            color: var(--text-2);
-        }
-        .pagination a:hover { border-color: var(--brand); color: var(--brand-light); }
-        .pagination .active span {
-            background: var(--brand); border-color: var(--brand); color: #fff;
-        }
     </style>
     @endpush
 
-    <div class="admin-wrap">
+    <div class="page-container">
         <!-- Header -->
         <div class="page-header">
-            <h1 class="page-title">Activity Logs</h1>
-            <p class="page-subtitle">{{ $logs->total() }} entri log aktivitas</p>
+            <div class="page-header-left">
+                <h1 class="page-title">Activity Logs</h1>
+                <p class="page-subtitle">{{ $logs->total() }} entri log aktivitas</p>
+            </div>
         </div>
 
         <!-- Filter by action -->
@@ -90,7 +47,7 @@
             <div class="filter-bar">
                 <input type="text" name="action" value="{{ request('action') }}"
                     placeholder="Filter berdasarkan action (cth: donation, admin, user)…">
-                <button type="submit">Filter</button>
+                <button type="submit" class="btn-filter">Filter</button>
                 @if(request('action'))
                     <a href="{{ route('admin.logs') }}" class="btn-sm" style="font-size:12px;padding:7px 14px">Reset</a>
                 @endif
@@ -98,7 +55,7 @@
         </form>
 
         <!-- Table -->
-        <div class="table-wrap">
+        <div class="table-card">
             <table>
                 <thead>
                     <tr>

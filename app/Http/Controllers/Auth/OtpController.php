@@ -9,7 +9,8 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
@@ -123,23 +124,47 @@ class OtpController extends Controller
 
     /**
      * Generate kode OTP, simpan di DB, dan kirim email.
+     *
+     * Uses a transaction to ensure OTP is only saved if mail queuing succeeds.
+     * The mail job itself has Laravel's built-in retry mechanism.
+     *
+     * @param string $email Recipient email address
+     * @param string $name Recipient display name
+     * @return string The generated OTP code
+     * @throws \RuntimeException When OTP creation or mail queuing fails
      */
     public static function sendOtp(string $email, string $name): string
     {
-        // Generate 8-character alphanumeric code (uppercase letters and numbers only)
-        $characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude similar chars: I,O,0,1
+        // Generate OTP code using configurable settings
+        $characters = config('otp.characters', 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789');
+        $length = config('otp.length', 8);
+        $expiresMinutes = config('otp.expires_minutes', 5);
+
         $code = '';
-        for ($i = 0; $i < 8; $i++) {
+        for ($i = 0; $i < $length; $i++) {
             $code .= $characters[random_int(0, strlen($characters) - 1)];
         }
 
-        OtpCode::create([
-            'email'      => $email,
-            'code'       => $code,
-            'expires_at' => now()->addMinutes(5), // Reduced from 10 to 5 minutes
-        ]);
+        try {
+            // Use transaction to ensure atomicity
+            DB::transaction(function () use ($email, $name, $code, $expiresMinutes) {
+                OtpCode::create([
+                    'email'      => $email,
+                    'code'       => $code,
+                    'expires_at' => now()->addMinutes($expiresMinutes),
+                ]);
 
-        Mail::to($email)->queue(new OtpMail($code, $name));
+                // Queue mail with explicit connection and retry settings
+                Mail::to($email)->queue(new OtpMail($code, $name));
+            });
+        } catch (\Throwable $e) {
+            Log::error('OtpController: Failed to send OTP', [
+                'email' => $email,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw new \RuntimeException('Gagal mengirim kode OTP. Silakan coba lagi.');
+        }
 
         return $code;
     }

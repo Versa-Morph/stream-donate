@@ -4,35 +4,21 @@
 /* ══════════════════════════════════════════════
    WIDGET STUDIO — Phase 1
    Layout · Tab Nav · OBS URL Cards
+   (Uses unified .page-container from app.blade.php)
 ══════════════════════════════════════════════ */
 
-/* ── Page wrap ── */
-.ws-wrap {
-    padding: 28px 32px;
-    max-width: 1200px;
-    margin: 0 auto;
+/* ── Back/action buttons (matches settings.blade.php) ── */
+.btn-back{
+    display:inline-flex;align-items:center;gap:7px;
+    padding:9px 16px;border:1px solid var(--border);
+    border-radius:var(--radius-sm);font-size:13px;font-weight:600;
+    color:var(--text-2);text-decoration:none;transition:all .15s;
+    background:var(--surface-2);
 }
+.btn-back:hover{border-color:var(--border-2);color:var(--text)}
+.btn-back .iconify{width:14px;height:14px}
 
-/* ── Page header ── */
-.ws-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-bottom: 28px;
-}
-.ws-header-left {}
-.ws-title {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -.5px;
-    margin-bottom: 4px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
+/* ── Title icon ── */
 .ws-title-icon {
     width: 36px; height: 36px;
     border-radius: 10px;
@@ -42,17 +28,6 @@
     flex-shrink: 0;
 }
 .ws-title-icon .iconify { width: 20px; height: 20px; color: #fff; }
-.ws-sub {
-    font-size: 13px;
-    color: var(--text-3);
-    padding-left: 46px;
-}
-.ws-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
 
 /* ── Main layout: tabs (left) + panel (right) ── */
 .ws-body {
@@ -64,12 +39,15 @@
 
 /* ── Tab sidebar ── */
 .ws-sidebar {
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: rgba(20,20,25,.7);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(124,108,252,.12);
     border-radius: var(--radius-lg);
     overflow: hidden;
     position: sticky;
     top: 80px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.35);
 }
 .ws-nav-label {
     font-size: 10px;
@@ -98,10 +76,11 @@
     background: rgba(255,255,255,.04);
 }
 .ws-nav-item.active {
+    background: rgba(124,108,252,.12);
     color: var(--brand-light);
-    background: rgba(124,108,252,.08);
     border-left-color: var(--brand);
     font-weight: 600;
+    box-shadow: inset 0 0 20px rgba(124,108,252,.08);
 }
 .ws-nav-item .iconify {
     width: 16px; height: 16px;
@@ -578,6 +557,24 @@
     padding: 4px 10px;
 }
 .ws-size-chip .iconify { width: 13px; height: 13px; }
+
+/* ── Widget chips (for OBS Canvas) ── */
+.ws-widget-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+.ws-widget-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+.ws-widget-chip .iconify { width: 14px; height: 14px; }
 
 /* ══════════════════════════════════════════════
    WIDGET STUDIO — Phase 2
@@ -1257,6 +1254,115 @@
     --p-prog-bar: linear-gradient(90deg,rgba(255,255,255,.7),rgba(255,255,255,.3));
     --p-radius:   12px;
 }
+/* ── New 9 preset themes for Alert ── */
+.wc-prev-alert.theme-sakura {
+    --p-bg:       rgba(20,8,16,.96);
+    --p-border:   rgba(255,182,193,.2);
+    --p-accent:   #ff69b4;
+    --p-accent2:  #ffb7c5;
+    --p-amount:   #ff69b4;
+    --p-donor:    #fff0f5;
+    --p-msg-c:    rgba(255,182,193,.6);
+    --p-top-line: linear-gradient(90deg,#ff69b4,#ffb7c5,#ffc0cb);
+    --p-prog-bar: linear-gradient(90deg,#ff69b4,#ffb7c5);
+    --p-radius:   20px;
+}
+.wc-prev-alert.theme-galaxy {
+    --p-bg:       rgba(8,4,20,.97);
+    --p-border:   rgba(138,43,226,.25);
+    --p-accent:   #8a2be2;
+    --p-accent2:  #da70d6;
+    --p-amount:   #da70d6;
+    --p-donor:    #e6e6fa;
+    --p-msg-c:    rgba(218,112,214,.5);
+    --p-top-line: linear-gradient(90deg,#8a2be2,#9370db,#da70d6);
+    --p-prog-bar: linear-gradient(90deg,#8a2be2,#da70d6);
+    --p-radius:   16px;
+}
+.wc-prev-alert.theme-emerald {
+    --p-bg:       rgba(4,16,12,.96);
+    --p-border:   rgba(16,185,129,.22);
+    --p-accent:   #10b981;
+    --p-accent2:  #34d399;
+    --p-amount:   #34d399;
+    --p-donor:    #d1fae5;
+    --p-msg-c:    rgba(52,211,153,.5);
+    --p-top-line: linear-gradient(90deg,#10b981,#34d399,#6ee7b7);
+    --p-prog-bar: linear-gradient(90deg,#10b981,#34d399);
+    --p-radius:   14px;
+}
+.wc-prev-alert.theme-sunset {
+    --p-bg:       rgba(18,8,4,.96);
+    --p-border:   rgba(251,146,60,.2);
+    --p-accent:   #f472b6;
+    --p-accent2:  #fb923c;
+    --p-amount:   #fb923c;
+    --p-donor:    #fef3c7;
+    --p-msg-c:    rgba(251,146,60,.5);
+    --p-top-line: linear-gradient(90deg,#f472b6,#fb923c,#fbbf24);
+    --p-prog-bar: linear-gradient(90deg,#f472b6,#fb923c);
+    --p-radius:   16px;
+}
+.wc-prev-alert.theme-ocean {
+    --p-bg:       rgba(4,12,20,.96);
+    --p-border:   rgba(6,182,212,.2);
+    --p-accent:   #06b6d4;
+    --p-accent2:  #22d3ee;
+    --p-amount:   #22d3ee;
+    --p-donor:    #cffafe;
+    --p-msg-c:    rgba(34,211,238,.5);
+    --p-top-line: linear-gradient(90deg,#0891b2,#06b6d4,#22d3ee);
+    --p-prog-bar: linear-gradient(90deg,#06b6d4,#22d3ee);
+    --p-radius:   14px;
+}
+.wc-prev-alert.theme-midnight {
+    --p-bg:       rgba(6,6,18,.98);
+    --p-border:   rgba(99,102,241,.2);
+    --p-accent:   #6366f1;
+    --p-accent2:  #818cf8;
+    --p-amount:   #a5b4fc;
+    --p-donor:    #e0e7ff;
+    --p-msg-c:    rgba(165,180,252,.5);
+    --p-top-line: linear-gradient(90deg,#4f46e5,#6366f1,#818cf8);
+    --p-prog-bar: linear-gradient(90deg,#6366f1,#818cf8);
+    --p-radius:   16px;
+}
+.wc-prev-alert.theme-lavender {
+    --p-bg:       rgba(16,12,20,.96);
+    --p-border:   rgba(167,139,250,.2);
+    --p-accent:   #a78bfa;
+    --p-accent2:  #c4b5fd;
+    --p-amount:   #c4b5fd;
+    --p-donor:    #ede9fe;
+    --p-msg-c:    rgba(196,181,253,.5);
+    --p-top-line: linear-gradient(90deg,#8b5cf6,#a78bfa,#c4b5fd);
+    --p-prog-bar: linear-gradient(90deg,#a78bfa,#c4b5fd);
+    --p-radius:   18px;
+}
+.wc-prev-alert.theme-golden {
+    --p-bg:       rgba(16,12,4,.96);
+    --p-border:   rgba(251,191,36,.2);
+    --p-accent:   #f59e0b;
+    --p-accent2:  #fbbf24;
+    --p-amount:   #fcd34d;
+    --p-donor:    #fef3c7;
+    --p-msg-c:    rgba(252,211,77,.5);
+    --p-top-line: linear-gradient(90deg,#d97706,#f59e0b,#fbbf24);
+    --p-prog-bar: linear-gradient(90deg,#f59e0b,#fbbf24);
+    --p-radius:   14px;
+}
+.wc-prev-alert.theme-matrix {
+    --p-bg:       rgba(0,4,0,.98);
+    --p-border:   rgba(34,197,94,.25);
+    --p-accent:   #22c55e;
+    --p-accent2:  #4ade80;
+    --p-amount:   #4ade80;
+    --p-donor:    #bbf7d0;
+    --p-msg-c:    rgba(74,222,128,.5);
+    --p-top-line: linear-gradient(90deg,#16a34a,#22c55e,#4ade80);
+    --p-prog-bar: linear-gradient(90deg,#22c55e,#4ade80);
+    --p-radius:   12px;
+}
 .wc-prev-alert .alert-mock-box {
     background: var(--p-bg);
     border: 1px solid var(--p-border);
@@ -1271,6 +1377,15 @@
 .wc-prev-alert.theme-fire  { --p-shadow: 0 8px 40px rgba(0,0,0,.85), 0 0 0 1px rgba(249,115,22,.1), 0 0 50px rgba(239,68,68,.1); }
 .wc-prev-alert.theme-ice   { --p-shadow: 0 8px 40px rgba(0,0,0,.85), 0 0 0 1px rgba(147,210,255,.08), 0 0 40px rgba(56,189,248,.08); }
 .wc-prev-alert.theme-minimal { --p-shadow: 0 8px 32px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.1); }
+.wc-prev-alert.theme-sakura { --p-shadow: 0 8px 40px rgba(0,0,0,.8), 0 0 0 1px rgba(255,105,180,.15), 0 0 35px rgba(255,105,180,.1); }
+.wc-prev-alert.theme-galaxy { --p-shadow: 0 8px 40px rgba(0,0,0,.85), 0 0 0 1px rgba(138,43,226,.15), 0 0 40px rgba(138,43,226,.12); }
+.wc-prev-alert.theme-emerald { --p-shadow: 0 8px 40px rgba(0,0,0,.8), 0 0 0 1px rgba(16,185,129,.12), 0 0 35px rgba(16,185,129,.1); }
+.wc-prev-alert.theme-sunset { --p-shadow: 0 8px 40px rgba(0,0,0,.8), 0 0 0 1px rgba(251,146,60,.12), 0 0 40px rgba(244,114,182,.1); }
+.wc-prev-alert.theme-ocean { --p-shadow: 0 8px 40px rgba(0,0,0,.8), 0 0 0 1px rgba(6,182,212,.12), 0 0 35px rgba(6,182,212,.1); }
+.wc-prev-alert.theme-midnight { --p-shadow: 0 8px 40px rgba(0,0,0,.85), 0 0 0 1px rgba(99,102,241,.15), 0 0 40px rgba(99,102,241,.1); }
+.wc-prev-alert.theme-lavender { --p-shadow: 0 8px 40px rgba(0,0,0,.8), 0 0 0 1px rgba(167,139,250,.15), 0 0 35px rgba(167,139,250,.1); }
+.wc-prev-alert.theme-golden { --p-shadow: 0 8px 40px rgba(0,0,0,.8), 0 0 0 1px rgba(251,191,36,.15), 0 0 40px rgba(251,191,36,.1); }
+.wc-prev-alert.theme-matrix { --p-shadow: 0 8px 40px rgba(0,0,0,.9), 0 0 0 1px rgba(34,197,94,.2), 0 0 45px rgba(34,197,94,.15); }
 .wc-prev-alert .alert-mock-topline {
     height: 2px;
     background: var(--p-top-line);
@@ -1423,6 +1538,24 @@
 .wc-prev-alert.theme-fire .alert-mock-amount { text-shadow: 0 0 16px rgba(251,191,36,.4); }
 .wc-prev-alert.theme-ice  .alert-mock-donor  { text-shadow: 0 0 18px rgba(56,189,248,.4); }
 .wc-prev-alert.theme-ice  .alert-mock-amount { text-shadow: 0 0 14px rgba(56,189,248,.35); }
+.wc-prev-alert.theme-sakura .alert-mock-donor  { text-shadow: 0 0 18px rgba(255,105,180,.4); }
+.wc-prev-alert.theme-sakura .alert-mock-amount { text-shadow: 0 0 16px rgba(255,105,180,.35); }
+.wc-prev-alert.theme-galaxy .alert-mock-donor  { text-shadow: 0 0 20px rgba(218,112,214,.45); }
+.wc-prev-alert.theme-galaxy .alert-mock-amount { text-shadow: 0 0 18px rgba(138,43,226,.4); }
+.wc-prev-alert.theme-emerald .alert-mock-donor  { text-shadow: 0 0 16px rgba(52,211,153,.4); }
+.wc-prev-alert.theme-emerald .alert-mock-amount { text-shadow: 0 0 14px rgba(16,185,129,.35); }
+.wc-prev-alert.theme-sunset .alert-mock-donor  { text-shadow: 0 0 18px rgba(251,146,60,.4); }
+.wc-prev-alert.theme-sunset .alert-mock-amount { text-shadow: 0 0 16px rgba(244,114,182,.35); }
+.wc-prev-alert.theme-ocean .alert-mock-donor  { text-shadow: 0 0 16px rgba(34,211,238,.4); }
+.wc-prev-alert.theme-ocean .alert-mock-amount { text-shadow: 0 0 14px rgba(6,182,212,.35); }
+.wc-prev-alert.theme-midnight .alert-mock-donor  { text-shadow: 0 0 18px rgba(165,180,252,.4); }
+.wc-prev-alert.theme-midnight .alert-mock-amount { text-shadow: 0 0 16px rgba(99,102,241,.35); }
+.wc-prev-alert.theme-lavender .alert-mock-donor  { text-shadow: 0 0 18px rgba(196,181,253,.4); }
+.wc-prev-alert.theme-lavender .alert-mock-amount { text-shadow: 0 0 16px rgba(167,139,250,.35); }
+.wc-prev-alert.theme-golden .alert-mock-donor  { text-shadow: 0 0 18px rgba(252,211,77,.4); }
+.wc-prev-alert.theme-golden .alert-mock-amount { text-shadow: 0 0 16px rgba(251,191,36,.35); }
+.wc-prev-alert.theme-matrix .alert-mock-donor  { text-shadow: 0 0 20px rgba(74,222,128,.5); }
+.wc-prev-alert.theme-matrix .alert-mock-amount { text-shadow: 0 0 18px rgba(34,197,94,.45); }
 
 
 
@@ -1468,6 +1601,79 @@
     --p-brand2:  #ffffff;
     --p-orange:  #e0e0f0;
     --p-green:   #ffffff;
+}
+/* ── New 9 preset themes for Milestone ── */
+.wc-prev-milestone.theme-sakura {
+    --p-surface: rgba(20,8,16,.96);
+    --p-border:  rgba(255,182,193,.2);
+    --p-brand:   #ff69b4;
+    --p-brand2:  #ffb7c5;
+    --p-orange:  #ff69b4;
+    --p-green:   #ffb7c5;
+}
+.wc-prev-milestone.theme-galaxy {
+    --p-surface: rgba(8,4,20,.97);
+    --p-border:  rgba(138,43,226,.25);
+    --p-brand:   #8a2be2;
+    --p-brand2:  #da70d6;
+    --p-orange:  #da70d6;
+    --p-green:   #9370db;
+}
+.wc-prev-milestone.theme-emerald {
+    --p-surface: rgba(4,16,12,.96);
+    --p-border:  rgba(16,185,129,.22);
+    --p-brand:   #10b981;
+    --p-brand2:  #34d399;
+    --p-orange:  #34d399;
+    --p-green:   #6ee7b7;
+}
+.wc-prev-milestone.theme-sunset {
+    --p-surface: rgba(18,8,4,.96);
+    --p-border:  rgba(251,146,60,.2);
+    --p-brand:   #f472b6;
+    --p-brand2:  #fb923c;
+    --p-orange:  #fb923c;
+    --p-green:   #fbbf24;
+}
+.wc-prev-milestone.theme-ocean {
+    --p-surface: rgba(4,12,20,.96);
+    --p-border:  rgba(6,182,212,.2);
+    --p-brand:   #06b6d4;
+    --p-brand2:  #22d3ee;
+    --p-orange:  #22d3ee;
+    --p-green:   #67e8f9;
+}
+.wc-prev-milestone.theme-midnight {
+    --p-surface: rgba(6,6,18,.98);
+    --p-border:  rgba(99,102,241,.2);
+    --p-brand:   #6366f1;
+    --p-brand2:  #818cf8;
+    --p-orange:  #a5b4fc;
+    --p-green:   #818cf8;
+}
+.wc-prev-milestone.theme-lavender {
+    --p-surface: rgba(16,12,20,.96);
+    --p-border:  rgba(167,139,250,.2);
+    --p-brand:   #a78bfa;
+    --p-brand2:  #c4b5fd;
+    --p-orange:  #c4b5fd;
+    --p-green:   #ddd6fe;
+}
+.wc-prev-milestone.theme-golden {
+    --p-surface: rgba(16,12,4,.96);
+    --p-border:  rgba(251,191,36,.2);
+    --p-brand:   #f59e0b;
+    --p-brand2:  #fbbf24;
+    --p-orange:  #fcd34d;
+    --p-green:   #fbbf24;
+}
+.wc-prev-milestone.theme-matrix {
+    --p-surface: rgba(0,4,0,.98);
+    --p-border:  rgba(34,197,94,.25);
+    --p-brand:   #22c55e;
+    --p-brand2:  #4ade80;
+    --p-orange:  #4ade80;
+    --p-green:   #86efac;
 }
 .wc-prev-milestone .ms-mock-wrap {
     background: var(--p-surface);
@@ -1619,6 +1825,79 @@
     --p-yellow:  #e0e0f0;
     --p-green:   #ffffff;
 }
+/* ── New 9 preset themes for Leaderboard ── */
+.wc-prev-leaderboard.theme-sakura {
+    --p-surface: rgba(20,8,16,.96);
+    --p-border:  rgba(255,182,193,.2);
+    --p-brand:   #ff69b4;
+    --p-brand2:  #ffb7c5;
+    --p-yellow:  #ffb7c5;
+    --p-green:   #ff69b4;
+}
+.wc-prev-leaderboard.theme-galaxy {
+    --p-surface: rgba(8,4,20,.97);
+    --p-border:  rgba(138,43,226,.25);
+    --p-brand:   #8a2be2;
+    --p-brand2:  #da70d6;
+    --p-yellow:  #da70d6;
+    --p-green:   #9370db;
+}
+.wc-prev-leaderboard.theme-emerald {
+    --p-surface: rgba(4,16,12,.96);
+    --p-border:  rgba(16,185,129,.22);
+    --p-brand:   #10b981;
+    --p-brand2:  #34d399;
+    --p-yellow:  #34d399;
+    --p-green:   #6ee7b7;
+}
+.wc-prev-leaderboard.theme-sunset {
+    --p-surface: rgba(18,8,4,.96);
+    --p-border:  rgba(251,146,60,.2);
+    --p-brand:   #f472b6;
+    --p-brand2:  #fb923c;
+    --p-yellow:  #fb923c;
+    --p-green:   #fbbf24;
+}
+.wc-prev-leaderboard.theme-ocean {
+    --p-surface: rgba(4,12,20,.96);
+    --p-border:  rgba(6,182,212,.2);
+    --p-brand:   #06b6d4;
+    --p-brand2:  #22d3ee;
+    --p-yellow:  #22d3ee;
+    --p-green:   #67e8f9;
+}
+.wc-prev-leaderboard.theme-midnight {
+    --p-surface: rgba(6,6,18,.98);
+    --p-border:  rgba(99,102,241,.2);
+    --p-brand:   #6366f1;
+    --p-brand2:  #818cf8;
+    --p-yellow:  #a5b4fc;
+    --p-green:   #818cf8;
+}
+.wc-prev-leaderboard.theme-lavender {
+    --p-surface: rgba(16,12,20,.96);
+    --p-border:  rgba(167,139,250,.2);
+    --p-brand:   #a78bfa;
+    --p-brand2:  #c4b5fd;
+    --p-yellow:  #c4b5fd;
+    --p-green:   #ddd6fe;
+}
+.wc-prev-leaderboard.theme-golden {
+    --p-surface: rgba(16,12,4,.96);
+    --p-border:  rgba(251,191,36,.2);
+    --p-brand:   #f59e0b;
+    --p-brand2:  #fbbf24;
+    --p-yellow:  #fcd34d;
+    --p-green:   #fbbf24;
+}
+.wc-prev-leaderboard.theme-matrix {
+    --p-surface: rgba(0,4,0,.98);
+    --p-border:  rgba(34,197,94,.25);
+    --p-brand:   #22c55e;
+    --p-brand2:  #4ade80;
+    --p-yellow:  #4ade80;
+    --p-green:   #86efac;
+}
 .wc-prev-leaderboard .lb-mock-wrap {
     background: var(--p-surface);
     border: 1px solid var(--p-border);
@@ -1710,6 +1989,61 @@
     --p-border:  rgba(255,255,255,.14);
     --p-brand:   #e0e0f0;
     --p-brand2:  #ffffff;
+}
+/* ── New 9 preset themes for QR ── */
+.wc-prev-qr.theme-sakura {
+    --p-surface: rgba(20,8,16,.96);
+    --p-border:  rgba(255,182,193,.2);
+    --p-brand:   #ff69b4;
+    --p-brand2:  #ffb7c5;
+}
+.wc-prev-qr.theme-galaxy {
+    --p-surface: rgba(8,4,20,.97);
+    --p-border:  rgba(138,43,226,.25);
+    --p-brand:   #8a2be2;
+    --p-brand2:  #da70d6;
+}
+.wc-prev-qr.theme-emerald {
+    --p-surface: rgba(4,16,12,.96);
+    --p-border:  rgba(16,185,129,.22);
+    --p-brand:   #10b981;
+    --p-brand2:  #34d399;
+}
+.wc-prev-qr.theme-sunset {
+    --p-surface: rgba(18,8,4,.96);
+    --p-border:  rgba(251,146,60,.2);
+    --p-brand:   #f472b6;
+    --p-brand2:  #fb923c;
+}
+.wc-prev-qr.theme-ocean {
+    --p-surface: rgba(4,12,20,.96);
+    --p-border:  rgba(6,182,212,.2);
+    --p-brand:   #06b6d4;
+    --p-brand2:  #22d3ee;
+}
+.wc-prev-qr.theme-midnight {
+    --p-surface: rgba(6,6,18,.98);
+    --p-border:  rgba(99,102,241,.2);
+    --p-brand:   #6366f1;
+    --p-brand2:  #818cf8;
+}
+.wc-prev-qr.theme-lavender {
+    --p-surface: rgba(16,12,20,.96);
+    --p-border:  rgba(167,139,250,.2);
+    --p-brand:   #a78bfa;
+    --p-brand2:  #c4b5fd;
+}
+.wc-prev-qr.theme-golden {
+    --p-surface: rgba(16,12,4,.96);
+    --p-border:  rgba(251,191,36,.2);
+    --p-brand:   #f59e0b;
+    --p-brand2:  #fbbf24;
+}
+.wc-prev-qr.theme-matrix {
+    --p-surface: rgba(0,4,0,.98);
+    --p-border:  rgba(34,197,94,.25);
+    --p-brand:   #22c55e;
+    --p-brand2:  #4ade80;
 }
 .wc-prev-qr .qr-mock-widget {
     background: var(--p-surface);
@@ -2055,6 +2389,40 @@
 .was-max-dur-input:focus { border-color: #fbbf24; }
 .was-max-dur-unit { font-size: 11px; color: var(--text-3); }
 
+/* ── Toggle Switch ── */
+.toggle-switch {
+    display: inline-flex;
+    width: 44px;
+    height: 24px;
+    border-radius: 12px;
+    background: rgba(30, 30, 40, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+}
+.toggle-switch.on {
+    background: var(--brand);
+    border-color: var(--brand);
+    box-shadow: 0 0 16px rgba(124, 108, 252, 0.5);
+}
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+.toggle-switch.on::after {
+    transform: translateX(20px);
+}
+
 /* ── Video cards ── */
 .was-video-grid {
     display: grid;
@@ -2106,6 +2474,24 @@
     border: 1px solid rgba(251,191,36,.2);
     color: #fbbf24;
 }
+.was-config-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    background: rgba(124,108,252,.1);
+    border: 1px solid rgba(124,108,252,.3);
+    color: var(--brand-light);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+}
+.was-config-btn:hover {
+    background: rgba(124,108,252,.2);
+    border-color: rgba(124,108,252,.5);
+}
 
 /* ── Save button row ── */
 .was-save-row {
@@ -2135,32 +2521,26 @@
 </style>
 @endpush
 
-<div class="ws-wrap">
+<div class="page-container">
 
     {{-- ── Page Header ── --}}
-    <div class="ws-header">
-        <div class="ws-header-left">
-            <div class="ws-title">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title" style="display:flex;align-items:center;gap:10px">
                 <div class="ws-title-icon">
                     <span class="iconify" data-icon="solar:palette-bold-duotone"></span>
                 </div>
                 Widget Studio
-            </div>
-            <div class="ws-sub">Kelola tampilan &amp; URL setiap widget OBS kamu</div>
+            </h1>
+            <p class="page-subtitle" style="padding-left:46px">Kelola tampilan &amp; URL setiap widget OBS kamu</p>
         </div>
-        <div class="ws-header-actions">
-            <a href="{{ route('streamer.settings') }}"
-               style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--text-2);text-decoration:none;transition:all .15s;background:var(--surface-2)"
-               onmouseover="this.style.borderColor='var(--border-2)';this.style.color='var(--text)'"
-               onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-2)'">
-                <span class="iconify" data-icon="solar:settings-bold-duotone" style="width:14px;height:14px"></span>
+        <div class="page-header-right">
+            <a href="{{ route('streamer.settings') }}" class="btn-back">
+                <span class="iconify" data-icon="solar:settings-bold-duotone"></span>
                 Settings
             </a>
-            <a href="{{ route('streamer.dashboard') }}"
-               style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--text-2);text-decoration:none;transition:all .15s;background:var(--surface-2)"
-               onmouseover="this.style.borderColor='var(--border-2)';this.style.color='var(--text)'"
-               onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-2)'">
-                <span class="iconify" data-icon="solar:widget-bold-duotone" style="width:14px;height:14px"></span>
+            <a href="{{ route('streamer.dashboard') }}" class="btn-back">
+                <span class="iconify" data-icon="solar:widget-bold-duotone"></span>
                 Dashboard
             </a>
         </div>
@@ -2222,6 +2602,90 @@
 
             {{-- ══ TAB: Alert ══ --}}
             <div class="ws-panel active" id="tab-alert">
+
+                {{-- ── Widget Info Card ── --}}
+                <div class="ws-card">
+                    <div class="ws-card-head">
+                        <div class="ws-card-icon" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2)">
+                            <span class="iconify" data-icon="solar:bell-bold-duotone" style="color:var(--orange)"></span>
+                        </div>
+                        <div>
+                            <div class="ws-card-title">Alert Widget</div>
+                            <div class="ws-card-sub">Notifikasi donasi real-time dengan animasi</div>
+                        </div>
+                        <div class="ws-card-head-right">
+                            <div class="status-live">
+                                <span class="status-live-dot"></span>
+                                Real-time via SSE
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ws-tags">
+                        <span class="ws-tag orange">
+                            <span class="iconify" data-icon="solar:bell-bold"></span>
+                            Notifikasi Donasi
+                        </span>
+                        <span class="ws-tag green">
+                            <span class="iconify" data-icon="solar:play-bold"></span>
+                            Animasi Masuk/Keluar
+                        </span>
+                        <span class="ws-tag purple">
+                            <span class="iconify" data-icon="solar:volume-loud-bold"></span>
+                            Text-to-Speech
+                        </span>
+                    </div>
+
+                    <div class="ws-size-chips">
+                        <span class="ws-size-chip">
+                            <span class="iconify" data-icon="solar:ruler-bold"></span>
+                            Default 400 × ~200 px
+                        </span>
+                        <span class="ws-size-chip">
+                            <span class="iconify" data-icon="solar:monitor-bold"></span>
+                            Canvas 1920 × 1080
+                        </span>
+                        <span class="ws-size-chip">
+                            <span class="iconify" data-icon="solar:clock-circle-bold"></span>
+                            Durasi: {{ $streamer->alert_duration ?? 5 }} detik
+                        </span>
+                    </div>
+
+                    <div class="ws-info-box">
+                        <span class="iconify" data-icon="solar:info-circle-bold-duotone"></span>
+                        <span>Widget ini muncul saat ada donasi baru. Posisi default: <strong>tengah atas</strong> canvas. Atur durasi &amp; TTS di <a href="{{ route('streamer.settings') }}#alert" style="color:var(--brand-light)">Settings → Alert</a>.</span>
+                    </div>
+
+                    <div class="ws-section-label">
+                        <span class="iconify" data-icon="solar:link-bold" style="width:12px;height:12px"></span>
+                        URL Browser Source OBS
+                    </div>
+
+                    <div class="obs-url-grid">
+                        <div class="obs-url-row">
+                            <div class="obs-url-icon" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2)">
+                                <span class="iconify" data-icon="solar:bell-bold-duotone" style="color:var(--orange)"></span>
+                            </div>
+                            <div class="obs-url-info">
+                                <div class="obs-url-label">
+                                    Alert Widget
+                                    <code style="font-size:9px;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px">?key=</code>
+                                    sudah termasuk
+                                </div>
+                                @php $alertUrl = route('obs.overlay', $streamer->slug) . '?key=' . $streamer->api_key; @endphp
+                                <input class="obs-url-input" readonly value="{{ $alertUrl }}" id="url-alert" />
+                            </div>
+                            <div class="obs-url-actions">
+                                <button class="obs-btn primary" onclick="copyText('{{ $alertUrl }}', 'URL Alert')">
+                                    <span class="iconify" data-icon="solar:copy-bold-duotone"></span>Copy URL
+                                </button>
+                                <a class="obs-btn" href="{{ $alertUrl }}" target="_blank">
+                                    <span class="iconify" data-icon="solar:eye-bold-duotone"></span>Buka
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 {{-- ── Phase 2+: 5-Step Customizer — Alert ── --}}
                 @php
@@ -2421,6 +2885,51 @@
                             <div class="wc-preset-card {{ $ws_alert['preset']==='minimal'?'active':'' }}" data-preset="minimal" onclick="wcSelectPreset('alert','minimal',this)">
                                 <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(12,12,16,.95),#18181c);border-color:rgba(255,255,255,.14)"></div>
                                 <div class="wc-preset-name">Minimal</div>
+                                <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                            </div>
+                            <div class="wc-preset-card {{ $ws_alert['preset']==='sakura'?'active':'' }}" data-preset="sakura" onclick="wcSelectPreset('alert','sakura',this)">
+                                <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(20,8,16,.96),#2d1020);border-color:rgba(255,183,197,.18)"></div>
+                                <div class="wc-preset-name">Sakura</div>
+                                <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                            </div>
+                            <div class="wc-preset-card {{ $ws_alert['preset']==='galaxy'?'active':'' }}" data-preset="galaxy" onclick="wcSelectPreset('alert','galaxy',this)">
+                                <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,4,20,.97),#1a0a30);border-color:rgba(139,92,246,.22)"></div>
+                                <div class="wc-preset-name">Galaxy</div>
+                                <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                            </div>
+                            <div class="wc-preset-card {{ $ws_alert['preset']==='emerald'?'active':'' }}" data-preset="emerald" onclick="wcSelectPreset('alert','emerald',this)">
+                                <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(4,16,12,.96),#0a2018);border-color:rgba(16,185,129,.2)"></div>
+                                <div class="wc-preset-name">Emerald</div>
+                                <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                            </div>
+                            <div class="wc-preset-card {{ $ws_alert['preset']==='sunset'?'active':'' }}" data-preset="sunset" onclick="wcSelectPreset('alert','sunset',this)">
+                                <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,8,4,.96),#2a1208);border-color:rgba(251,146,60,.2)"></div>
+                                <div class="wc-preset-name">Sunset</div>
+                                <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                            </div>
+                            <div class="wc-preset-card {{ $ws_alert['preset']==='ocean'?'active':'' }}" data-preset="ocean" onclick="wcSelectPreset('alert','ocean',this)">
+                                <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(4,12,20,.96),#081828);border-color:rgba(6,182,212,.2)"></div>
+                                <div class="wc-preset-name">Ocean</div>
+                                <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                            </div>
+                            <div class="wc-preset-card {{ $ws_alert['preset']==='midnight'?'active':'' }}" data-preset="midnight" onclick="wcSelectPreset('alert','midnight',this)">
+                                <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,8,24,.97),#101030);border-color:rgba(99,102,241,.2)"></div>
+                                <div class="wc-preset-name">Midnight</div>
+                                <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                            </div>
+                            <div class="wc-preset-card {{ $ws_alert['preset']==='lavender'?'active':'' }}" data-preset="lavender" onclick="wcSelectPreset('alert','lavender',this)">
+                                <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,12,20,.96),#201828);border-color:rgba(192,132,252,.18)"></div>
+                                <div class="wc-preset-name">Lavender</div>
+                                <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                            </div>
+                            <div class="wc-preset-card {{ $ws_alert['preset']==='golden'?'active':'' }}" data-preset="golden" onclick="wcSelectPreset('alert','golden',this)">
+                                <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,12,4,.96),#28200a);border-color:rgba(251,191,36,.2)"></div>
+                                <div class="wc-preset-name">Golden</div>
+                                <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                            </div>
+                            <div class="wc-preset-card {{ $ws_alert['preset']==='matrix'?'active':'' }}" data-preset="matrix" onclick="wcSelectPreset('alert','matrix',this)">
+                                <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(0,8,4,.97),#001a0d);border-color:rgba(34,197,94,.22)"></div>
+                                <div class="wc-preset-name">Matrix</div>
                                 <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
                             </div>
                             <div class="wc-preset-card {{ $ws_alert['preset']==='custom'?'active':'' }}" data-preset="custom" onclick="wcSelectPreset('alert','custom',this)">
@@ -2820,14 +3329,14 @@
                         </div>
                     </div>
 
-                    {{-- ── Section 3: Video ── --}}
+                    {{-- ── Section 3: Media Channels ── --}}
                     <div class="was-section">
                         <div class="was-section-head">
                             <div class="was-section-icon" style="background:rgba(239,68,68,.1)">
                                 <span class="iconify" data-icon="solar:play-circle-bold-duotone" style="color:#ef4444"></span>
                             </div>
-                            <div class="was-section-title">Permintaan Video</div>
-                            <div class="was-section-sub">Donatur bisa minta putar video saat donasi</div>
+                            <div class="was-section-title">Media Channels</div>
+                            <div class="was-section-sub">Pilih channel yang bisa digunakan donatur untuk request media saat donasi</div>
                         </div>
 
                         <div class="was-video-grid">
@@ -2841,29 +3350,124 @@
                                     <label class="was-toggle">
                                         <input type="checkbox" id="was-yt-enabled"
                                                {{ $streamer->yt_enabled ? 'checked' : '' }}
-                                               onchange="wasYtToggle(this)">
+                                               onchange="wasChannelToggle('yt', this)">
                                         <span class="was-toggle-track"></span>
                                     </label>
                                 </div>
                                 <div class="was-video-desc">
-                                    Saat aktif, donatur bisa menyertakan link YouTube saat donasi. Video akan otomatis diputar di alert.
+                                    Donatur bisa menyertakan link YouTube saat donasi. Video akan diputar otomatis di alert.
                                 </div>
                             </div>
 
-                            {{-- TikTok — Coming Soon --}}
-                            <div class="was-video-card disabled">
+                            {{-- TikTok --}}
+                            <div class="was-video-card">
                                 <div class="was-video-head">
-                                    <div class="was-video-icon" style="background:rgba(255,255,255,.06)">
-                                        <span class="iconify" data-icon="solar:tiktok-bold-duotone" style="color:var(--text-3);width:20px;height:20px"></span>
+                                    <div class="was-video-icon" style="background:linear-gradient(135deg,#00f2ea,#ff0050);border:1px solid rgba(0,242,234,.3)">
+                                        <span class="iconify" data-icon="solar:tiktok-bold-duotone" style="color:#fff;width:20px;height:20px"></span>
                                     </div>
                                     <div class="was-video-title">TikTok</div>
-                                    <span class="was-coming-soon">
-                                        <span class="iconify" data-icon="solar:hourglass-bold" style="width:10px;height:10px"></span>
-                                        Coming Soon
-                                    </span>
+                                    <label class="was-toggle">
+                                        <input type="checkbox" id="was-tiktok-enabled"
+                                               {{ $streamer->tiktok_enabled ? 'checked' : '' }}
+                                               onchange="wasChannelToggle('tiktok', this)">
+                                        <span class="was-toggle-track"></span>
+                                    </label>
                                 </div>
                                 <div class="was-video-desc">
-                                    Dukungan untuk request video TikTok akan hadir di update berikutnya.
+                                    Donatur bisa menyertakan link video TikTok. Video akan diputar otomatis di alert.
+                                </div>
+                            </div>
+
+                            {{-- Instagram --}}
+                            <div class="was-video-card">
+                                <div class="was-video-head">
+                                    <div class="was-video-icon" style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);border:1px solid rgba(220,39,67,.3)">
+                                        <span class="iconify" data-icon="solar:camera-bold-duotone" style="color:#fff;width:20px;height:20px"></span>
+                                    </div>
+                                    <div class="was-video-title">Instagram</div>
+                                    <label class="was-toggle">
+                                        <input type="checkbox" id="was-instagram-enabled"
+                                               {{ $streamer->instagram_enabled ? 'checked' : '' }}
+                                               onchange="wasChannelToggle('instagram', this)">
+                                        <span class="was-toggle-track"></span>
+                                    </label>
+                                </div>
+                                <div class="was-video-desc">
+                                    Donatur bisa menyertakan link video/reels Instagram. Media akan diputar otomatis di alert.
+                                </div>
+                            </div>
+
+                            {{-- Twitter/X --}}
+                            <div class="was-video-card">
+                                <div class="was-video-head">
+                                    <div class="was-video-icon" style="background:linear-gradient(135deg,#1da1f2,#0d8ecf);border:1px solid rgba(29,161,242,.3)">
+                                        <span class="iconify" data-icon="solar:chat-bold-duotone" style="color:#fff;width:20px;height:20px"></span>
+                                    </div>
+                                    <div class="was-video-title">Twitter/X</div>
+                                    <label class="was-toggle">
+                                        <input type="checkbox" id="was-twitter-enabled"
+                                               {{ $streamer->twitter_enabled ? 'checked' : '' }}
+                                               onchange="wasChannelToggle('twitter', this)">
+                                        <span class="was-toggle-track"></span>
+                                    </label>
+                                </div>
+                                <div class="was-video-desc">
+                                    Donatur bisa menyertakan link video Twitter/X. Media akan diputar otomatis di alert.
+                                </div>
+                            </div>
+
+                            {{-- Spotify --}}
+                            <div class="was-video-card">
+                                <div class="was-video-head">
+                                    <div class="was-video-icon" style="background:linear-gradient(135deg,#1db954,#1aa34a);border:1px solid rgba(29,185,84,.3)">
+                                        <span class="iconify" data-icon="solar:music-note-bold-duotone" style="color:#fff;width:20px;height:20px"></span>
+                                    </div>
+                                    <div class="was-video-title">Spotify</div>
+                                    <label class="was-toggle">
+                                        <input type="checkbox" id="was-spotify-enabled"
+                                               {{ $streamer->spotify_enabled ? 'checked' : '' }}
+                                               onchange="wasChannelToggle('spotify', this)">
+                                        <span class="was-toggle-track"></span>
+                                    </label>
+                                </div>
+                                <div class="was-video-desc">
+                                    Donatur bisa menyertakan link lagu/playlist Spotify. Audio akan diputar otomatis di alert.
+                                </div>
+                            </div>
+
+                            {{-- Media Upload --}}
+                            @php
+                                $mediaUploadEnabled = $streamer->media_upload_enabled ?? false;
+                                $mediaTiers = $streamer->getMediaDurationTiers();
+                                $mediaMaxSize = $streamer->media_max_size_mb ?? 50;
+                            @endphp
+                            <div class="was-video-card">
+                                <div class="was-video-head">
+                                    <div class="was-video-icon" style="background:rgba(56,189,248,.12)">
+                                        <span class="iconify" data-icon="solar:video-library-bold-duotone" style="color:#38bdf8;width:20px;height:20px"></span>
+                                    </div>
+                                    <div class="was-video-title">Upload File</div>
+                                    <label class="was-toggle">
+                                        <input type="checkbox" id="was-media-enabled"
+                                               {{ $mediaUploadEnabled ? 'checked' : '' }}
+                                               onchange="wasChannelToggle('media', this)">
+                                        <span class="was-toggle-track"></span>
+                                    </label>
+                                </div>
+                                <div class="was-video-desc">
+                                    Donatur bisa upload video/audio saat donasi. File akan diputar otomatis di alert.
+                                </div>
+                                
+                                {{-- Quick Stats --}}
+                                <div class="media-quick-stats" style="margin-top:12px;display:flex;gap:16px;font-size:12px;color:var(--text-2)">
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span class="iconify" data-icon="solar:folder-bold" style="width:14px;height:14px"></span>
+                                        <span>Maks: <strong>{{ $mediaMaxSize }}MB</strong></span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span class="iconify" data-icon="solar:layers-bold" style="width:14px;height:14px"></span>
+                                        <span>Tier: <strong>{{ count($mediaTiers) }}</strong></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2882,7 +3486,6 @@
 
             {{-- ══ TAB: Milestone ══ --}}
             <div class="ws-panel" id="tab-milestone">
-
                 <div class="ws-card">
                     <div class="ws-card-head">
                         <div class="ws-card-icon" style="background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2)">
@@ -3008,6 +3611,51 @@
                          <div class="wc-preset-card {{ $ws_ms['preset']==='minimal'?'active':'' }}" data-preset="minimal" onclick="wcSelectPreset('milestone','minimal',this)">
                              <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(12,12,16,.95),#1a1a1e);border-color:rgba(255,255,255,.14)"></div>
                              <div class="wc-preset-name">Minimal</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_ms['preset']==='sakura'?'active':'' }}" data-preset="sakura" onclick="wcSelectPreset('milestone','sakura',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(20,8,16,.96),#2d1020);border-color:rgba(255,183,197,.18)"></div>
+                             <div class="wc-preset-name">Sakura</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_ms['preset']==='galaxy'?'active':'' }}" data-preset="galaxy" onclick="wcSelectPreset('milestone','galaxy',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,4,20,.97),#1a0a30);border-color:rgba(139,92,246,.22)"></div>
+                             <div class="wc-preset-name">Galaxy</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_ms['preset']==='emerald'?'active':'' }}" data-preset="emerald" onclick="wcSelectPreset('milestone','emerald',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(4,16,12,.96),#0a2018);border-color:rgba(16,185,129,.2)"></div>
+                             <div class="wc-preset-name">Emerald</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_ms['preset']==='sunset'?'active':'' }}" data-preset="sunset" onclick="wcSelectPreset('milestone','sunset',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,8,4,.96),#2a1208);border-color:rgba(251,146,60,.2)"></div>
+                             <div class="wc-preset-name">Sunset</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_ms['preset']==='ocean'?'active':'' }}" data-preset="ocean" onclick="wcSelectPreset('milestone','ocean',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(4,12,20,.96),#081828);border-color:rgba(6,182,212,.2)"></div>
+                             <div class="wc-preset-name">Ocean</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_ms['preset']==='midnight'?'active':'' }}" data-preset="midnight" onclick="wcSelectPreset('milestone','midnight',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,8,24,.97),#101030);border-color:rgba(99,102,241,.2)"></div>
+                             <div class="wc-preset-name">Midnight</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_ms['preset']==='lavender'?'active':'' }}" data-preset="lavender" onclick="wcSelectPreset('milestone','lavender',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,12,20,.96),#201828);border-color:rgba(192,132,252,.18)"></div>
+                             <div class="wc-preset-name">Lavender</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_ms['preset']==='golden'?'active':'' }}" data-preset="golden" onclick="wcSelectPreset('milestone','golden',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,12,4,.96),#28200a);border-color:rgba(251,191,36,.2)"></div>
+                             <div class="wc-preset-name">Golden</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_ms['preset']==='matrix'?'active':'' }}" data-preset="matrix" onclick="wcSelectPreset('milestone','matrix',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(0,8,4,.97),#001a0d);border-color:rgba(34,197,94,.22)"></div>
+                             <div class="wc-preset-name">Matrix</div>
                              <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
                          </div>
                          <div class="wc-preset-card {{ $ws_ms['preset']==='custom'?'active':'' }}" data-preset="custom" onclick="wcSelectPreset('milestone','custom',this)">
@@ -3174,6 +3822,59 @@
                     </div>
                 </div>
 
+                {{-- ── Phase 4: Pengaturan — Milestone ── --}}
+                <div class="ws-card">
+                    <div class="ws-card-head">
+                        <div class="ws-card-icon" style="background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2)">
+                            <span class="iconify" data-icon="solar:settings-bold-duotone" style="color:var(--purple)"></span>
+                        </div>
+                        <div>
+                            <div class="ws-card-title">Pengaturan Milestone</div>
+                            <div class="ws-card-sub">Judul, target nominal, dan reset otomatis</div>
+                        </div>
+                    </div>
+
+                    <div class="ws-opt-row">
+                        <div class="ws-opt-label">
+                            <div>Judul Milestone</div>
+                            <div class="ws-opt-sub">Teks yang muncul di atas progress bar</div>
+                        </div>
+                        <div class="ws-opt-input">
+                            <input type="text" id="milestone-title" value="{{ $streamer->milestone_title }}" maxlength="80" style="width:220px">
+                        </div>
+                    </div>
+
+                    <div class="ws-opt-row">
+                        <div class="ws-opt-label">
+                            <div>Target Donasi</div>
+                            <div class="ws-opt-sub">Nominal target milestone dalam Rupiah</div>
+                        </div>
+                        <div class="ws-opt-input">
+                            <span style="color:var(--text-muted);font-size:13px">Rp</span>
+                            <input type="number" id="milestone-target" value="{{ $streamer->milestone_target }}" min="1000" step="1000" style="width:140px">
+                        </div>
+                    </div>
+
+                    <div class="ws-opt-row">
+                        <div class="ws-opt-label">
+                            <div>Auto Reset</div>
+                            <div class="ws-opt-sub">Reset progress otomatis ketika target tercapai</div>
+                        </div>
+                        <label class="ws-toggle">
+                            <input type="checkbox" id="milestone-reset" {{ $streamer->milestone_reset ? 'checked' : '' }}>
+                            <span class="ws-toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="ws-save-row" style="margin-top:20px">
+                        <button class="ws-save-btn" onclick="saveMilestoneSettings()">
+                            <span class="iconify" data-icon="solar:floppy-disk-bold"></span>
+                            Simpan Pengaturan
+                        </button>
+                        <span class="ws-save-msg" id="msg-milestone-settings"></span>
+                    </div>
+                </div>
+
             </div>{{-- /tab-milestone --}}
 
             {{-- ══ TAB: Leaderboard ══ --}}
@@ -3304,6 +4005,51 @@
                          <div class="wc-preset-card {{ $ws_lb['preset']==='minimal'?'active':'' }}" data-preset="minimal" onclick="wcSelectPreset('leaderboard','minimal',this)">
                              <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(12,12,16,.95),#1a1a1e);border-color:rgba(255,255,255,.14)"></div>
                              <div class="wc-preset-name">Minimal</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_lb['preset']==='sakura'?'active':'' }}" data-preset="sakura" onclick="wcSelectPreset('leaderboard','sakura',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(20,8,16,.96),#2d1020);border-color:rgba(255,183,197,.18)"></div>
+                             <div class="wc-preset-name">Sakura</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_lb['preset']==='galaxy'?'active':'' }}" data-preset="galaxy" onclick="wcSelectPreset('leaderboard','galaxy',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,4,20,.97),#1a0a30);border-color:rgba(139,92,246,.22)"></div>
+                             <div class="wc-preset-name">Galaxy</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_lb['preset']==='emerald'?'active':'' }}" data-preset="emerald" onclick="wcSelectPreset('leaderboard','emerald',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(4,16,12,.96),#0a2018);border-color:rgba(16,185,129,.2)"></div>
+                             <div class="wc-preset-name">Emerald</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_lb['preset']==='sunset'?'active':'' }}" data-preset="sunset" onclick="wcSelectPreset('leaderboard','sunset',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,8,4,.96),#2a1208);border-color:rgba(251,146,60,.2)"></div>
+                             <div class="wc-preset-name">Sunset</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_lb['preset']==='ocean'?'active':'' }}" data-preset="ocean" onclick="wcSelectPreset('leaderboard','ocean',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(4,12,20,.96),#081828);border-color:rgba(6,182,212,.2)"></div>
+                             <div class="wc-preset-name">Ocean</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_lb['preset']==='midnight'?'active':'' }}" data-preset="midnight" onclick="wcSelectPreset('leaderboard','midnight',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,8,24,.97),#101030);border-color:rgba(99,102,241,.2)"></div>
+                             <div class="wc-preset-name">Midnight</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_lb['preset']==='lavender'?'active':'' }}" data-preset="lavender" onclick="wcSelectPreset('leaderboard','lavender',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,12,20,.96),#201828);border-color:rgba(192,132,252,.18)"></div>
+                             <div class="wc-preset-name">Lavender</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_lb['preset']==='golden'?'active':'' }}" data-preset="golden" onclick="wcSelectPreset('leaderboard','golden',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,12,4,.96),#28200a);border-color:rgba(251,191,36,.2)"></div>
+                             <div class="wc-preset-name">Golden</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_lb['preset']==='matrix'?'active':'' }}" data-preset="matrix" onclick="wcSelectPreset('leaderboard','matrix',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(0,8,4,.97),#001a0d);border-color:rgba(34,197,94,.22)"></div>
+                             <div class="wc-preset-name">Matrix</div>
                              <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
                          </div>
                          <div class="wc-preset-card {{ $ws_lb['preset']==='custom'?'active':'' }}" data-preset="custom" onclick="wcSelectPreset('leaderboard','custom',this)">
@@ -3487,6 +4233,48 @@
                     </div>
                 </div>
 
+                {{-- ── Phase 4: Pengaturan — Leaderboard ── --}}
+                <div class="ws-card">
+                    <div class="ws-card-head">
+                        <div class="ws-card-icon" style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2)">
+                            <span class="iconify" data-icon="solar:settings-bold-duotone" style="color:var(--yellow)"></span>
+                        </div>
+                        <div>
+                            <div class="ws-card-title">Pengaturan Leaderboard</div>
+                            <div class="ws-card-sub">Judul dan jumlah donatur yang ditampilkan</div>
+                        </div>
+                    </div>
+
+                    <div class="ws-opt-row">
+                        <div class="ws-opt-label">
+                            <div>Judul Leaderboard</div>
+                            <div class="ws-opt-sub">Teks yang muncul di header widget</div>
+                        </div>
+                        <div class="ws-opt-input">
+                            <input type="text" id="leaderboard-title" value="{{ $streamer->leaderboard_title }}" maxlength="80" style="width:220px">
+                        </div>
+                    </div>
+
+                    <div class="ws-opt-row">
+                        <div class="ws-opt-label">
+                            <div>Jumlah Tampil</div>
+                            <div class="ws-opt-sub">Berapa top donatur yang ditampilkan (3-20)</div>
+                        </div>
+                        <div class="ws-opt-input">
+                            <input type="number" id="leaderboard-count" value="{{ $streamer->leaderboard_count }}" min="3" max="20" style="width:80px">
+                            <span class="ws-opt-unit">donatur</span>
+                        </div>
+                    </div>
+
+                    <div class="ws-save-row" style="margin-top:20px">
+                        <button class="ws-save-btn" onclick="saveLeaderboardSettings()">
+                            <span class="iconify" data-icon="solar:floppy-disk-bold"></span>
+                            Simpan Pengaturan
+                        </button>
+                        <span class="ws-save-msg" id="msg-leaderboard-settings"></span>
+                    </div>
+                </div>
+
             </div>{{-- /tab-leaderboard --}}
 
             {{-- ══ TAB: Barcode / QR ══ --}}
@@ -3638,6 +4426,51 @@
                              <div class="wc-preset-name">Minimal</div>
                              <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
                          </div>
+                         <div class="wc-preset-card {{ $ws_qr['preset']==='sakura'?'active':'' }}" data-preset="sakura" onclick="wcSelectPreset('qr','sakura',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(20,8,16,.96),#2d1020);border-color:rgba(255,183,197,.18)"></div>
+                             <div class="wc-preset-name">Sakura</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_qr['preset']==='galaxy'?'active':'' }}" data-preset="galaxy" onclick="wcSelectPreset('qr','galaxy',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,4,20,.97),#1a0a30);border-color:rgba(139,92,246,.22)"></div>
+                             <div class="wc-preset-name">Galaxy</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_qr['preset']==='emerald'?'active':'' }}" data-preset="emerald" onclick="wcSelectPreset('qr','emerald',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(4,16,12,.96),#0a2018);border-color:rgba(16,185,129,.2)"></div>
+                             <div class="wc-preset-name">Emerald</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_qr['preset']==='sunset'?'active':'' }}" data-preset="sunset" onclick="wcSelectPreset('qr','sunset',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,8,4,.96),#2a1208);border-color:rgba(251,146,60,.2)"></div>
+                             <div class="wc-preset-name">Sunset</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_qr['preset']==='ocean'?'active':'' }}" data-preset="ocean" onclick="wcSelectPreset('qr','ocean',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(4,12,20,.96),#081828);border-color:rgba(6,182,212,.2)"></div>
+                             <div class="wc-preset-name">Ocean</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_qr['preset']==='midnight'?'active':'' }}" data-preset="midnight" onclick="wcSelectPreset('qr','midnight',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,8,24,.97),#101030);border-color:rgba(99,102,241,.2)"></div>
+                             <div class="wc-preset-name">Midnight</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_qr['preset']==='lavender'?'active':'' }}" data-preset="lavender" onclick="wcSelectPreset('qr','lavender',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,12,20,.96),#201828);border-color:rgba(192,132,252,.18)"></div>
+                             <div class="wc-preset-name">Lavender</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_qr['preset']==='golden'?'active':'' }}" data-preset="golden" onclick="wcSelectPreset('qr','golden',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,12,4,.96),#28200a);border-color:rgba(251,191,36,.2)"></div>
+                             <div class="wc-preset-name">Golden</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
+                         <div class="wc-preset-card {{ $ws_qr['preset']==='matrix'?'active':'' }}" data-preset="matrix" onclick="wcSelectPreset('qr','matrix',this)">
+                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(0,8,4,.97),#001a0d);border-color:rgba(34,197,94,.22)"></div>
+                             <div class="wc-preset-name">Matrix</div>
+                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                         </div>
                          <div class="wc-preset-card {{ $ws_qr['preset']==='custom'?'active':'' }}" data-preset="custom" onclick="wcSelectPreset('qr','custom',this)">
                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,var(--brand),var(--purple));border-color:rgba(124,108,252,.3)"></div>
                             <div class="wc-preset-name">Custom</div>
@@ -3787,6 +4620,7 @@
             {{-- ══ TAB: Subathon ══ --}}
             <div class="ws-panel" id="tab-subathon">
 
+                {{-- ── Phase 1: Widget Info — Subathon ── --}}
                 <div class="ws-card">
                     <div class="ws-card-head">
                         <div class="ws-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
@@ -3832,7 +4666,7 @@
 
                     <div class="ws-info-box">
                         <span class="iconify" data-icon="solar:info-circle-bold-duotone"></span>
-                        <span>Widget ini tampil permanen di layar. Ubah pengaturan Subathon di menu <a href="{{ route('streamer.settings') }}#subathon" style="color:var(--brand-light)">Settings → Subathon</a>.</span>
+                        <span>Widget ini tampil permanen di layar. Timer bertambah otomatis saat ada donasi masuk sesuai aturan konversi di bawah.</span>
                     </div>
 
                     <div class="ws-section-label">
@@ -3863,109 +4697,6 @@
                                 </a>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                {{-- ── Live Preview Subathon ── --}}
-                <div class="ws-card wc-preview-card">
-                    <div class="ws-card-head">
-                        <div class="ws-card-icon" style="background:rgba(34,211,160,.1);border:1px solid rgba(34,211,160,.2)">
-                            <span class="iconify" data-icon="solar:eye-bold-duotone" style="color:var(--green)"></span>
-                        </div>
-                        <div>
-                            <div class="ws-card-title">Live Preview</div>
-                            <div class="ws-card-sub">Tampilan Subathon sesuai pengaturan kamu</div>
-                        </div>
-                    </div>
-                    <div class="wc-preview-viewport" id="preview-subathon-viewport">
-                        <span class="wc-preview-label">
-                            <span class="wc-preview-dot"></span>PREVIEW
-                        </span>
-                        <div class="wc-preview-frame" style="width:100%;height:160px">
-                            <div class="wc-preview-stage" id="preview-subathon-stage" style="transform:scale(.5);transform-origin:top center;width:320px">
-                                <div class="wc-prev-subathon subathon-mock-wrap">
-                                    <div class="subathon-mock-timer">00:45:00</div>
-                                    <div class="subathon-mock-label">SISA WAKTU</div>
-                                    <div class="subathon-mock-bar">
-                                        <div class="subathon-mock-bar-fill"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- ── Pengaturan Subathon ── --}}
-                <div class="ws-card">
-                    <div class="ws-card-head">
-                        <div class="ws-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
-                            <span class="iconify" data-icon="solar:settings-bold-duotone" style="color:var(--brand-light)"></span>
-                        </div>
-                        <div>
-                            <div class="ws-card-title">Pengaturan Subathon</div>
-                            <div class="ws-card-sub">Aktifkan, durasi, dan konversi donasi</div>
-                        </div>
-                    </div>
-
-                    <div class="ws-opt-row">
-                        <div class="ws-opt-label">
-                            <div>Aktifkan Subathon</div>
-                            <div class="ws-opt-sub">Timer akan muncul di widget OBS</div>
-                        </div>
-                        <label class="ws-toggle">
-                            <input type="checkbox" id="subathon-enabled" {{ $streamer->subathon_enabled ? 'checked' : '' }}>
-                            <span class="ws-toggle-slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="ws-opt-row">
-                        <div class="ws-opt-label">
-                            <div>Durasi Default</div>
-                            <div class="ws-opt-sub">Timer dimulai dengan durasi ini saat di-reset</div>
-                        </div>
-                        <div class="ws-opt-input">
-                            <input type="number" id="subathon-duration" value="{{ $streamer->subathon_duration_minutes ?? 60 }}" min="1" max="1440" style="width:100px">
-                            <span class="ws-opt-unit">menit</span>
-                        </div>
-                    </div>
-
-                    <div class="ws-opt-row" style="align-items:flex-start;padding-top:16px;border-top:1px solid var(--border);margin-top:8px">
-                        <div class="ws-opt-label">
-                            <div>Konversi Donasi → Waktu</div>
-                            <div class="ws-opt-sub">Tentukan menit ditambahkan per nominal</div>
-                        </div>
-                    </div>
-
-                    <div class="ws-tier-rows" id="subathon-tiers">
-                        @php
-                            $subathonValues = $streamer->subathon_additional_values ?? [['from' => 0, 'minutes' => 1], ['from' => 10000, 'minutes' => 2], ['from' => 50000, 'minutes' => 5], ['from' => 100000, 'minutes' => 10], ['from' => 500000, 'minutes' => 30]];
-                        @endphp
-                        @foreach($subathonValues as $i => $v)
-                        <div class="ws-tier-row">
-                            <span>Donasi Rp</span>
-                            <input type="number" class="ws-tier-from" value="{{ $v['from'] }}" min="0" step="1000" data-idx="{{ $i }}">
-                            <span>→ Tambah</span>
-                            <input type="number" class="ws-tier-to" value="{{ $v['minutes'] }}" min="1" max="60" data-idx="{{ $i }}">
-                            <span>menit</span>
-                            @if($i > 0)
-                            <button type="button" class="ws-tier-remove" onclick="removeSubathonTier(this)">
-                                <span class="iconify" data-icon="solar:trash-bold"></span>
-                            </button>
-                            @endif
-                        </div>
-                        @endforeach
-                    </div>
-                    <button type="button" class="ws-tier-add" onclick="addSubathonTier()">
-                        <span class="iconify" data-icon="solar:plus-bold"></span>
-                        Tambah Rule
-                    </button>
-
-                    <div class="ws-save-row" style="margin-top:20px">
-                        <button class="ws-save-btn" onclick="saveSubathonSettings()">
-                            <span class="iconify" data-icon="solar:floppy-disk-bold"></span>
-                            Simpan Pengaturan
-                        </button>
-                        <span class="ws-save-msg" id="msg-subathon"></span>
                     </div>
                 </div>
 
@@ -4011,6 +4742,51 @@
                         <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'minimal' ? 'active' : '' }}" data-preset="minimal" onclick="wcSelectPreset('subathon','minimal',this)">
                             <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(12,12,16,.95),#1a1a1e);border-color:rgba(255,255,255,.14)"></div>
                             <div class="wc-preset-name">Minimal</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'sakura' ? 'active' : '' }}" data-preset="sakura" onclick="wcSelectPreset('subathon','sakura',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(20,8,16,.96),#2d1020);border-color:rgba(255,183,197,.18)"></div>
+                            <div class="wc-preset-name">Sakura</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'galaxy' ? 'active' : '' }}" data-preset="galaxy" onclick="wcSelectPreset('subathon','galaxy',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,4,20,.97),#1a0a30);border-color:rgba(139,92,246,.22)"></div>
+                            <div class="wc-preset-name">Galaxy</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'emerald' ? 'active' : '' }}" data-preset="emerald" onclick="wcSelectPreset('subathon','emerald',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(4,16,12,.96),#0a2018);border-color:rgba(16,185,129,.2)"></div>
+                            <div class="wc-preset-name">Emerald</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'sunset' ? 'active' : '' }}" data-preset="sunset" onclick="wcSelectPreset('subathon','sunset',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,8,4,.96),#2a1208);border-color:rgba(251,146,60,.2)"></div>
+                            <div class="wc-preset-name">Sunset</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'ocean' ? 'active' : '' }}" data-preset="ocean" onclick="wcSelectPreset('subathon','ocean',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(4,12,20,.96),#081828);border-color:rgba(6,182,212,.2)"></div>
+                            <div class="wc-preset-name">Ocean</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'midnight' ? 'active' : '' }}" data-preset="midnight" onclick="wcSelectPreset('subathon','midnight',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,8,24,.97),#101030);border-color:rgba(99,102,241,.2)"></div>
+                            <div class="wc-preset-name">Midnight</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'lavender' ? 'active' : '' }}" data-preset="lavender" onclick="wcSelectPreset('subathon','lavender',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,12,20,.96),#201828);border-color:rgba(192,132,252,.18)"></div>
+                            <div class="wc-preset-name">Lavender</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'golden' ? 'active' : '' }}" data-preset="golden" onclick="wcSelectPreset('subathon','golden',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,12,4,.96),#28200a);border-color:rgba(251,191,36,.2)"></div>
+                            <div class="wc-preset-name">Golden</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'matrix' ? 'active' : '' }}" data-preset="matrix" onclick="wcSelectPreset('subathon','matrix',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(0,8,4,.97),#001a0d);border-color:rgba(34,197,94,.22)"></div>
+                            <div class="wc-preset-name">Matrix</div>
                             <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
                         </div>
                         <div class="wc-preset-card {{ ($ws_sub['preset'] ?? '') === 'custom' ? 'active' : '' }}" data-preset="custom" onclick="wcSelectPreset('subathon','custom',this)">
@@ -4123,7 +4899,110 @@
                     </div>
                 </div>
 
-            </div>
+                {{-- ── Phase 3: Live Preview — Subathon ── --}}
+                <div class="ws-card wc-preview-card">
+                    <div class="ws-card-head">
+                        <div class="ws-card-icon" style="background:rgba(34,211,160,.1);border:1px solid rgba(34,211,160,.2)">
+                            <span class="iconify" data-icon="solar:eye-bold-duotone" style="color:var(--green)"></span>
+                        </div>
+                        <div>
+                            <div class="ws-card-title">Live Preview</div>
+                            <div class="ws-card-sub">Tampilan Subathon sesuai pengaturan kamu</div>
+                        </div>
+                    </div>
+                    <div class="wc-preview-viewport" id="preview-subathon-viewport">
+                        <span class="wc-preview-label">
+                            <span class="wc-preview-dot"></span>PREVIEW
+                        </span>
+                        <div class="wc-preview-frame" style="width:100%;height:160px">
+                            <div class="wc-preview-stage" id="preview-subathon-stage" style="transform:scale(.5);transform-origin:top center;width:320px">
+                                <div class="wc-prev-subathon subathon-mock-wrap">
+                                    <div class="subathon-mock-timer">00:45:00</div>
+                                    <div class="subathon-mock-label">SISA WAKTU</div>
+                                    <div class="subathon-mock-bar">
+                                        <div class="subathon-mock-bar-fill"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ── Phase 4: Pengaturan — Subathon ── --}}
+                <div class="ws-card">
+                    <div class="ws-card-head">
+                        <div class="ws-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
+                            <span class="iconify" data-icon="solar:settings-bold-duotone" style="color:var(--brand-light)"></span>
+                        </div>
+                        <div>
+                            <div class="ws-card-title">Pengaturan Subathon</div>
+                            <div class="ws-card-sub">Aktifkan, durasi, dan konversi donasi</div>
+                        </div>
+                    </div>
+
+                    <div class="ws-opt-row">
+                        <div class="ws-opt-label">
+                            <div>Aktifkan Subathon</div>
+                            <div class="ws-opt-sub">Timer akan muncul di widget OBS</div>
+                        </div>
+                        <label class="ws-toggle">
+                            <input type="checkbox" id="subathon-enabled" {{ $streamer->subathon_enabled ? 'checked' : '' }}>
+                            <span class="ws-toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="ws-opt-row">
+                        <div class="ws-opt-label">
+                            <div>Durasi Default</div>
+                            <div class="ws-opt-sub">Timer dimulai dengan durasi ini saat di-reset</div>
+                        </div>
+                        <div class="ws-opt-input">
+                            <input type="number" id="subathon-duration" value="{{ $streamer->subathon_duration_minutes ?? 60 }}" min="1" max="1440" style="width:100px">
+                            <span class="ws-opt-unit">menit</span>
+                        </div>
+                    </div>
+
+                    <div class="ws-opt-row" style="align-items:flex-start;padding-top:16px;border-top:1px solid var(--border);margin-top:8px">
+                        <div class="ws-opt-label">
+                            <div>Konversi Donasi → Waktu</div>
+                            <div class="ws-opt-sub">Tentukan menit ditambahkan per nominal</div>
+                        </div>
+                    </div>
+
+                    <div class="ws-tier-rows" id="subathon-tiers">
+                        @php
+                            $subathonValues = $streamer->subathon_additional_values ?? [['from' => 0, 'minutes' => 1], ['from' => 10000, 'minutes' => 2], ['from' => 50000, 'minutes' => 5], ['from' => 100000, 'minutes' => 10], ['from' => 500000, 'minutes' => 30]];
+                        @endphp
+                        @foreach($subathonValues as $i => $v)
+                        <div class="ws-tier-row">
+                            <span>Donasi Rp</span>
+                            <input type="number" class="ws-tier-from" value="{{ $v['from'] }}" min="0" step="1000" data-idx="{{ $i }}">
+                            <span>→ Tambah</span>
+                            <input type="number" class="ws-tier-to" value="{{ $v['minutes'] }}" min="1" max="60" data-idx="{{ $i }}">
+                            <span>menit</span>
+                            @if($i > 0)
+                            <button type="button" class="ws-tier-remove" onclick="removeSubathonTier(this)">
+                                <span class="iconify" data-icon="solar:trash-bold"></span>
+                            </button>
+                            @endif
+                        </div>
+                        @endforeach
+                    </div>
+                    <button type="button" class="ws-tier-add" onclick="addSubathonTier()">
+                        <span class="iconify" data-icon="solar:plus-bold"></span>
+                        Tambah Rule
+                    </button>
+
+                    <div class="ws-save-row" style="margin-top:20px">
+                        <button class="ws-save-btn" onclick="saveSubathonSettings()">
+                            <span class="iconify" data-icon="solar:floppy-disk-bold"></span>
+                            Simpan Pengaturan
+                        </button>
+                        <span class="ws-save-msg" id="msg-subathon"></span>
+                    </div>
+                </div>
+
+            </div>{{-- /tab-subathon --}}
 
             {{-- ══ TAB: Running Text ══ --}}
             @php $ws_rt = $widgetSettings['running_text'] ?? []; @endphp
@@ -4210,6 +5089,152 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {{-- ── Kustomisasi Tampilan Running Text ── --}}
+                <div class="ws-card">
+                    <div class="ws-card-head">
+                        <div class="ws-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
+                            <span class="iconify" data-icon="solar:palette-bold-duotone" style="color:var(--brand-light)"></span>
+                        </div>
+                        <div>
+                            <div class="ws-card-title">Kustomisasi Tampilan</div>
+                            <div class="ws-card-sub">Atur kecepatan, warna, dan tampilan</div>
+                        </div>
+                    </div>
+
+                    <div class="ws-section-label">
+                        <span class="iconify" data-icon="solar:magic-stick-bold" style="width:12px;height:12px"></span>
+                        Preset Tema
+                    </div>
+
+                    <div class="wc-presets" id="running-text-presets">
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? 'default') === 'default' ? 'active' : '' }}" data-preset="default" onclick="wcSelectPreset('running_text','default',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,8,12,0.96),#1a1a2e);border-color:rgba(124,108,252,.2)"></div>
+                            <div class="wc-preset-name">Default</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'neon' ? 'active' : '' }}" data-preset="neon" onclick="wcSelectPreset('running_text','neon',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(2,4,18,.97),#001a14);border-color:rgba(0,255,200,.22)"></div>
+                            <div class="wc-preset-name">Neon</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'fire' ? 'active' : '' }}" data-preset="fire" onclick="wcSelectPreset('running_text','fire',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(10,4,2,.97),#2a0a00);border-color:rgba(249,115,22,.22)"></div>
+                            <div class="wc-preset-name">Fire</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'ice' ? 'active' : '' }}" data-preset="ice" onclick="wcSelectPreset('running_text','ice',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(2,8,22,.96),#001830);border-color:rgba(147,210,255,.18)"></div>
+                            <div class="wc-preset-name">Ice</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'minimal' ? 'active' : '' }}" data-preset="minimal" onclick="wcSelectPreset('running_text','minimal',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(12,12,16,.95),#1a1a1e);border-color:rgba(255,255,255,.14)"></div>
+                            <div class="wc-preset-name">Minimal</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'sakura' ? 'active' : '' }}" data-preset="sakura" onclick="wcSelectPreset('running_text','sakura',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(20,8,16,.96),#2d1020);border-color:rgba(255,183,197,.18)"></div>
+                            <div class="wc-preset-name">Sakura</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'galaxy' ? 'active' : '' }}" data-preset="galaxy" onclick="wcSelectPreset('running_text','galaxy',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,4,20,.97),#1a0a30);border-color:rgba(139,92,246,.22)"></div>
+                            <div class="wc-preset-name">Galaxy</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'emerald' ? 'active' : '' }}" data-preset="emerald" onclick="wcSelectPreset('running_text','emerald',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(4,16,12,.96),#0a2018);border-color:rgba(16,185,129,.2)"></div>
+                            <div class="wc-preset-name">Emerald</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'sunset' ? 'active' : '' }}" data-preset="sunset" onclick="wcSelectPreset('running_text','sunset',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,8,4,.96),#2a1208);border-color:rgba(251,146,60,.2)"></div>
+                            <div class="wc-preset-name">Sunset</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'ocean' ? 'active' : '' }}" data-preset="ocean" onclick="wcSelectPreset('running_text','ocean',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(4,12,20,.96),#081828);border-color:rgba(6,182,212,.2)"></div>
+                            <div class="wc-preset-name">Ocean</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'midnight' ? 'active' : '' }}" data-preset="midnight" onclick="wcSelectPreset('running_text','midnight',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,8,24,.97),#101030);border-color:rgba(99,102,241,.2)"></div>
+                            <div class="wc-preset-name">Midnight</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'lavender' ? 'active' : '' }}" data-preset="lavender" onclick="wcSelectPreset('running_text','lavender',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,12,20,.96),#201828);border-color:rgba(192,132,252,.18)"></div>
+                            <div class="wc-preset-name">Lavender</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'golden' ? 'active' : '' }}" data-preset="golden" onclick="wcSelectPreset('running_text','golden',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(16,12,4,.96),#28200a);border-color:rgba(251,191,36,.2)"></div>
+                            <div class="wc-preset-name">Golden</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'matrix' ? 'active' : '' }}" data-preset="matrix" onclick="wcSelectPreset('running_text','matrix',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(0,8,4,.97),#001a0d);border-color:rgba(34,197,94,.22)"></div>
+                            <div class="wc-preset-name">Matrix</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'custom' ? 'active' : '' }}" data-preset="custom" onclick="wcSelectPreset('running_text','custom',this)">
+                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,var(--brand),var(--purple));border-color:rgba(124,108,252,.3)"></div>
+                            <div class="wc-preset-name">Custom</div>
+                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
+                        </div>
+                    </div>
+
+                    @php
+                        $rtTextColor = $ws_rt['text_color'] ?? '#ffffff';
+                        $rtBgColor = substr($ws_rt['bg'] ?? '#08080c', 0, 7);
+                    @endphp
+
+                    <div class="wc-custom-panel {{ ($ws_rt['preset'] ?? 'default') === 'custom' ? 'visible' : '' }}" id="running_text-custom">
+                        <div class="ws-section-label" style="margin-bottom:4px">
+                            <span class="iconify" data-icon="solar:pen-bold" style="width:12px;height:12px"></span>
+                            Warna &amp; Gaya
+                        </div>
+
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:text-bold"></span>Warna Teks</div>
+                            <div class="wc-row-ctrl">
+                                <div class="wc-color-wrap">
+                                    <div class="wc-color-swatch" id="running_text-swatch-text_color" style="background:{{ $rtTextColor }}"></div>
+                                    <input type="color" class="wc-color-input" id="running_text-color-text_color" value="{{ $rtTextColor }}" oninput="wcColorChange('running_text','text_color',this)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:square-bold"></span>Background</div>
+                            <div class="wc-row-ctrl">
+                                <div class="wc-color-wrap">
+                                    <div class="wc-color-swatch" id="running_text-swatch-bg" style="background:{{ $rtBgColor }}"></div>
+                                    <input type="color" class="wc-color-input" id="running_text-color-bg" value="{{ $rtBgColor }}" oninput="wcColorChange('running_text','bg',this)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:paint-roll-bold"></span>Border</div>
+                            <div class="wc-row-ctrl">
+                                <div class="wc-color-wrap">
+                                    <div class="wc-color-swatch" id="running_text-swatch-border" style="background:{{ $ws_rt['border'] ?? '#7c6cfc' }}"></div>
+                                    <input type="color" class="wc-color-input" id="running_text-color-border" value="{{ $ws_rt['border'] ?? '#7c6cfc' }}" oninput="wcColorChange('running_text','border',this)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wc-row">
+                            <div class="wc-row-label"><span class="iconify" data-icon="solar:stars-bold"></span>Brand Color</div>
+                            <div class="wc-row-ctrl">
+                                <div class="wc-color-wrap">
+                                    <div class="wc-color-swatch" id="running_text-swatch-brand" style="background:{{ $ws_rt['brand'] ?? '#7c6cfc' }}"></div>
+                                    <input type="color" class="wc-color-input" id="running_text-color-brand" value="{{ $ws_rt['brand'] ?? '#7c6cfc' }}" oninput="wcColorChange('running_text','brand',this)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 {{-- ── Live Preview Running Text ── --}}
@@ -4317,105 +5342,6 @@
                             <span class="ws-opt-unit">px</span>
                         </div>
                     </div>
-                </div>
-
-                <div class="ws-card">
-                    <div class="ws-card-head">
-                        <div class="ws-card-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">
-                            <span class="iconify" data-icon="solar:palette-bold-duotone" style="color:var(--brand-light)"></span>
-                        </div>
-                        <div>
-                            <div class="ws-card-title">Kustomisasi Tampilan</div>
-                            <div class="ws-card-sub">Atur kecepatan, warna, dan tampilan</div>
-                        </div>
-                    </div>
-
-                    <div class="ws-section-label">
-                        <span class="iconify" data-icon="solar:magic-stick-bold" style="width:12px;height:12px"></span>
-                        Preset Tema
-                    </div>
-
-                    <div class="wc-presets" id="running-text-presets">
-                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? 'default') === 'default' ? 'active' : '' }}" data-preset="default" onclick="wcSelectPreset('running_text','default',this)">
-                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(8,8,12,0.96),#1a1a2e);border-color:rgba(124,108,252,.2)"></div>
-                            <div class="wc-preset-name">Default</div>
-                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
-                        </div>
-                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'neon' ? 'active' : '' }}" data-preset="neon" onclick="wcSelectPreset('running_text','neon',this)">
-                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(2,4,18,.97),#001a14);border-color:rgba(0,255,200,.22)"></div>
-                            <div class="wc-preset-name">Neon</div>
-                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
-                        </div>
-                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'fire' ? 'active' : '' }}" data-preset="fire" onclick="wcSelectPreset('running_text','fire',this)">
-                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(10,4,2,.97),#2a0a00);border-color:rgba(249,115,22,.22)"></div>
-                            <div class="wc-preset-name">Fire</div>
-                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
-                        </div>
-                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'ice' ? 'active' : '' }}" data-preset="ice" onclick="wcSelectPreset('running_text','ice',this)">
-                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(2,8,22,.96),#001830);border-color:rgba(147,210,255,.18)"></div>
-                            <div class="wc-preset-name">Ice</div>
-                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
-                        </div>
-                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'minimal' ? 'active' : '' }}" data-preset="minimal" onclick="wcSelectPreset('running_text','minimal',this)">
-                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,rgba(12,12,16,.95),#1a1a1e);border-color:rgba(255,255,255,.14)"></div>
-                            <div class="wc-preset-name">Minimal</div>
-                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
-                        </div>
-                        <div class="wc-preset-card {{ ($ws_rt['preset'] ?? '') === 'custom' ? 'active' : '' }}" data-preset="custom" onclick="wcSelectPreset('running_text','custom',this)">
-                            <div class="wc-preset-swatch" style="background:linear-gradient(135deg,var(--brand),var(--purple));border-color:rgba(124,108,252,.3)"></div>
-                            <div class="wc-preset-name">Custom</div>
-                            <div class="wc-preset-check"><span class="iconify" data-icon="solar:check-bold"></span></div>
-                        </div>
-                    </div>
-
-                    @php
-                        $rtTextColor = $ws_rt['text_color'] ?? '#ffffff';
-                        $rtBgColor = substr($ws_rt['bg'] ?? '#08080c', 0, 7);
-                    @endphp
-
-                    <div class="wc-custom-panel {{ ($ws_rt['preset'] ?? 'default') === 'custom' ? 'visible' : '' }}" id="running_text-custom">
-                        <div class="ws-section-label" style="margin-bottom:4px">
-                            <span class="iconify" data-icon="solar:pen-bold" style="width:12px;height:12px"></span>
-                            Warna &amp; Gaya
-                        </div>
-
-                        <div class="wc-row">
-                            <div class="wc-row-label"><span class="iconify" data-icon="solar:text-bold"></span>Warna Teks</div>
-                            <div class="wc-row-ctrl">
-                                <div class="wc-color-wrap">
-                                    <div class="wc-color-swatch" id="running_text-swatch-text_color" style="background:{{ $rtTextColor }}"></div>
-                                    <input type="color" class="wc-color-input" id="running_text-color-text_color" value="{{ $rtTextColor }}" oninput="wcColorChange('running_text','text_color',this)">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="wc-row">
-                            <div class="wc-row-label"><span class="iconify" data-icon="solar:square-bold"></span>Background</div>
-                            <div class="wc-row-ctrl">
-                                <div class="wc-color-wrap">
-                                    <div class="wc-color-swatch" id="running_text-swatch-bg" style="background:{{ $rtBgColor }}"></div>
-                                    <input type="color" class="wc-color-input" id="running_text-color-bg" value="{{ $rtBgColor }}" oninput="wcColorChange('running_text','bg',this)">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="wc-row">
-                            <div class="wc-row-label"><span class="iconify" data-icon="solar:paint-roll-bold"></span>Border</div>
-                            <div class="wc-row-ctrl">
-                                <div class="wc-color-wrap">
-                                    <div class="wc-color-swatch" id="running_text-swatch-border" style="background:{{ $ws_rt['border'] ?? '#7c6cfc' }}"></div>
-                                    <input type="color" class="wc-color-input" id="running_text-color-border" value="{{ $ws_rt['border'] ?? '#7c6cfc' }}" oninput="wcColorChange('running_text','border',this)">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="wc-row">
-                            <div class="wc-row-label"><span class="iconify" data-icon="solar:stars-bold"></span>Brand Color</div>
-                            <div class="wc-row-ctrl">
-                                <div class="wc-color-wrap">
-                                    <div class="wc-color-swatch" id="running_text-swatch-brand" style="background:{{ $ws_rt['brand'] ?? '#7c6cfc' }}"></div>
-                                    <input type="color" class="wc-color-input" id="running_text-color-brand" value="{{ $ws_rt['brand'] ?? '#7c6cfc' }}" oninput="wcColorChange('running_text','brand',this)">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="ws-save-row" style="margin-top:20px">
                         <button class="ws-save-btn" onclick="saveRunningTextSettings()">
@@ -4442,7 +5368,39 @@
 
                     <div class="ws-info-box warning">
                         <span class="iconify" data-icon="solar:danger-triangle-bold-duotone"></span>
-                        <span><strong>Mode Lanjutan</strong> — Canvas menggabungkan Alert + Milestone + Leaderboard + QR dalam satu URL. Cocok jika kamu hanya ingin satu Browser Source di OBS.</span>
+                        <span><strong>Mode Lanjutan</strong> — Canvas menggabungkan Alert + Milestone + Leaderboard + Barcode/QR + Subathon + Running Text dalam satu URL. Cocok jika kamu hanya ingin satu Browser Source di OBS.</span>
+                    </div>
+
+                    <div class="ws-section-label">
+                        <span class="iconify" data-icon="solar:layers-bold" style="width:12px;height:12px"></span>
+                        Widget
+                    </div>
+
+                    <div class="ws-widget-chips">
+                        <span class="ws-widget-chip" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--orange)">
+                            <span class="iconify" data-icon="solar:bell-bold"></span>
+                            Alert
+                        </span>
+                        <span class="ws-widget-chip" style="background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);color:var(--purple)">
+                            <span class="iconify" data-icon="solar:target-bold"></span>
+                            Milestone
+                        </span>
+                        <span class="ws-widget-chip" style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);color:var(--yellow)">
+                            <span class="iconify" data-icon="solar:ranking-bold"></span>
+                            Leaderboard
+                        </span>
+                        <span class="ws-widget-chip" style="background:rgba(34,211,160,.1);border:1px solid rgba(34,211,160,.2);color:var(--green)">
+                            <span class="iconify" data-icon="solar:qr-code-bold"></span>
+                            Barcode / QR
+                        </span>
+                        <span class="ws-widget-chip" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2);color:var(--brand-light)">
+                            <span class="iconify" data-icon="solar:timer-bold"></span>
+                            Subathon
+                        </span>
+                        <span class="ws-widget-chip" style="background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.2);color:#38bdf8">
+                            <span class="iconify" data-icon="solar:text-bold"></span>
+                            Running Text
+                        </span>
                     </div>
 
                     <div class="ws-size-chips">
@@ -4483,12 +5441,90 @@
                         Buka Canvas Editor
                     </a>
                 </div>
+
+                {{-- ── Canvas Features Card ── --}}
+                <div class="ws-card">
+                    <div class="ws-card-head">
+                        <div class="ws-card-icon" style="background:rgba(34,211,160,.1);border:1px solid rgba(34,211,160,.2)">
+                            <span class="iconify" data-icon="solar:checklist-bold-duotone" style="color:var(--green)"></span>
+                        </div>
+                        <div>
+                            <div class="ws-card-title">Fitur Canvas Editor</div>
+                            <div class="ws-card-sub">Apa saja yang bisa dilakukan di Canvas</div>
+                        </div>
+                    </div>
+
+                    <div class="ws-tags" style="margin-bottom:16px">
+                        <span class="ws-tag purple">
+                            <span class="iconify" data-icon="solar:cursor-bold"></span>
+                            Drag &amp; Drop
+                        </span>
+                        <span class="ws-tag green">
+                            <span class="iconify" data-icon="solar:scaling-bold"></span>
+                            Resize Widget
+                        </span>
+                        <span class="ws-tag blue">
+                            <span class="iconify" data-icon="solar:eye-bold"></span>
+                            Real-time Preview
+                        </span>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px">
+                        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:var(--surface-2);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                            <span class="iconify" data-icon="solar:widget-bold-duotone" style="color:var(--brand-light);width:20px;height:20px;flex-shrink:0;margin-top:2px"></span>
+                            <div>
+                                <div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:2px">6 Widget Tersedia</div>
+                                <div style="font-size:11px;color:var(--text-muted)">Alert, Milestone, Leaderboard, QR Code, Subathon, Running Text</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:var(--surface-2);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                            <span class="iconify" data-icon="solar:move-bold-duotone" style="color:var(--green);width:20px;height:20px;flex-shrink:0;margin-top:2px"></span>
+                            <div>
+                                <div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:2px">Drag &amp; Drop</div>
+                                <div style="font-size:11px;color:var(--text-muted)">Pindahkan widget ke posisi manapun dengan drag</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:var(--surface-2);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                            <span class="iconify" data-icon="solar:maximize-square-bold-duotone" style="color:var(--orange);width:20px;height:20px;flex-shrink:0;margin-top:2px"></span>
+                            <div>
+                                <div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:2px">Resize Bebas</div>
+                                <div style="font-size:11px;color:var(--text-muted)">Ubah ukuran widget sesuai kebutuhan</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:var(--surface-2);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                            <span class="iconify" data-icon="solar:eye-scan-bold-duotone" style="color:var(--blue);width:20px;height:20px;flex-shrink:0;margin-top:2px"></span>
+                            <div>
+                                <div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:2px">Toggle Visibility</div>
+                                <div style="font-size:11px;color:var(--text-muted)">Tampilkan/sembunyikan widget tertentu</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:var(--surface-2);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                            <span class="iconify" data-icon="solar:cloud-check-bold-duotone" style="color:var(--purple);width:20px;height:20px;flex-shrink:0;margin-top:2px"></span>
+                            <div>
+                                <div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:2px">Auto-save Layout</div>
+                                <div style="font-size:11px;color:var(--text-muted)">Posisi &amp; ukuran tersimpan otomatis ke server</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:var(--surface-2);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                            <span class="iconify" data-icon="solar:link-bold-duotone" style="color:var(--brand-light);width:20px;height:20px;flex-shrink:0;margin-top:2px"></span>
+                            <div>
+                                <div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:2px">Satu URL</div>
+                                <div style="font-size:11px;color:var(--text-muted)">Cukup tambahkan 1 Browser Source di OBS</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ws-info-box" style="margin-top:16px">
+                        <span class="iconify" data-icon="solar:lightbulb-bolt-bold-duotone"></span>
+                        <span><strong>Tips:</strong> Gunakan Canvas jika ingin mengatur layout semua widget sekaligus tanpa harus menambahkan banyak Browser Source di OBS.</span>
+                    </div>
+                </div>
             </div>{{-- /tab-canvas --}}
 
         </div>{{-- /ws-panels --}}
     </div>{{-- /ws-body --}}
 
-</div>{{-- /ws-wrap --}}
+</div>{{-- /page-container --}}
 
 @push('scripts')
 <script>
@@ -4577,6 +5613,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+/* ── Toggle Switch Helper ── */
+function toggleSwitch(label, fieldName) {
+    var input = document.getElementById(fieldName);
+    var isOn = label.classList.contains('on');
+    var newVal = isOn ? '0' : '1';
+    label.classList.toggle('on');
+    if (input) input.value = newVal;
+}
+
 /* ── Toast ── */
 function wsToast(msg, type) {
     var t = document.getElementById('ws-toast');
@@ -4646,6 +5691,105 @@ var wcPresetPalettes = {
             prog_bar:     'linear-gradient(90deg,rgba(255,255,255,.7),rgba(255,255,255,.3))',
             radius:       '12',
         },
+        sakura: {
+            bg:           'rgba(20,8,16,.96)',
+            border:       'rgba(255,183,197,.18)',
+            accent:       '#ff6b9d',
+            accent2:      '#ffb7c5',
+            amount_color: '#ff6b9d',
+            donor_color:  '#fff0f3',
+            top_line:     'linear-gradient(90deg,#ff6b9d,#ffb7c5,#ffd1dc)',
+            prog_bar:     'linear-gradient(90deg,#ff6b9d,#ffb7c5)',
+            radius:       '20',
+        },
+        galaxy: {
+            bg:           'rgba(8,4,20,.97)',
+            border:       'rgba(139,92,246,.22)',
+            accent:       '#8b5cf6',
+            accent2:      '#c4b5fd',
+            amount_color: '#a78bfa',
+            donor_color:  '#ede9fe',
+            top_line:     'linear-gradient(90deg,#8b5cf6,#a855f7,#ec4899)',
+            prog_bar:     'linear-gradient(90deg,#8b5cf6,#ec4899)',
+            radius:       '18',
+        },
+        emerald: {
+            bg:           'rgba(4,16,12,.96)',
+            border:       'rgba(16,185,129,.2)',
+            accent:       '#10b981',
+            accent2:      '#6ee7b7',
+            amount_color: '#34d399',
+            donor_color:  '#d1fae5',
+            top_line:     'linear-gradient(90deg,#10b981,#34d399,#6ee7b7)',
+            prog_bar:     'linear-gradient(90deg,#10b981,#6ee7b7)',
+            radius:       '14',
+        },
+        sunset: {
+            bg:           'rgba(16,8,4,.96)',
+            border:       'rgba(251,146,60,.2)',
+            accent:       '#f97316',
+            accent2:      '#fb923c',
+            amount_color: '#fbbf24',
+            donor_color:  '#fef3c7',
+            top_line:     'linear-gradient(90deg,#ef4444,#f97316,#fbbf24)',
+            prog_bar:     'linear-gradient(90deg,#ef4444,#fbbf24)',
+            radius:       '16',
+        },
+        ocean: {
+            bg:           'rgba(4,12,20,.96)',
+            border:       'rgba(6,182,212,.2)',
+            accent:       '#06b6d4',
+            accent2:      '#22d3ee',
+            amount_color: '#67e8f9',
+            donor_color:  '#cffafe',
+            top_line:     'linear-gradient(90deg,#0891b2,#06b6d4,#22d3ee)',
+            prog_bar:     'linear-gradient(90deg,#0891b2,#22d3ee)',
+            radius:       '16',
+        },
+        midnight: {
+            bg:           'rgba(8,8,24,.97)',
+            border:       'rgba(99,102,241,.2)',
+            accent:       '#6366f1',
+            accent2:      '#818cf8',
+            amount_color: '#a5b4fc',
+            donor_color:  '#e0e7ff',
+            top_line:     'linear-gradient(90deg,#4f46e5,#6366f1,#818cf8)',
+            prog_bar:     'linear-gradient(90deg,#4f46e5,#818cf8)',
+            radius:       '14',
+        },
+        lavender: {
+            bg:           'rgba(16,12,20,.96)',
+            border:       'rgba(192,132,252,.18)',
+            accent:       '#a855f7',
+            accent2:      '#c084fc',
+            amount_color: '#d8b4fe',
+            donor_color:  '#f3e8ff',
+            top_line:     'linear-gradient(90deg,#9333ea,#a855f7,#c084fc)',
+            prog_bar:     'linear-gradient(90deg,#9333ea,#c084fc)',
+            radius:       '18',
+        },
+        golden: {
+            bg:           'rgba(16,12,4,.96)',
+            border:       'rgba(251,191,36,.2)',
+            accent:       '#f59e0b',
+            accent2:      '#fbbf24',
+            amount_color: '#fcd34d',
+            donor_color:  '#fef3c7',
+            top_line:     'linear-gradient(90deg,#d97706,#f59e0b,#fbbf24)',
+            prog_bar:     'linear-gradient(90deg,#d97706,#fbbf24)',
+            radius:       '16',
+        },
+        matrix: {
+            bg:           'rgba(0,8,4,.97)',
+            border:       'rgba(34,197,94,.22)',
+            accent:       '#22c55e',
+            accent2:      '#4ade80',
+            amount_color: '#86efac',
+            donor_color:  '#dcfce7',
+            top_line:     'linear-gradient(90deg,#16a34a,#22c55e,#4ade80)',
+            prog_bar:     'linear-gradient(90deg,#16a34a,#4ade80)',
+            radius:       '12',
+        },
         custom: null,
     },
     milestone: {
@@ -4692,6 +5836,87 @@ var wcPresetPalettes = {
             brand2:  '#ffffff',
             orange:  '#ffffff',
             green:   '#e0e0f0',
+            radius:  '12',
+        },
+        sakura: {
+            surface: 'rgba(20,8,16,.96)',
+            border:  'rgba(255,183,197,.18)',
+            brand:   '#ff6b9d',
+            brand2:  '#ffb7c5',
+            orange:  '#ffb7c5',
+            green:   '#ff6b9d',
+            radius:  '20',
+        },
+        galaxy: {
+            surface: 'rgba(8,4,20,.97)',
+            border:  'rgba(139,92,246,.22)',
+            brand:   '#8b5cf6',
+            brand2:  '#c4b5fd',
+            orange:  '#a78bfa',
+            green:   '#ec4899',
+            radius:  '18',
+        },
+        emerald: {
+            surface: 'rgba(4,16,12,.96)',
+            border:  'rgba(16,185,129,.2)',
+            brand:   '#10b981',
+            brand2:  '#6ee7b7',
+            orange:  '#34d399',
+            green:   '#10b981',
+            radius:  '14',
+        },
+        sunset: {
+            surface: 'rgba(16,8,4,.96)',
+            border:  'rgba(251,146,60,.2)',
+            brand:   '#f97316',
+            brand2:  '#fb923c',
+            orange:  '#fbbf24',
+            green:   '#ef4444',
+            radius:  '16',
+        },
+        ocean: {
+            surface: 'rgba(4,12,20,.96)',
+            border:  'rgba(6,182,212,.2)',
+            brand:   '#06b6d4',
+            brand2:  '#22d3ee',
+            orange:  '#67e8f9',
+            green:   '#0891b2',
+            radius:  '16',
+        },
+        midnight: {
+            surface: 'rgba(8,8,24,.97)',
+            border:  'rgba(99,102,241,.2)',
+            brand:   '#6366f1',
+            brand2:  '#818cf8',
+            orange:  '#a5b4fc',
+            green:   '#4f46e5',
+            radius:  '14',
+        },
+        lavender: {
+            surface: 'rgba(16,12,20,.96)',
+            border:  'rgba(192,132,252,.18)',
+            brand:   '#a855f7',
+            brand2:  '#c084fc',
+            orange:  '#d8b4fe',
+            green:   '#9333ea',
+            radius:  '18',
+        },
+        golden: {
+            surface: 'rgba(16,12,4,.96)',
+            border:  'rgba(251,191,36,.2)',
+            brand:   '#f59e0b',
+            brand2:  '#fbbf24',
+            orange:  '#fcd34d',
+            green:   '#d97706',
+            radius:  '16',
+        },
+        matrix: {
+            surface: 'rgba(0,8,4,.97)',
+            border:  'rgba(34,197,94,.22)',
+            brand:   '#22c55e',
+            brand2:  '#4ade80',
+            orange:  '#86efac',
+            green:   '#16a34a',
             radius:  '12',
         },
         custom: null,
@@ -4742,6 +5967,87 @@ var wcPresetPalettes = {
             green:   '#e0e0f0',
             radius:  '12',
         },
+        sakura: {
+            surface: 'rgba(20,8,16,.96)',
+            border:  'rgba(255,183,197,.18)',
+            brand:   '#ff6b9d',
+            brand2:  '#ffb7c5',
+            yellow:  '#ffb7c5',
+            green:   '#ff6b9d',
+            radius:  '20',
+        },
+        galaxy: {
+            surface: 'rgba(8,4,20,.97)',
+            border:  'rgba(139,92,246,.22)',
+            brand:   '#8b5cf6',
+            brand2:  '#c4b5fd',
+            yellow:  '#a78bfa',
+            green:   '#ec4899',
+            radius:  '18',
+        },
+        emerald: {
+            surface: 'rgba(4,16,12,.96)',
+            border:  'rgba(16,185,129,.2)',
+            brand:   '#10b981',
+            brand2:  '#6ee7b7',
+            yellow:  '#34d399',
+            green:   '#10b981',
+            radius:  '14',
+        },
+        sunset: {
+            surface: 'rgba(16,8,4,.96)',
+            border:  'rgba(251,146,60,.2)',
+            brand:   '#f97316',
+            brand2:  '#fb923c',
+            yellow:  '#fbbf24',
+            green:   '#ef4444',
+            radius:  '16',
+        },
+        ocean: {
+            surface: 'rgba(4,12,20,.96)',
+            border:  'rgba(6,182,212,.2)',
+            brand:   '#06b6d4',
+            brand2:  '#22d3ee',
+            yellow:  '#67e8f9',
+            green:   '#0891b2',
+            radius:  '16',
+        },
+        midnight: {
+            surface: 'rgba(8,8,24,.97)',
+            border:  'rgba(99,102,241,.2)',
+            brand:   '#6366f1',
+            brand2:  '#818cf8',
+            yellow:  '#a5b4fc',
+            green:   '#4f46e5',
+            radius:  '14',
+        },
+        lavender: {
+            surface: 'rgba(16,12,20,.96)',
+            border:  'rgba(192,132,252,.18)',
+            brand:   '#a855f7',
+            brand2:  '#c084fc',
+            yellow:  '#d8b4fe',
+            green:   '#9333ea',
+            radius:  '18',
+        },
+        golden: {
+            surface: 'rgba(16,12,4,.96)',
+            border:  'rgba(251,191,36,.2)',
+            brand:   '#f59e0b',
+            brand2:  '#fbbf24',
+            yellow:  '#fcd34d',
+            green:   '#d97706',
+            radius:  '16',
+        },
+        matrix: {
+            surface: 'rgba(0,8,4,.97)',
+            border:  'rgba(34,197,94,.22)',
+            brand:   '#22c55e',
+            brand2:  '#4ade80',
+            yellow:  '#86efac',
+            green:   '#16a34a',
+            radius:  '12',
+        },
         custom: null,
     },
     qr: {
@@ -4779,6 +6085,299 @@ var wcPresetPalettes = {
             brand:   '#e0e0f0',
             brand2:  '#ffffff',
             radius:  '16',
+        },
+        sakura: {
+            surface: 'rgba(20,8,16,.96)',
+            border:  'rgba(255,183,197,.18)',
+            brand:   '#ff6b9d',
+            brand2:  '#ffb7c5',
+            radius:  '22',
+        },
+        galaxy: {
+            surface: 'rgba(8,4,20,.97)',
+            border:  'rgba(139,92,246,.22)',
+            brand:   '#8b5cf6',
+            brand2:  '#c4b5fd',
+            radius:  '20',
+        },
+        emerald: {
+            surface: 'rgba(4,16,12,.96)',
+            border:  'rgba(16,185,129,.2)',
+            brand:   '#10b981',
+            brand2:  '#6ee7b7',
+            radius:  '18',
+        },
+        sunset: {
+            surface: 'rgba(16,8,4,.96)',
+            border:  'rgba(251,146,60,.2)',
+            brand:   '#f97316',
+            brand2:  '#fb923c',
+            radius:  '22',
+        },
+        ocean: {
+            surface: 'rgba(4,12,20,.96)',
+            border:  'rgba(6,182,212,.2)',
+            brand:   '#06b6d4',
+            brand2:  '#22d3ee',
+            radius:  '20',
+        },
+        midnight: {
+            surface: 'rgba(8,8,24,.97)',
+            border:  'rgba(99,102,241,.2)',
+            brand:   '#6366f1',
+            brand2:  '#818cf8',
+            radius:  '18',
+        },
+        lavender: {
+            surface: 'rgba(16,12,20,.96)',
+            border:  'rgba(192,132,252,.18)',
+            brand:   '#a855f7',
+            brand2:  '#c084fc',
+            radius:  '22',
+        },
+        golden: {
+            surface: 'rgba(16,12,4,.96)',
+            border:  'rgba(251,191,36,.2)',
+            brand:   '#f59e0b',
+            brand2:  '#fbbf24',
+            radius:  '20',
+        },
+        matrix: {
+            surface: 'rgba(0,8,4,.97)',
+            border:  'rgba(34,197,94,.22)',
+            brand:   '#22c55e',
+            brand2:  '#4ade80',
+            radius:  '16',
+        },
+        custom: null,
+    },
+    subathon: {
+        default: {
+            bg:      'rgba(8,8,12,0.95)',
+            border:  'rgba(124,108,252,0.25)',
+            brand:   '#7c6cfc',
+            brand2:  '#a99dff',
+            text:    '#f1f1f6',
+            text2:   '#a0a0b4',
+            radius:  '16',
+        },
+        neon: {
+            bg:      'rgba(2,4,18,.97)',
+            border:  'rgba(0,255,200,.22)',
+            brand:   '#00ffc8',
+            brand2:  '#00e5ff',
+            text:    '#00ffc8',
+            text2:   '#00e5ff',
+            radius:  '14',
+        },
+        fire: {
+            bg:      'rgba(10,4,2,.97)',
+            border:  'rgba(249,115,22,.22)',
+            brand:   '#f97316',
+            brand2:  '#fbbf24',
+            text:    '#fef3c7',
+            text2:   '#fbbf24',
+            radius:  '16',
+        },
+        ice: {
+            bg:      'rgba(2,8,22,.96)',
+            border:  'rgba(147,210,255,.18)',
+            brand:   '#38bdf8',
+            brand2:  '#818cf8',
+            text:    '#e0f2fe',
+            text2:   '#38bdf8',
+            radius:  '18',
+        },
+        minimal: {
+            bg:      'rgba(12,12,16,.95)',
+            border:  'rgba(255,255,255,.14)',
+            brand:   '#e0e0f0',
+            brand2:  '#ffffff',
+            text:    '#ffffff',
+            text2:   '#e0e0f0',
+            radius:  '12',
+        },
+        sakura: {
+            bg:      'rgba(20,8,16,.96)',
+            border:  'rgba(255,183,197,.18)',
+            brand:   '#ff6b9d',
+            brand2:  '#ffb7c5',
+            text:    '#fff0f3',
+            text2:   '#ffb7c5',
+            radius:  '20',
+        },
+        galaxy: {
+            bg:      'rgba(8,4,20,.97)',
+            border:  'rgba(139,92,246,.22)',
+            brand:   '#8b5cf6',
+            brand2:  '#c4b5fd',
+            text:    '#ede9fe',
+            text2:   '#a78bfa',
+            radius:  '18',
+        },
+        emerald: {
+            bg:      'rgba(4,16,12,.96)',
+            border:  'rgba(16,185,129,.2)',
+            brand:   '#10b981',
+            brand2:  '#6ee7b7',
+            text:    '#d1fae5',
+            text2:   '#34d399',
+            radius:  '14',
+        },
+        sunset: {
+            bg:      'rgba(16,8,4,.96)',
+            border:  'rgba(251,146,60,.2)',
+            brand:   '#f97316',
+            brand2:  '#fb923c',
+            text:    '#fef3c7',
+            text2:   '#fbbf24',
+            radius:  '16',
+        },
+        ocean: {
+            bg:      'rgba(4,12,20,.96)',
+            border:  'rgba(6,182,212,.2)',
+            brand:   '#06b6d4',
+            brand2:  '#22d3ee',
+            text:    '#cffafe',
+            text2:   '#67e8f9',
+            radius:  '16',
+        },
+        midnight: {
+            bg:      'rgba(8,8,24,.97)',
+            border:  'rgba(99,102,241,.2)',
+            brand:   '#6366f1',
+            brand2:  '#818cf8',
+            text:    '#e0e7ff',
+            text2:   '#a5b4fc',
+            radius:  '14',
+        },
+        lavender: {
+            bg:      'rgba(16,12,20,.96)',
+            border:  'rgba(192,132,252,.18)',
+            brand:   '#a855f7',
+            brand2:  '#c084fc',
+            text:    '#f3e8ff',
+            text2:   '#d8b4fe',
+            radius:  '18',
+        },
+        golden: {
+            bg:      'rgba(16,12,4,.96)',
+            border:  'rgba(251,191,36,.2)',
+            brand:   '#f59e0b',
+            brand2:  '#fbbf24',
+            text:    '#fef3c7',
+            text2:   '#fcd34d',
+            radius:  '16',
+        },
+        matrix: {
+            bg:      'rgba(0,8,4,.97)',
+            border:  'rgba(34,197,94,.22)',
+            brand:   '#22c55e',
+            brand2:  '#4ade80',
+            text:    '#dcfce7',
+            text2:   '#86efac',
+            radius:  '12',
+        },
+        custom: null,
+    },
+    running_text: {
+        default: {
+            bg:         'rgba(8,8,12,0.9)',
+            border:     'rgba(124,108,252,0.2)',
+            brand:      '#7c6cfc',
+            text_color: '#ffffff',
+            radius:     '0',
+        },
+        neon: {
+            bg:         'rgba(2,4,18,.97)',
+            border:     'rgba(0,255,200,.22)',
+            brand:      '#00ffc8',
+            text_color: '#00ffc8',
+            radius:     '0',
+        },
+        fire: {
+            bg:         'rgba(10,4,2,.97)',
+            border:     'rgba(249,115,22,.22)',
+            brand:      '#f97316',
+            text_color: '#fef3c7',
+            radius:     '0',
+        },
+        ice: {
+            bg:         'rgba(2,8,22,.96)',
+            border:     'rgba(147,210,255,.18)',
+            brand:      '#38bdf8',
+            text_color: '#e0f2fe',
+            radius:     '0',
+        },
+        minimal: {
+            bg:         'rgba(12,12,16,.95)',
+            border:     'rgba(255,255,255,.14)',
+            brand:      '#e0e0f0',
+            text_color: '#ffffff',
+            radius:     '0',
+        },
+        sakura: {
+            bg:         'rgba(20,8,16,.96)',
+            border:     'rgba(255,183,197,.18)',
+            brand:      '#ff6b9d',
+            text_color: '#fff0f3',
+            radius:     '0',
+        },
+        galaxy: {
+            bg:         'rgba(8,4,20,.97)',
+            border:     'rgba(139,92,246,.22)',
+            brand:      '#8b5cf6',
+            text_color: '#ede9fe',
+            radius:     '0',
+        },
+        emerald: {
+            bg:         'rgba(4,16,12,.96)',
+            border:     'rgba(16,185,129,.2)',
+            brand:      '#10b981',
+            text_color: '#d1fae5',
+            radius:     '0',
+        },
+        sunset: {
+            bg:         'rgba(16,8,4,.96)',
+            border:     'rgba(251,146,60,.2)',
+            brand:      '#f97316',
+            text_color: '#fef3c7',
+            radius:     '0',
+        },
+        ocean: {
+            bg:         'rgba(4,12,20,.96)',
+            border:     'rgba(6,182,212,.2)',
+            brand:      '#06b6d4',
+            text_color: '#cffafe',
+            radius:     '0',
+        },
+        midnight: {
+            bg:         'rgba(8,8,24,.97)',
+            border:     'rgba(99,102,241,.2)',
+            brand:      '#6366f1',
+            text_color: '#e0e7ff',
+            radius:     '0',
+        },
+        lavender: {
+            bg:         'rgba(16,12,20,.96)',
+            border:     'rgba(192,132,252,.18)',
+            brand:      '#a855f7',
+            text_color: '#f3e8ff',
+            radius:     '0',
+        },
+        golden: {
+            bg:         'rgba(16,12,4,.96)',
+            border:     'rgba(251,191,36,.2)',
+            brand:      '#f59e0b',
+            text_color: '#fef3c7',
+            radius:     '0',
+        },
+        matrix: {
+            bg:         'rgba(0,8,4,.97)',
+            border:     'rgba(34,197,94,.22)',
+            brand:      '#22c55e',
+            text_color: '#dcfce7',
+            radius:     '0',
         },
         custom: null,
     },
@@ -5129,10 +6728,12 @@ function wcSyncDom(widget, state) {
 
 /* Preset → theme class mapping */
 var wcPresetThemeMap = {
-    alert:       { default:'', neon:'theme-neon', fire:'theme-fire', ice:'theme-ice', minimal:'theme-minimal', custom:'' },
-    milestone:   { default:'', neon:'theme-neon', fire:'theme-fire', ice:'theme-ice', minimal:'theme-minimal', custom:'' },
-    leaderboard: { default:'', neon:'theme-neon', fire:'theme-fire', ice:'theme-ice', minimal:'theme-minimal', custom:'' },
-    qr:          { default:'', neon:'theme-neon', fire:'theme-fire', ice:'theme-ice', minimal:'theme-minimal', custom:'' },
+    alert:       { default:'', neon:'theme-neon', fire:'theme-fire', ice:'theme-ice', minimal:'theme-minimal', sakura:'theme-sakura', galaxy:'theme-galaxy', emerald:'theme-emerald', sunset:'theme-sunset', ocean:'theme-ocean', midnight:'theme-midnight', lavender:'theme-lavender', golden:'theme-golden', matrix:'theme-matrix', custom:'' },
+    milestone:   { default:'', neon:'theme-neon', fire:'theme-fire', ice:'theme-ice', minimal:'theme-minimal', sakura:'theme-sakura', galaxy:'theme-galaxy', emerald:'theme-emerald', sunset:'theme-sunset', ocean:'theme-ocean', midnight:'theme-midnight', lavender:'theme-lavender', golden:'theme-golden', matrix:'theme-matrix', custom:'' },
+    leaderboard: { default:'', neon:'theme-neon', fire:'theme-fire', ice:'theme-ice', minimal:'theme-minimal', sakura:'theme-sakura', galaxy:'theme-galaxy', emerald:'theme-emerald', sunset:'theme-sunset', ocean:'theme-ocean', midnight:'theme-midnight', lavender:'theme-lavender', golden:'theme-golden', matrix:'theme-matrix', custom:'' },
+    qr:          { default:'', neon:'theme-neon', fire:'theme-fire', ice:'theme-ice', minimal:'theme-minimal', sakura:'theme-sakura', galaxy:'theme-galaxy', emerald:'theme-emerald', sunset:'theme-sunset', ocean:'theme-ocean', midnight:'theme-midnight', lavender:'theme-lavender', golden:'theme-golden', matrix:'theme-matrix', custom:'' },
+    subathon:    { default:'', neon:'theme-neon', fire:'theme-fire', ice:'theme-ice', minimal:'theme-minimal', sakura:'theme-sakura', galaxy:'theme-galaxy', emerald:'theme-emerald', sunset:'theme-sunset', ocean:'theme-ocean', midnight:'theme-midnight', lavender:'theme-lavender', golden:'theme-golden', matrix:'theme-matrix', custom:'' },
+    running_text:{ default:'', neon:'theme-neon', fire:'theme-fire', ice:'theme-ice', minimal:'theme-minimal', sakura:'theme-sakura', galaxy:'theme-galaxy', emerald:'theme-emerald', sunset:'theme-sunset', ocean:'theme-ocean', midnight:'theme-midnight', lavender:'theme-lavender', golden:'theme-golden', matrix:'theme-matrix', custom:'' },
 };
 
 function wcUpdatePreview(widget) {
@@ -5145,7 +6746,7 @@ function wcUpdatePreview(widget) {
 
     // -- Apply theme class on the preview wrapper --
     var themeMap = wcPresetThemeMap[widget] || {};
-    var allThemes = ['theme-neon','theme-fire','theme-ice','theme-minimal'];
+    var allThemes = ['theme-neon','theme-fire','theme-ice','theme-minimal','theme-sakura','theme-galaxy','theme-emerald','theme-sunset','theme-ocean','theme-midnight','theme-lavender','theme-golden','theme-matrix'];
     allThemes.forEach(function(cls) { el.classList.remove(cls); });
     var cls = themeMap[preset] || '';
     if (cls) el.classList.add(cls);
@@ -5237,7 +6838,13 @@ document.addEventListener('DOMContentLoaded', function () {
 var wasState = {
     sound_enabled:        {{ $streamer->sound_enabled ? 'true' : 'false' }},
     notification_sound:   {!! json_encode($streamer->notification_sound ?? 'ding') !!},
+    // Media channels
     yt_enabled:           {{ $streamer->yt_enabled ? 'true' : 'false' }},
+    tiktok_enabled:      {{ $streamer->tiktok_enabled ? 'true' : 'false' }},
+    instagram_enabled:   {{ $streamer->instagram_enabled ? 'true' : 'false' }},
+    twitter_enabled:     {{ $streamer->twitter_enabled ? 'true' : 'false' }},
+    spotify_enabled:     {{ $streamer->spotify_enabled ? 'true' : 'false' }},
+    media_upload_enabled: {{ $streamer->media_upload_enabled ? 'true' : 'false' }},
     alert_max_duration:   {{ (int) min($alertMaxDur, 120) }},
     alert_duration_tiers: {!! json_encode($alertTiers) !!},
 };
@@ -5429,9 +7036,10 @@ function wasSelectSound(key, card) {
     wasState.notification_sound = key;
 }
 
-/* ── YouTube toggle ── */
-function wasYtToggle(input) {
-    wasState.yt_enabled = input.checked;
+/* ── Media Channel toggle (generic for all 6 channels) ── */
+function wasChannelToggle(channel, input) {
+    var key = channel + '_enabled';
+    wasState[key] = input.checked;
 }
 
 /* ── Tier threshold input ── */
@@ -5485,7 +7093,16 @@ function wasSave() {
         body: JSON.stringify({
             sound_enabled:        wasState.sound_enabled,
             notification_sound:   wasState.notification_sound,
+            // Media channels
             yt_enabled:           wasState.yt_enabled,
+            tiktok_enabled:      wasState.tiktok_enabled,
+            instagram_enabled:   wasState.instagram_enabled,
+            twitter_enabled:     wasState.twitter_enabled,
+            spotify_enabled:     wasState.spotify_enabled,
+            media_upload_enabled: wasState.media_upload_enabled,
+            // Media Upload settings (only used when media_upload_enabled is true)
+            media_max_size_mb: {{ $streamer->media_max_size_mb ?? 50 }},
+            media_tiers: {!! json_encode($streamer->getMediaDurationTiers()) !!},
             alert_max_duration:   wasState.alert_max_duration,
             alert_duration_tiers: wasState.alert_duration_tiers,
         }),
@@ -5663,6 +7280,84 @@ function saveRunningTextSettings() {
             wsToast('Pengaturan Running Text berhasil disimpan!', 'success');
         } else {
             wsToast('Gagal menyimpan: ' + (res.error || 'unknown error'), 'error');
+        }
+    })
+    .catch(function() { wsToast('Koneksi gagal. Coba lagi.', 'error'); })
+    .finally(function() {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="iconify" data-icon="solar:floppy-disk-bold"></span> Simpan Pengaturan';
+        }
+    });
+}
+
+function saveMilestoneSettings() {
+    var title = document.getElementById('milestone-title').value;
+    var target = parseInt(document.getElementById('milestone-target').value) || 100000;
+    var reset = document.getElementById('milestone-reset').checked;
+    
+    var btn = document.querySelector('#msg-milestone-settings').previousElementSibling;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="iconify spin" data-icon="solar:spinner-bold-duotone"></span> Menyimpan...';
+    }
+    
+    fetch('{{ route("streamer.widgets.milestone-settings") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            milestone_title: title,
+            milestone_target: target,
+            milestone_reset: reset
+        })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            wsToast('Pengaturan Milestone berhasil disimpan!', 'success');
+        } else {
+            wsToast('Gagal menyimpan: ' + (res.message || 'unknown error'), 'error');
+        }
+    })
+    .catch(function() { wsToast('Koneksi gagal. Coba lagi.', 'error'); })
+    .finally(function() {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="iconify" data-icon="solar:floppy-disk-bold"></span> Simpan Pengaturan';
+        }
+    });
+}
+
+function saveLeaderboardSettings() {
+    var title = document.getElementById('leaderboard-title').value;
+    var count = parseInt(document.getElementById('leaderboard-count').value) || 5;
+    
+    var btn = document.querySelector('#msg-leaderboard-settings').previousElementSibling;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="iconify spin" data-icon="solar:spinner-bold-duotone"></span> Menyimpan...';
+    }
+    
+    fetch('{{ route("streamer.widgets.leaderboard-settings") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            leaderboard_title: title,
+            leaderboard_count: count
+        })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            wsToast('Pengaturan Leaderboard berhasil disimpan!', 'success');
+        } else {
+            wsToast('Gagal menyimpan: ' + (res.message || 'unknown error'), 'error');
         }
     })
     .catch(function() { wsToast('Koneksi gagal. Coba lagi.', 'error'); })

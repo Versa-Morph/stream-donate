@@ -8,11 +8,6 @@ use Illuminate\Support\Facades\Cache;
 class ProfanityFilter
 {
     /**
-     * Cache TTL in seconds (5 minutes).
-     */
-    private const CACHE_TTL = 300;
-
-    /**
      * The replacement string shown in place of a banned word.
      */
     private const REPLACEMENT = '***';
@@ -25,7 +20,7 @@ class ProfanityFilter
      *   2. Streamer-specific words (streamer_id = $streamerId) — applies only
      *      to that streamer's donation page.
      *
-     * Results are cached per streamer for CACHE_TTL seconds to avoid
+     * Results are cached per streamer for configured TTL to avoid
      * hitting the database on every donation submission.
      *
      * @param  string   $text       The raw input string.
@@ -57,8 +52,9 @@ class ProfanityFilter
     private function getWords(?int $streamerId): array
     {
         $cacheKey = 'banned_words:' . ($streamerId ?? 'global');
+        $ttl = config('cache-ttl.profanity_filter_ttl', 300);
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($streamerId) {
+        return Cache::remember($cacheKey, $ttl, function () use ($streamerId) {
             $query = BannedWord::query()->whereNull('streamer_id');
 
             if ($streamerId !== null) {

@@ -20,10 +20,12 @@
         :root {
             --brand:   #7c6cfc;
             --brand2:  #a99dff;
-            --surface: rgba(10,10,16,.93);
-            --border:  rgba(124,108,252,.28);
+            --surface: rgba(10,10,16,.88);
+            --border:  rgba(124,108,252,.3);
             --text:    #f1f1f6;
             --text-2:  #a0a0b4;
+            --glass-blur: 16px;
+            --glass-glow: 0 0 60px rgba(124,108,252,.12);
         }
 
         /* ── QR WIDGET CARD ── */
@@ -43,9 +45,12 @@
             width: 260px;
 
             box-shadow:
-                0 0 0 1px rgba(124,108,252,.08),
+                0 0 0 1px rgba(124,108,252,.1),
                 0 24px 60px rgba(0,0,0,.7),
-                0 0 80px rgba(124,108,252,.12);
+                var(--glass-glow);
+            
+            backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
 
             /* Animate in on load */
             animation: slideIn .6s cubic-bezier(.34,1.3,.64,1) both;
@@ -61,9 +66,10 @@
             content: '';
             position: absolute;
             top: 0; left: 16px; right: 16px;
-            height: 2px;
+            height: 2.5px;
             border-radius: 2px;
             background: linear-gradient(90deg, var(--brand), #a99dff);
+            box-shadow: 0 0 20px rgba(124,108,252,.5);
         }
 
         /* Header row */
@@ -99,11 +105,12 @@
         /* QR image */
         .qr-image-wrap {
             width: 200px; height: 200px;
-            border-radius: 14px;
+            border-radius: 16px;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,.07);
-            background: #141419;
+            border: 1px solid rgba(255,255,255,.1);
+            background: rgba(20,20,25,.9);
             display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,.4), inset 0 0 0 1px rgba(255,255,255,.03);
         }
         .qr-image-wrap img,
         .qr-image-wrap svg {

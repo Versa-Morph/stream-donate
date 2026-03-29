@@ -28,7 +28,7 @@ class BannedWordController extends Controller
             $query->where('word', 'like', '%' . $escapedSearch . '%');
         }
 
-        $words = $query->paginate(50)->withQueryString();
+        $words = $query->paginate(config('pagination.admin_banned_words', 50))->withQueryString();
 
         return view('admin.banned-words', compact('words', 'search'));
     }

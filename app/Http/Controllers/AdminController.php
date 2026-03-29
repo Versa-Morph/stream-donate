@@ -28,19 +28,21 @@ class AdminController extends Controller
 
         $recentDonations = Donation::with('streamer')
             ->orderBy('created_at', 'desc')
-            ->limit(20)
+            ->limit(config('pagination.admin_recent_donations', 20))
             ->get();
 
         $recentLogs = ActivityLog::with(['user', 'streamer'])
             ->orderBy('created_at', 'desc')
-            ->limit(20)
+            ->limit(config('pagination.admin_recent_logs', 20))
             ->get();
 
-        // Per-streamer summary
+        // Per-streamer summary (top 25 by donation amount for dashboard display)
+        // PERFORMANCE: Limit to prevent loading all streamers as platform grows
         $streamerStats = Streamer::with('user')
             ->withCount('donations')
             ->withSum('donations', 'amount')
             ->orderByDesc('donations_sum_amount')
+            ->limit(config('pagination.admin_streamer_stats', 25))
             ->get();
 
         return view('admin.dashboard', compact(
@@ -69,7 +71,7 @@ class AdminController extends Controller
             $query->where('role', $role);
         }
 
-        $users = $query->paginate(20)->withQueryString();
+        $users = $query->paginate(config('pagination.admin_users', 20))->withQueryString();
 
         return view('admin.users', compact('users'));
     }
@@ -186,7 +188,7 @@ class AdminController extends Controller
             $query->where('streamer_id', $streamerId);
         }
 
-        $donations = $query->paginate(30)->withQueryString();
+        $donations = $query->paginate(config('pagination.admin_donations', 30))->withQueryString();
         $streamers = Streamer::orderBy('display_name')->get(['id', 'display_name', 'slug']);
 
         return view('admin.donations', compact('donations', 'streamers'));
@@ -205,7 +207,7 @@ class AdminController extends Controller
             $query->where('action', 'like', "%{$escapedAction}%");
         }
 
-        $logs = $query->paginate(30)->withQueryString();
+        $logs = $query->paginate(config('pagination.admin_logs', 30))->withQueryString();
 
         return view('admin.logs', compact('logs'));
     }
@@ -233,7 +235,7 @@ class AdminController extends Controller
         ]);
 
         // Verify admin's password
-        if (!Hash::check($request->password, Auth::user()->password)) {
+        if (!Hash::check($request->password, auth()->user()->password)) {
             return back()->with('error', 'Password salah. Impersonasi dibatalkan.');
         }
 

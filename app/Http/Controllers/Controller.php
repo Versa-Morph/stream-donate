@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Streamer;
+
 abstract class Controller
 {
     /**
@@ -22,5 +24,21 @@ abstract class Controller
             ['\\\\', '\\%', '\\_'],
             $value
         );
+    }
+
+    /**
+     * Find a streamer by slug or fail with 404.
+     * 
+     * This centralizes the repeated pattern of looking up streamers by slug
+     * across multiple controllers, ensuring consistent error handling and
+     * reducing code duplication.
+     * 
+     * @param string $slug The streamer's unique slug
+     * @return Streamer The found streamer instance
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException if not found
+     */
+    protected function findStreamerBySlug(string $slug): Streamer
+    {
+        return Streamer::where('slug', $slug)->firstOrFail();
     }
 }

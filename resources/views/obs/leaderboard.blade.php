@@ -26,9 +26,11 @@
             --text:    #f1f1f6;
             --text-2:  rgba(241,241,246,.6);
             --text-3:  rgba(241,241,246,.35);
-            --surface: rgba(8,8,12,.96);
-            --border:  rgba(255,255,255,.09);
-            --border2: rgba(124,108,252,.2);
+            --surface: rgba(8,8,12,.88);
+            --border:  rgba(255,255,255,.1);
+            --border2: rgba(124,108,252,.22);
+            --glass-blur: 16px;
+            --glass-glow: 0 0 60px rgba(124,108,252,.1);
         }
 
         /* ─── PANEL ─── */
@@ -51,12 +53,15 @@
         .lb-wrap {
             background: var(--surface);
             border: 1px solid var(--border2);
-            border-radius: var(--radius-lb, 16px);
+            border-radius: var(--radius-lb, 18px);
             overflow: hidden;
             box-shadow:
                 0 8px 40px rgba(0,0,0,.7),
-                inset 0 0 0 1px rgba(255,255,255,.04);
+                inset 0 0 0 1px rgba(255,255,255,.05),
+                var(--glass-glow);
             position: relative;
+            backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
         }
 
         /* Top accent bar */
@@ -64,8 +69,9 @@
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0;
-            height: 2px;
+            height: 2.5px;
             background: linear-gradient(90deg, var(--brand), var(--purple), var(--green));
+            box-shadow: 0 0 20px rgba(124,108,252,.4);
         }
 
         /* ─── HEADER ─── */
@@ -76,14 +82,15 @@
 
         .lb-live {
             display: inline-flex; align-items: center; gap: 5px;
-            background: rgba(124,108,252,.1);
-            border: 1px solid rgba(124,108,252,.22);
+            background: rgba(124,108,252,.12);
+            border: 1px solid rgba(124,108,252,.25);
             border-radius: 20px;
-            padding: 3px 9px;
+            padding: 3px 10px;
             font-size: 9px; font-weight: 800; letter-spacing: 1.5px;
             color: var(--brand2);
             text-transform: uppercase;
             margin-bottom: 9px;
+            box-shadow: 0 0 20px rgba(124,108,252,.15);
         }
         .lb-live-dot {
             width: 5px; height: 5px;
@@ -149,11 +156,12 @@
 
         /* Emoji avatar */
         .lb-avatar {
-            width: 30px; height: 30px; border-radius: 8px;
-            background: rgba(124,108,252,.08);
-            border: 1px solid rgba(124,108,252,.14);
+            width: 30px; height: 30px; border-radius: 10px;
+            background: rgba(124,108,252,.1);
+            border: 1px solid rgba(124,108,252,.18);
             display: flex; align-items: center; justify-content: center;
             font-size: 14px; flex-shrink: 0;
+            box-shadow: 0 0 12px rgba(124,108,252,.1);
         }
 
         /* Name + count */

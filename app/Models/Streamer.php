@@ -45,6 +45,14 @@ class Streamer extends Model
         'subathon_additional_values',
         'subathon_current_minutes',
         'subathon_last_updated',
+        'media_duration_tiers',
+        'media_upload_enabled',
+        'media_max_size_mb',
+        // Media channels
+        'tiktok_enabled',
+        'instagram_enabled',
+        'twitter_enabled',
+        'spotify_enabled',
     ];
 
     /**
@@ -55,6 +63,11 @@ class Streamer extends Model
         'api_key',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -75,36 +88,152 @@ class Streamer extends Model
             'subathon_additional_values' => 'array',
             'subathon_current_minutes' => 'integer',
             'subathon_last_updated'  => 'datetime',
+            'media_duration_tiers'   => 'array',
+            'media_upload_enabled'   => 'boolean',
+            'media_max_size_mb'      => 'integer',
         ];
     }
 
+    /**
+     * Generate a unique API key for streamer authentication.
+     *
+     * @return string 40 random characters + CRC32B hash of microtime
+     */
     public static function generateApiKey(): string
     {
         return Str::random(40) . hash('crc32b', microtime());
     }
 
+    /**
+     * Get the user that owns the streamer profile.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Get all donations for this streamer.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function donations(): HasMany
     {
         return $this->hasMany(Donation::class);
     }
 
+    /**
+     * Get all alert queue items for this streamer.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function alertQueues(): HasMany
     {
         return $this->hasMany(AlertQueue::class);
     }
 
+    /**
+     * Get all activity logs for this streamer.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class);
     }
 
     /**
+     * Get all milestones for this streamer.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function milestones(): HasMany
+    {
+        return $this->hasMany(Milestone::class);
+    }
+
+    /**
+     * Get active milestones ordered by order field.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function activeMilestones(): HasMany
+    {
+        return $this->hasMany(Milestone::class)
+            ->where('is_active', true)
+            ->orderBy('order');
+    }
+
+    /**
+     * Get default media duration tiers.
+     *
+     * @return array Default tiers for media upload duration
+     */
+    public static function getDefaultMediaDurationTiers(): array
+    {
+        return [
+            ['min_amount' => 10000, 'max_duration' => 15],
+            ['min_amount' => 25000, 'max_duration' => 30],
+            ['min_amount' => 50000, 'max_duration' => 60],
+            ['min_amount' => 100000, 'max_duration' => 120],
+            ['min_amount' => 250000, 'max_duration' => 180],
+        ];
+    }
+
+    /**
+     * Get media duration tiers with defaults.
+     *
+     * @return array Media duration tiers
+     */
+    public function getMediaDurationTiers(): array
+    {
+        return $this->media_duration_tiers ?? self::getDefaultMediaDurationTiers();
+    }
+
+    /**
+     * Get maximum allowed media duration based on donation amount.
+     *
+     * @param int $amount Donation amount in rupiah
+     * @return int Maximum duration in seconds, 0 if not allowed
+     */
+    public function getMaxMediaDuration(int $amount): int
+    {
+        if (!$this->media_upload_enabled) {
+            return 0;
+        }
+
+        $tiers = $this->getMediaDurationTiers();
+        $maxDuration = 0;
+
+        // Sort tiers by min_amount ascending
+        usort($tiers, fn($a, $b) => $a['min_amount'] <=> $b['min_amount']);
+
+        foreach ($tiers as $tier) {
+            if ($amount >= $tier['min_amount']) {
+                $maxDuration = $tier['max_duration'];
+            }
+        }
+
+        return $maxDuration;
+    }
+
+    /**
+     * Check if donation amount allows media upload.
+     *
+     * @param int $amount Donation amount in rupiah
+     * @return bool True if media upload is allowed
+     */
+    public function canUploadMedia(int $amount): bool
+    {
+        return $this->getMaxMediaDuration($amount) > 0;
+    }
+
+    /**
      * Kembalikan widget_settings dengan nilai default jika null/kosong.
+     *
+     * @return array Widget settings merged with defaults
      */
     public function getWidgetSettings(): array
     {
@@ -212,6 +341,8 @@ class Streamer extends Model
 
     /**
      * Kembalikan canvas_config dengan nilai default jika null/kosong.
+     *
+     * @return array Canvas configuration merged with defaults
      */
     public function getCanvasConfig(): array
     {
@@ -254,14 +385,14 @@ class Streamer extends Model
      */
     public function getAlertDurationTiers(): array
     {
-        $defaults = [
+        $defaults = config('alert.default_tiers', [
             ['from' => 0,       'duration' => 5],
-            ['from' => 1000,    'duration' => 8],
-            ['from' => 10000,   'duration' => 12],
+            ['from' => 10000,   'duration' => 8],
+            ['from' => 50000,   'duration' => 12],
             ['from' => 100000,  'duration' => 20],
-        ];
+        ]);
 
-        return $this->alert_duration_tiers ?: $defaults;
+        return $this->alert_duration_tiers ?? $defaults;
     }
 
     /**
@@ -287,18 +418,23 @@ class Streamer extends Model
     }
 
     /**
-     * Kembalikan additional values dengan nilai default jika null/kosong.
-     * Default: setiap Rp10.000 = tambah 1 menit
+     * Get subathon additional values with default fallback.
+     *
+     * Laravel accessor that returns tier-based minute additions for donations.
+     * Accessible as $streamer->subathon_additional_values
+     *
+     * @param mixed $value Raw database value (JSON string or array)
+     * @return array Array of tiers with 'from' (amount) and 'minutes' (added time) keys
+     *               Example: [['from' => 0, 'minutes' => 1], ['from' => 10000, 'minutes' => 2]]
      */
     public function getSubathonAdditionalValuesAttribute($value): array
     {
-        $defaults = [
+        $defaults = config('alert.subathon.default_additional_values', [
             ['from' => 0, 'minutes' => 1],
             ['from' => 10000, 'minutes' => 2],
             ['from' => 50000, 'minutes' => 5],
             ['from' => 100000, 'minutes' => 10],
-            ['from' => 500000, 'minutes' => 30],
-        ];
+        ]);
 
         if (empty($value)) return $defaults;
 
@@ -311,6 +447,9 @@ class Streamer extends Model
     /**
      * Hitung tambahan menit berdasarkan jumlah donasi.
      * Kembalikan menit tambahan dari tier tertinggi yang `from` <= amount.
+     *
+     * @param int $amount Donation amount in rupiah
+     * @return int Minutes to add to subathon timer
      */
     public function getSubathonMinutesForAmount(int $amount): int
     {
@@ -327,7 +466,12 @@ class Streamer extends Model
     }
 
     /**
-     * Format timer remaining dalam format HH:MM:SS
+     * Format timer remaining dalam format HH:MM:SS.
+     *
+     * Laravel accessor that formats subathon_current_minutes as HH:MM:SS string.
+     * This attribute can be accessed as $streamer->subathon_timer_formatted
+     *
+     * @return string Formatted time string (e.g., "02:30:00" for 150 minutes)
      */
     public function getSubathonTimerFormattedAttribute(): string
     {
@@ -338,7 +482,9 @@ class Streamer extends Model
     }
 
     /**
-     * Reset timer ke durasi default
+     * Reset timer ke durasi default.
+     *
+     * @return void
      */
     public function resetSubathonTimer(): void
     {
@@ -348,8 +494,11 @@ class Streamer extends Model
     }
 
     /**
-     * Tambah waktu ke timer berdasarkan donasi
-     * FIXED: Use atomic increment to prevent race conditions
+     * Tambah waktu ke timer berdasarkan donasi.
+     * FIXED: Use atomic increment to prevent race conditions.
+     *
+     * @param int $donationAmount Donation amount in rupiah
+     * @return array{added: int, new_total: int} Minutes added and new total
      */
     public function addSubathonTime(int $donationAmount): array
     {
@@ -376,7 +525,9 @@ class Streamer extends Model
     }
 
     /**
-     * Total donasi semua waktu
+     * Total donasi semua waktu.
+     *
+     * @return int Total donations in rupiah
      */
     public function getTotalDonationsAttribute(): int
     {
@@ -384,7 +535,9 @@ class Streamer extends Model
     }
 
     /**
-     * Total donasi hari ini
+     * Total donasi hari ini.
+     *
+     * @return int Today's donations in rupiah
      */
     public function getTodayDonationsAttribute(): int
     {
@@ -392,104 +545,64 @@ class Streamer extends Model
     }
 
     /**
-     * Statistik lengkap untuk dashboard & SSE
-     * PERFORMANCE FIX: Cached for 15 seconds to reduce database load
+     * Statistik lengkap untuk dashboard & SSE.
+     *
+     * PERFORMANCE FIX: Cached with dynamic TTL based on streamer activity.
+     * Active streamers (recent donations) get shorter TTL for real-time updates.
+     * Inactive streamers get longer TTL to reduce database load.
+     *
      * Semua aggregasi dilakukan di SQL — tidak ada get() ke memori.
+     *
+     * @return array{
+     *     total: int,
+     *     count: int,
+     *     donors: int,
+     *     ytCount: int,
+     *     biggest: array{name: string, amount: int}|null,
+     *     leaderboard: array,
+     *     milestone: array{target: int, title: string, current: int, reached: bool},
+     *     config: array,
+     *     subathon: array
+     * }
+     *
+     * @see \App\Services\StreamerStatsService For the underlying implementation
      */
     public function buildStats(): array
     {
-        // PERFORMANCE: Cache stats for 15 seconds (SSE calls this every 20s)
-        return \Cache::remember("streamer_stats_{$this->id}", 15, function () {
-            $base = $this->donations();
+        return app(\App\Services\StreamerStatsService::class)->buildStats($this);
+    }
 
-            // Scalar aggregates — satu query
-            // SECURITY NOTE: Raw SQL used here is SAFE because:
-            // - All aggregation functions (SUM, COUNT) are hardcoded
-            // - No user input is interpolated into the SQL string
-            // - All WHERE conditions use Eloquent's parameter binding
-            $agg = $base->selectRaw(
-                'SUM(amount) as total, COUNT(*) as cnt, COUNT(DISTINCT name) as unique_donors, SUM(CASE WHEN yt_url IS NOT NULL THEN 1 ELSE 0 END) as yt_count'
-            )->first();
+    /**
+     * Calculate dynamic cache TTL based on streamer activity.
+     *
+     * Active streamers (recent donations) get shorter TTL for real-time updates.
+     * Inactive streamers get longer TTL to reduce database load.
+     *
+     * @return int TTL in seconds
+     *
+     * @deprecated Use StreamerStatsService::calculateDynamicCacheTtl() instead
+     */
+    private function calculateDynamicCacheTtl(): int
+    {
+        // Check last donation time (use simple DB query, very fast with index)
+        $lastDonationAt = $this->donations()
+            ->latest('created_at')
+            ->value('created_at');
 
-            $total        = (int) ($agg->total         ?? 0);
-            $count        = (int) ($agg->cnt            ?? 0);
-            $uniqueDonors = (int) ($agg->unique_donors  ?? 0);
-            $ytCount      = (int) ($agg->yt_count       ?? 0);
+        if (!$lastDonationAt) {
+            // No donations: long cache (5 minutes)
+            return config('cache-ttl.streamer_stats_inactive', 300);
+        }
 
-            // Donasi terbesar — satu query ringan
-            $biggest = $base->orderByDesc('amount')->first(['name', 'amount']);
+        $lastDonation = \Carbon\Carbon::parse($lastDonationAt);
+        $minutesSince = now()->diffInMinutes($lastDonation);
 
-            // BUGFIX: Leaderboard emoji - get most recent emoji instead of MAX()
-            // MAX(emoji) is wrong - gets lexicographically highest, not most recent
-            // SECURITY NOTE: Raw SQL used here is SAFE because:
-            // - The subquery uses whereColumn() which is parameterized by Eloquent
-            // - No user input is interpolated into the SQL string
-            // - All column names are hardcoded, not user-controlled
-            $leaderboard = $this->donations()
-                ->selectRaw('name, SUM(amount) as total, COUNT(*) as cnt')
-                ->selectSub(
-                    Donation::selectRaw('emoji')
-                        ->whereColumn('name', 'donations.name')
-                        ->latest('created_at')
-                        ->limit(1),
-                    'emoji'
-                )
-                ->groupBy('name')
-                ->orderByDesc('total')
-                ->limit($this->leaderboard_count)
-            ->get()
-            ->map(fn ($r) => [
-                'name'  => $r->name,
-                'emoji' => $r->emoji,
-                'total' => (int) $r->total,
-                'count' => (int) $r->cnt,
-            ])
-            ->values()
-            ->toArray();
-
-        // Milestone: jika milestone_reset aktif, hanya hitung donasi hari ini
-        $milestoneQuery = $this->milestone_reset
-            ? $this->donations()->whereDate('created_at', today())
-            : $this->donations();
-        $milestoneCurrent = (int) $milestoneQuery->sum('amount');
-
-        return [
-            'total' => $total,
-            'count' => $count,
-            'donors' => $uniqueDonors,
-            'ytCount' => $ytCount,
-            'biggest' => $biggest ? [
-                'name' => $biggest->name,
-                'amount' => $biggest->amount,
-            ] : null,
-            'leaderboard' => $leaderboard,
-            'milestone' => [
-                'target' => $this->milestone_target,
-                'title' => $this->milestone_title,
-                'current' => $milestoneCurrent,
-                'reached' => $milestoneCurrent >= $this->milestone_target,
-            ],
-            'config' => [
-                'milestoneTitle'       => $this->milestone_title,
-                'milestoneTarget'      => $this->milestone_target,
-                'leaderboardTitle'     => $this->leaderboard_title,
-                'leaderboardCount'     => $this->leaderboard_count,
-                'alertDuration'        => $this->alert_duration,
-                'alertDurationTiers'   => $this->getAlertDurationTiers(),
-                'alertMaxDuration'     => min((int) ($this->alert_max_duration ?? 30), 120),
-                'ytEnabled'            => $this->yt_enabled,
-                'soundEnabled'         => $this->sound_enabled,
-                'notificationSound'    => $this->notification_sound,
-                'alertTheme'           => $this->alert_theme,
-                'alertColors'          => $this->getWidgetSettings()['alert'] ?? [],
-            ],
-            'subathon' => [
-                'enabled'      => $this->subathon_enabled ?? false,
-                'currentMinutes' => $this->subathon_current_minutes ?? 0,
-                'durationMinutes' => $this->subathon_duration_minutes ?? 60,
-                'formatted'    => $this->subathon_timer_formatted,
-            ],
-            ];
-        }); // End Cache::remember
+        // Dynamic TTL based on recency
+        return match(true) {
+            $minutesSince < 5   => config('cache-ttl.streamer_stats_ttl', 15),      // Active: 15s
+            $minutesSince < 30  => config('cache-ttl.streamer_stats_recent', 60),   // Recent: 1 min
+            $minutesSince < 120 => config('cache-ttl.streamer_stats_idle', 180),    // Idle: 3 min
+            default             => config('cache-ttl.streamer_stats_inactive', 300), // Inactive: 5 min
+        };
     }
 }

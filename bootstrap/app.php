@@ -11,6 +11,33 @@ use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+function resolveHttpMessage(int $status, string $originalMessage = ''): string
+{
+    if (
+        $originalMessage
+        && strlen($originalMessage) > 0
+        && strlen($originalMessage) < 200
+        && !str_contains($originalMessage, '/')
+        && !str_contains($originalMessage, '\\')
+    ) {
+        return $originalMessage;
+    }
+
+    return match ($status) {
+        400 => 'Permintaan tidak valid.',
+        401 => 'Anda perlu login untuk mengakses halaman ini.',
+        403 => 'Anda tidak memiliki akses ke halaman ini.',
+        404 => 'Halaman yang Anda cari tidak ditemukan.',
+        405 => 'Metode permintaan tidak diizinkan.',
+        419 => 'Sesi Anda telah berakhir. Muat ulang halaman dan coba lagi.',
+        422 => 'Data yang dikirim tidak valid.',
+        429 => 'Terlalu banyak permintaan. Coba lagi dalam beberapa saat.',
+        500 => 'Terjadi kesalahan pada server. Tim kami sedang menangani.',
+        503 => 'Layanan sedang dalam pemeliharaan. Coba lagi nanti.',
+        default => 'Terjadi kesalahan. Mohon coba lagi.',
+    };
+}
+
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -117,33 +144,3 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
     })->create();
-
-/**
- * Konversi HTTP status code ke pesan yang user-friendly
- */
-function resolveHttpMessage(int $status, string $originalMessage = ''): string
-{
-    if (
-        $originalMessage
-        && strlen($originalMessage) > 0
-        && strlen($originalMessage) < 200
-        && !str_contains($originalMessage, '/')
-        && !str_contains($originalMessage, '\\')
-    ) {
-        return $originalMessage;
-    }
-
-    return match ($status) {
-        400 => 'Permintaan tidak valid.',
-        401 => 'Anda perlu login untuk mengakses halaman ini.',
-        403 => 'Anda tidak memiliki akses ke halaman ini.',
-        404 => 'Halaman yang Anda cari tidak ditemukan.',
-        405 => 'Metode permintaan tidak diizinkan.',
-        419 => 'Sesi Anda telah berakhir. Muat ulang halaman dan coba lagi.',
-        422 => 'Data yang dikirim tidak valid.',
-        429 => 'Terlalu banyak permintaan. Coba lagi dalam beberapa saat.',
-        500 => 'Terjadi kesalahan pada server. Tim kami sedang menangani.',
-        503 => 'Layanan sedang dalam pemeliharaan. Coba lagi nanti.',
-        default => 'Terjadi kesalahan. Mohon coba lagi.',
-    };
-}

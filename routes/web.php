@@ -131,6 +131,12 @@ Route::middleware(['auth', 'verified', 'streamer'])->prefix('streamer')->name('s
     Route::post('/widgets/alert-settings', [StreamerDashboardController::class, 'saveAlertSettings'])
         ->middleware('throttle:settings-update')
         ->name('widgets.alert-settings');
+    Route::post('/widgets/milestone-settings', [StreamerDashboardController::class, 'saveMilestoneSettings'])
+        ->middleware('throttle:settings-update')
+        ->name('widgets.milestone-settings');
+    Route::post('/widgets/leaderboard-settings', [StreamerDashboardController::class, 'saveLeaderboardSettings'])
+        ->middleware('throttle:settings-update')
+        ->name('widgets.leaderboard-settings');
 
     // Subathon
     Route::get('/subathon', [StreamerDashboardController::class, 'subathon'])->name('subathon');

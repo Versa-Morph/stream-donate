@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Donation;
 use App\Models\Streamer;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -37,7 +38,7 @@ class ReportController extends Controller
      */
     public function index(Request $request): View
     {
-        $streamer = Auth::user()->streamer;
+        $streamer = auth()->user()->streamer;
         abort_unless($streamer, 403);
 
         $dateFrom = $request->input('from', now()->startOfMonth()->toDateString());
@@ -47,21 +48,29 @@ class ReportController extends Controller
             ->whereDate('created_at', '>=', $dateFrom)
             ->whereDate('created_at', '<=', $dateTo);
 
-        // Full collection for stats
-        $donations = (clone $baseQuery)->orderBy('created_at', 'desc')->get();
+        // Use database aggregation for stats (memory efficient)
+        $stats = (clone $baseQuery)->selectRaw(
+            'SUM(amount) as total_amount,
+             COUNT(*) as total_count,
+             COUNT(DISTINCT name) as unique_donors'
+        )->first();
 
-        // Paginated for the history table (25 per page), preserving filter params
+        $totalAmount  = (int) ($stats->total_amount ?? 0);
+        $totalCount   = (int) ($stats->total_count ?? 0);
+        $uniqueDonors = (int) ($stats->unique_donors ?? 0);
+        $avgAmount    = $totalCount > 0 ? intdiv($totalAmount, $totalCount) : 0;
+
+        // Get max donation separately (optimized query)
+        $maxDonation = (clone $baseQuery)->orderByDesc('amount')->first();
+
+        // Paginated for the history table, preserving filter params
         $donationsPaginated = (clone $baseQuery)
             ->orderBy('created_at', 'desc')
-            ->paginate(25)
+            ->paginate(config('pagination.report_donations', 25))
             ->withQueryString();
 
-        // Summary stats
-        $totalAmount  = $donations->sum('amount');
-        $totalCount   = $donations->count();
-        $uniqueDonors = $donations->pluck('name')->unique()->count();
-        $avgAmount    = $totalCount > 0 ? intdiv($totalAmount, $totalCount) : 0;
-        $maxDonation  = $donations->sortByDesc('amount')->first();
+        // For backward compatibility with view (use paginated data, not full collection)
+        $donations = $donationsPaginated;
 
         return view('reports.index', compact(
             'streamer', 'donations', 'donationsPaginated', 'dateFrom', 'dateTo',
@@ -74,7 +83,7 @@ class ReportController extends Controller
      */
     public function exportCsv(Request $request): StreamedResponse
     {
-        $streamer = Auth::user()->streamer;
+        $streamer = auth()->user()->streamer;
         abort_unless($streamer, 403);
 
         $dateFrom = $request->input('from', now()->startOfMonth()->toDateString());
@@ -121,30 +130,58 @@ class ReportController extends Controller
     }
 
     /**
-     * Export PDF
+     * Export PDF.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
-    public function exportPdf(Request $request)
+    public function exportPdf(Request $request): Response|RedirectResponse
     {
-        $streamer = Auth::user()->streamer;
+        $streamer = auth()->user()->streamer;
         abort_unless($streamer, 403);
 
         $dateFrom = $request->input('from', now()->startOfMonth()->toDateString());
         $dateTo   = $request->input('to',   now()->toDateString());
 
+        // Maximum records for PDF to prevent memory issues
+        $maxPdfRecords = config('export.pdf_max_records', 1000);
+
+        // Get total count first
+        $totalRecords = $streamer->donations()
+            ->whereDate('created_at', '>=', $dateFrom)
+            ->whereDate('created_at', '<=', $dateTo)
+            ->count();
+
+        // Apply limit for PDF generation
         $donations = $streamer->donations()
             ->whereDate('created_at', '>=', $dateFrom)
             ->whereDate('created_at', '<=', $dateTo)
             ->orderBy('created_at', 'desc')
+            ->limit($maxPdfRecords)
             ->get();
 
-        $totalAmount  = $donations->sum('amount');
-        $totalCount   = $donations->count();
-        $uniqueDonors = $donations->pluck('name')->unique()->count();
+        // Use database aggregation for stats (include all records, not just limited)
+        $stats = $streamer->donations()
+            ->whereDate('created_at', '>=', $dateFrom)
+            ->whereDate('created_at', '<=', $dateTo)
+            ->selectRaw(
+                'SUM(amount) as total_amount,
+                 COUNT(*) as total_count,
+                 COUNT(DISTINCT name) as unique_donors'
+            )->first();
+
+        $totalAmount  = (int) ($stats->total_amount ?? 0);
+        $totalCount   = (int) ($stats->total_count ?? 0);
+        $uniqueDonors = (int) ($stats->unique_donors ?? 0);
+
+        // Flag to show warning in PDF if records were truncated
+        $recordsTruncated = $totalRecords > $maxPdfRecords;
 
         try {
             $pdf = Pdf::loadView('reports.pdf', compact(
                 'streamer', 'donations', 'dateFrom', 'dateTo',
-                'totalAmount', 'totalCount', 'uniqueDonors'
+                'totalAmount', 'totalCount', 'uniqueDonors',
+                'recordsTruncated', 'maxPdfRecords', 'totalRecords'
             ))->setPaper('a4', 'landscape');
 
             $filename = "laporan-donasi-{$streamer->slug}-{$dateFrom}-{$dateTo}.pdf";

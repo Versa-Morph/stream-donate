@@ -2,20 +2,38 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\View\View;
 
+/**
+ * Controller for displaying legal and policy pages.
+ */
 class PolicyController extends Controller
 {
-    public function index()
+    /**
+     * Display the policy index page with links to all policies.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function index(): View
     {
         return view('policies.index');
     }
 
-    public function show(string $slug)
+    /**
+     * Display a specific policy page.
+     *
+     * @param string $slug The policy slug identifier
+     * @return \Illuminate\View\View
+     *
+     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException If policy not found
+     */
+    public function show(string $slug): View
     {
         $policies = [
             'terms-of-service' => ['title' => 'Ketentuan Layanan'],
             'privacy-policy' => ['title' => 'Kebijakan Privasi'],
+            'security-policy' => ['title' => 'Kebijakan Keamanan Data'],
+            'cookie-policy' => ['title' => 'Kebijakan Cookie'],
             'donation-policy' => ['title' => 'Kebijakan Donasi'],
             'product-policy' => ['title' => 'Kebijakan Produk Digital'],
             'refund-policy' => ['title' => 'Kebijakan Pengembalian Dana'],

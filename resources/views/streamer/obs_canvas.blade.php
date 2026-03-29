@@ -216,7 +216,8 @@
     display: none;
 }
 
-/* Widget header bar */
+/* Widget header bar - DISABLED */
+/*
 .wbox-header {
     background: rgba(0,0,0,.55);
     padding: 4px 8px 4px 10px;
@@ -231,6 +232,7 @@
     font-family: monospace; font-size: 9px; color: rgba(255,255,255,.4);
     letter-spacing: 0;
 }
+*/
 
 /* Widget content area */
 .wbox-content {
@@ -448,9 +450,9 @@
                 <div class="widget-toggle-list">
 
                     <div class="widget-row" id="row-notification">
-                        <div class="widget-icon notif">🔔</div>
+                        <div class="widget-icon" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2)">🔔</div>
                         <div class="widget-info">
-                            <div class="widget-name">Notifikasi</div>
+                            <div class="widget-name">Alert</div>
                             <div class="widget-size-display" id="size-notification">–</div>
                         </div>
                         <label class="toggle-switch">
@@ -459,20 +461,8 @@
                         </label>
                     </div>
 
-                    <div class="widget-row" id="row-leaderboard">
-                        <div class="widget-icon lb">🏆</div>
-                        <div class="widget-info">
-                            <div class="widget-name">Leaderboard</div>
-                            <div class="widget-size-display" id="size-leaderboard">–</div>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="toggle-leaderboard" onchange="toggleWidget('leaderboard', this.checked)">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-
                     <div class="widget-row" id="row-milestone">
-                        <div class="widget-icon ms">🎯</div>
+                        <div class="widget-icon" style="background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2)">🎯</div>
                         <div class="widget-info">
                             <div class="widget-name">Milestone</div>
                             <div class="widget-size-display" id="size-milestone">–</div>
@@ -483,10 +473,22 @@
                         </label>
                     </div>
 
-                    <div class="widget-row" id="row-qrcode">
-                        <div class="widget-icon qr">📱</div>
+                    <div class="widget-row" id="row-leaderboard">
+                        <div class="widget-icon" style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2)">🏆</div>
                         <div class="widget-info">
-                            <div class="widget-name">QR Code</div>
+                            <div class="widget-name">Leaderboard</div>
+                            <div class="widget-size-display" id="size-leaderboard">–</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggle-leaderboard" onchange="toggleWidget('leaderboard', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="widget-row" id="row-qrcode">
+                        <div class="widget-icon" style="background:rgba(34,211,160,.1);border:1px solid rgba(34,211,160,.2)">📱</div>
+                        <div class="widget-info">
+                            <div class="widget-name">Barcode / QR</div>
                             <div class="widget-size-display" id="size-qrcode">–</div>
                         </div>
                         <label class="toggle-switch">
@@ -496,7 +498,7 @@
                     </div>
 
                     <div class="widget-row" id="row-subathon">
-                        <div class="widget-icon subathon">⏱️</div>
+                        <div class="widget-icon" style="background:rgba(124,108,252,.1);border:1px solid rgba(124,108,252,.2)">⏱️</div>
                         <div class="widget-info">
                             <div class="widget-name">Subathon</div>
                             <div class="widget-size-display" id="size-subathon">–</div>
@@ -508,7 +510,7 @@
                     </div>
 
                     <div class="widget-row" id="row-running_text">
-                        <div class="widget-icon rt">📜</div>
+                        <div class="widget-icon" style="background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.2)">📜</div>
                         <div class="widget-info">
                             <div class="widget-name">Running Text</div>
                             <div class="widget-size-display" id="size-running_text">–</div>
@@ -560,10 +562,6 @@
 
                         {{-- Widget: Notification --}}
                         <div class="wbox" id="wbox-notification" data-widget="notification">
-                            <div class="wbox-header">
-                                <span class="wbox-header-label">🔔 Notifikasi Alert</span>
-                                <span class="wbox-coords" id="coords-notification"></span>
-                            </div>
                             <div class="wbox-content">
                                 <div class="preview-notif">
                                     <div class="preview-notif-header">
@@ -585,10 +583,6 @@
 
                         {{-- Widget: Leaderboard --}}
                         <div class="wbox" id="wbox-leaderboard" data-widget="leaderboard">
-                            <div class="wbox-header">
-                                <span class="wbox-header-label">🏆 Leaderboard</span>
-                                <span class="wbox-coords" id="coords-leaderboard"></span>
-                            </div>
                             <div class="wbox-content">
                                 <div class="preview-lb">
                                     <div class="preview-lb-header">
@@ -614,10 +608,6 @@
 
                         {{-- Widget: Milestone --}}
                         <div class="wbox" id="wbox-milestone" data-widget="milestone">
-                            <div class="wbox-header">
-                                <span class="wbox-header-label">🎯 Milestone</span>
-                                <span class="wbox-coords" id="coords-milestone"></span>
-                            </div>
                             <div class="wbox-content">
                                 <div class="preview-ms">
                                     <div class="preview-ms-badge">🎯 MILESTONE</div>
@@ -638,10 +628,6 @@
 
                         {{-- Widget: QR Code --}}
                         <div class="wbox" id="wbox-qrcode" data-widget="qrcode">
-                            <div class="wbox-header">
-                                <span class="wbox-header-label">📱 QR Code</span>
-                                <span class="wbox-coords" id="coords-qrcode"></span>
-                            </div>
                             <div class="wbox-content">
                                 <div class="preview-qr">
                                     <div class="preview-qr-logo">SD</div>
@@ -658,10 +644,6 @@
 
                         {{-- Widget: Subathon --}}
                         <div class="wbox" id="wbox-subathon" data-widget="subathon">
-                            <div class="wbox-header">
-                                <span class="wbox-header-label">⏱️ Subathon</span>
-                                <span class="wbox-coords" id="coords-subathon"></span>
-                            </div>
                             <div class="wbox-content">
                                 <div class="preview-subathon">
                                     <div class="preview-subathon-timer" id="preview-subathon-timer">00:00:00</div>
@@ -676,10 +658,6 @@
 
                         {{-- Widget: Running Text --}}
                         <div class="wbox" id="wbox-running_text" data-widget="running_text">
-                            <div class="wbox-header">
-                                <span class="wbox-header-label">📜 Running Text</span>
-                                <span class="wbox-coords" id="coords-running_text"></span>
-                            </div>
                             <div class="wbox-content">
                                 <div class="preview-running_text">
                                     <div class="preview-rt-track">
@@ -748,12 +726,81 @@ function init() {
 
 // ── Preset resolusi ──
 const RES_PRESETS = [
-    { w: 1920, h: 1080, label: 'Full HD (FHD)' },
+    // ── HD & Full HD (Paling Umum) ──
+    { w: 1920, h: 1080, label: 'Full HD 1080p' },
     { w: 1280, h:  720, label: 'HD 720p' },
-    { w: 1366, h:  768, label: 'Laptop 1366×768' },
-    { w: 1440, h:  900, label: 'Laptop 1440×900' },
+    { w: 1600, h:  900, label: 'HD+ 900p' },
+    
+    // ── 16:9 Widescreen ──
     { w: 2560, h: 1440, label: 'QHD 2K' },
+    { w: 3440, h: 1440, label: 'UWQHD Ultra Wide' },
     { w: 3840, h: 2160, label: '4K UHD' },
+    { w: 5120, h: 2880, label: '5K Retina' },
+    { w: 7680, h: 4320, label: '8K UHD' },
+    
+    // ── 16:10 ──
+    { w: 1280, h:  800, label: 'WXGA 800p' },
+    { w: 1440, h:  900, label: 'WXGA+ 900p' },
+    { w: 1680, h: 1050, label: 'WSXGA+ 1050p' },
+    { w: 1920, h: 1200, label: 'WUXGA 1200p' },
+    { w: 2560, h: 1600, label: 'WQXGA 1600p' },
+    
+    // ── Laptop ──
+    { w: 1366, h:  768, label: 'Laptop 1366×768' },
+    { w: 1400, h:  900, label: 'Laptop 1400×900' },
+    { w: 1600, h: 1000, label: 'Laptop 1600×1000' },
+    
+    // ── Ultrawide 21:9 ──
+    { w: 2560, h: 1080, label: 'UW-FHD 1080p' },
+    { w: 3440, h: 1440, label: 'UW-QHD 1440p' },
+    { w: 5120, h: 2160, label: 'UW-4K 2160p' },
+    
+    // ── Portrait / Vertical ──
+    { w:  720, h: 1280, label: 'Vertical 720p (HP)' },
+    { w: 1080, h: 1920, label: 'Vertical 1080p (HP)' },
+    { w: 1080, h: 2340, label: 'Vertical 1080×2340' },
+    { w: 1080, h: 2400, label: 'Vertical 1080×2400' },
+    
+    // ── Mobile / HP ──
+    { w:  375, h:  667, label: 'iPhone 6/7/8' },
+    { w:  375, h:  812, label: 'iPhone X/11 Pro' },
+    { w:  414, h:  896, label: 'iPhone 11/XR' },
+    { w:  390, h:  844, label: 'iPhone 12/13/14' },
+    { w:  428, h:  926, label: 'iPhone 12/13 Pro Max' },
+    { w:  393, h:  852, label: 'iPhone 14 Pro' },
+    { w:  430, h:  932, label: 'iPhone 14 Pro Max' },
+    { w:  393, h:  873, label: 'iPhone 15/16' },
+    { w:  402, h:  874, label: 'iPhone 15/16 Plus' },
+    { w:  430, h:  932, label: 'iPhone 15/16 Pro Max' },
+    { w:  360, h:  800, label: 'Samsung Galaxy S20/S21' },
+    { w:  384, h:  854, label: 'Samsung Galaxy A50/A70' },
+    { w:  412, h:  915, label: 'Samsung Galaxy S21+/Ultra' },
+    { w:  360, h:  780, label: 'Xiaomi Redmi Note 8/9' },
+    { w:  393, h:  851, label: 'Xiaomi Redmi Note 10/11' },
+    { w:  430, h:  934, label: 'Xiaomi 12/13 Pro' },
+    { w:  412, h:  892, label: 'OPPO Reno 6/7/8' },
+    { w:  360, h:  800, label: 'Vivo Y series' },
+    { w:  412, h:  915, label: 'Vivo V series' },
+    
+    // ── Tablet ──
+    { w:  768, h: 1024, label: 'iPad Mini / Tablet 7"' },
+    { w:  810, h: 1080, label: 'iPad Air 10.5"' },
+    { w:  820, h: 1180, label: 'iPad Pro 11"' },
+    { w: 1024, h: 1366, label: 'iPad Pro 12.9"' },
+    { w:  800, h: 1280, label: 'Samsung Tab A 10.1"' },
+    { w: 1200, h: 1920, label: 'Samsung Tab S7/S8' },
+    
+    // ── Streaming Platform ──
+    { w: 1920, h:  984, label: 'Twitch 1080p (dll)' },
+    { w: 1920, h: 1008, label: 'YouTube 1080p (dll)' },
+    { w: 2560, h: 1440, label: 'Stream 1440p' },
+    { w: 1280, h:  720, label: 'Stream 720p (Low)' },
+    
+    // ── Standar Lama ──
+    { w: 1024, h:  768, label: 'XGA (Lama)' },
+    { w: 1152, h:  864, label: 'XGA+ (Lama)' },
+    { w: 1280, h: 1024, label: 'SXGA (Lama)' },
+    { w: 1600, h: 1200, label: 'UXGA (Lama)' },
 ];
 
 // ── Bangun opsi select dari layar terdeteksi + presets ──
@@ -966,20 +1013,23 @@ function applyWidgetBox(key, wdata) {
     box.style.width  = wdata.w + 'px';
     box.style.height = wdata.h + 'px';
 
-    if (wdata.active) {
+     if (wdata.active) {
         box.removeAttribute('data-inactive');
     } else {
         box.setAttribute('data-inactive', '1');
     }
 
-    updateCoords(key, x, y, wdata.w, wdata.h);
+    // updateCoords disabled - no longer needed
     updateSizeDisplay(key, wdata.w, wdata.h);
 }
 
+// Coords display - DISABLED
+/*
 function updateCoords(key, x, y, w, h) {
     const el = document.getElementById('coords-' + key);
     if (el) el.textContent = x + ',' + y + ' | ' + w + '×' + h;
 }
+*/
 
 function updateSizeDisplay(key, w, h) {
     const el = document.getElementById('size-' + key);
@@ -997,8 +1047,92 @@ function updateRowActiveStyle(key, active) {
 // ── Toggle widget aktif/nonaktif ──
 function toggleWidget(key, active) {
     cfg.widgets[key].active = active;
+    
+    // Jika diaktifkan, set ukuran otomatis berdasarkan resolusi layar
+    if (active) {
+        autoFitWidgetSize(key);
+    }
+    
     applyWidgetBox(key, cfg.widgets[key]);
     updateRowActiveStyle(key, active);
+}
+
+// ── Auto-fit widget size & position berdasarkan resolusi layar ──
+function autoFitWidgetSize(key) {
+    const canvasW = cfg.width || 1920;
+    const canvasH = cfg.height || 1080;
+    const wdata = cfg.widgets[key];
+    
+    // Hitung rasio scaling dari 1080p (default)
+    const scaleX = canvasW / 1920;
+    const scaleY = canvasH / 1080;
+    
+    // Default positions & sizes untuk 1920x1080
+    const defaults = {
+        notification: { x: 680, y: 820, w: 560, h: 200 },
+        leaderboard:  { x: 60,  y: 60,  w: 300, h: 420 },
+        milestone:    { x: 40,  y: 800, w: 340, h: 130 },
+        qrcode:      { x: 1620, y: 760, w: 260, h: 300 },
+        subathon:    { x: 800, y: 100, w: 320, h: 150 },
+        running_text:{ x: 0,   y: 1040, w: 1920, h: 40 },
+    };
+    
+    const def = defaults[key] || { x: 100, y: 100, w: 300, h: 200 };
+    
+    let newW, newH, newX, newY;
+    
+    if (key === 'running_text') {
+        // Running text: full width, posisi bottom
+        newW = canvasW;
+        newH = Math.max(30, Math.round(40 * scaleY));
+        newX = 0;
+        newY = canvasH - newH - 10;
+    } else if (key === 'notification') {
+        // Alert: tengah horizontal, dekat bawah
+        newW = Math.max(250, Math.round(def.w * scaleX));
+        newH = Math.max(80, Math.round(def.h * scaleY));
+        newX = Math.round((canvasW - newW) / 2); // tengah horizontal
+        newY = Math.round(canvasH - newH - 40);
+    } else if (key === 'leaderboard') {
+        // Leaderboard: kiri atas
+        newW = Math.max(150, Math.round(def.w * scaleX));
+        newH = Math.max(120, Math.round(def.h * scaleY));
+        newX = Math.round(30 * scaleX);
+        newY = Math.round(30 * scaleY);
+    } else if (key === 'milestone') {
+        // Milestone: kiri bawah
+        newW = Math.max(140, Math.round(def.w * scaleX));
+        newH = Math.max(60, Math.round(def.h * scaleY));
+        newX = Math.round(30 * scaleX);
+        newY = canvasH - newH - 30;
+    } else if (key === 'qrcode') {
+        // QR Code: kanan bawah
+        newW = Math.max(100, Math.round(def.w * scaleX));
+        newH = Math.max(100, Math.round(def.h * scaleY));
+        newX = canvasW - newW - 30;
+        newY = canvasH - newH - 30;
+    } else if (key === 'subathon') {
+        // Subathon: tengah atas
+        newW = Math.max(160, Math.round(def.w * scaleX));
+        newH = Math.max(60, Math.round(def.h * scaleY));
+        newX = Math.round((canvasW - newW) / 2); // tengah horizontal
+        newY = Math.round(30 * scaleY);
+    } else {
+        // Widget lain: sesuaikan proporsional
+        newW = Math.max(MIN_W[key] || 100, Math.round(def.w * scaleX));
+        newH = Math.max(MIN_H[key] || 60, Math.round(def.h * scaleY));
+        newX = Math.round(def.x * scaleX);
+        newY = Math.round(def.y * scaleY);
+    }
+    
+    // Update config
+    wdata.x = newX;
+    wdata.y = newY;
+    wdata.w = newW;
+    wdata.h = newH;
+    
+    // Update size display
+    updateSizeDisplay(key, newW, newH);
 }
 
 // ── Drag & Drop + Resize (single consolidated mousedown handler) ──
@@ -1069,7 +1203,6 @@ document.addEventListener('mousemove', function(e) {
 
         box.style.width  = newW + 'px';
         box.style.height = newH + 'px';
-        updateCoords(key, wdata.x, wdata.y, newW, newH);
         updateSizeDisplay(key, newW, newH);
         return;
     }
@@ -1098,7 +1231,6 @@ document.addEventListener('mousemove', function(e) {
 
     box.style.left = x + 'px';
     box.style.top  = y + 'px';
-    updateCoords(key, x, y, wdata.w, wdata.h);
 });
 
 document.addEventListener('mouseup', function() {

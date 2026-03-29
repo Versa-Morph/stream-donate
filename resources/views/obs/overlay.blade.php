@@ -17,8 +17,8 @@
 
         /* ─── CSS VARIABLES ─── */
         :root {
-            --bg:        rgba(8,8,12,.96);
-            --border:    rgba(255,255,255,.1);
+            --bg:        rgba(8,8,12,.92);
+            --border:    rgba(255,255,255,.12);
             --accent:    #7c6cfc;
             --accent2:   #a99dff;
             --orange:    #f97316;
@@ -26,8 +26,8 @@
             --text:      #f1f1f6;
             --text-2:    rgba(241,241,246,.55);
             --bar-bg:    rgba(255,255,255,.07);
-            --radius:    16px;
-            --shadow:    0 8px 40px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.06);
+            --radius:    18px;
+            --shadow:    0 8px 40px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.08), 0 0 60px rgba(124,108,252,.08);
             --amount-c:  #f97316;
             --donor-c:   #f1f1f6;
             --msg-c:     rgba(241,241,246,.6);
@@ -42,7 +42,9 @@
             /* ─ Spacing ─ */
             --spacing-inner: 18px;
             /* ─ Style effects ─ */
-            --blur-amount: 12px;
+            --blur-amount: 16px;
+            /* ─ Glassmorphism ─ */
+            --glass-glow: 0 0 80px rgba(124,108,252,.12);
         }
 
         /* ─── THEME: minimal ─── */
@@ -114,13 +116,13 @@
 
         /* style-glass (default — translucent, subtle glow) */
         body.style-glass {
-            --bg:     rgba(8,8,12,.82);
-            --border: rgba(255,255,255,.12);
-            --shadow: 0 8px 40px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06);
+            --bg:     rgba(8,8,12,.78);
+            --border: rgba(255,255,255,.14);
+            --shadow: 0 8px 40px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08), 0 0 80px rgba(124,108,252,.1);
         }
         body.style-glass .alert-box {
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
         }
 
         /* style-solid — fully opaque, no blur */
@@ -297,17 +299,20 @@
             background: var(--bg);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow), var(--glass-glow);
             opacity: 0;
             overflow: hidden;
             pointer-events: none;
+            backdrop-filter: blur(var(--blur-amount)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--blur-amount)) saturate(180%);
         }
 
         /* Top accent line */
         .alert-box::before {
             content: '';
-            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            position: absolute; top: 0; left: 0; right: 0; height: 2.5px;
             background: var(--top-line);
+            box-shadow: 0 0 20px rgba(124,108,252,.4);
         }
 
         .alert-box.visible {
@@ -394,6 +399,24 @@
             margin: 0 0 14px;
         }
         .alert-yt iframe { width: 100%; height: 192px; display: block; border: none; }
+
+        /* ─── MEDIA UPLOAD ─── */
+        .alert-media {
+            margin-bottom: 0;
+            border-radius: 10px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,.06);
+            display: none;
+            margin: 0 0 14px;
+        }
+        .alert-media video, .alert-media audio {
+            width: 100%;
+            max-height: 240px;
+            display: block;
+            border: none;
+        }
+        .alert-media audio {
+            height: 54px;
+        }
 
         /* ─── PROGRESS BAR ─── */
         .alert-progress {
@@ -528,6 +551,9 @@ body {
         <div class="alert-yt" id="alert-yt">
             <iframe id="yt-iframe" allow="autoplay" allowfullscreen></iframe>
         </div>
+        <div class="alert-media" id="alert-media">
+            <video id="media-player" controls preload="auto"></video>
+        </div>
     </div>
     {{-- Side layout body (hidden unless layout-side) --}}
     <div class="alert-side-body" style="display:none" id="alert-side-body">
@@ -552,6 +578,7 @@ const ASSET_STORAGE  = '{{ asset("storage") }}';
 // ── Mutable config — updated live via SSE stats.config ──
 let SOUND_ON       = {{ $streamer->sound_enabled ? 'true' : 'false' }};
 let SOUND_PREF     = {!! json_encode($streamer->notification_sound ?? 'ding') !!};
+let MEDIA_UPLOAD_ENABLED = {{ $streamer->media_upload_enabled ? 'true' : 'false' }};
 let ALERT_DURATION = {{ (int) ($streamer->alert_duration ?? 8000) }};
 let DURATION_TIERS = {!! json_encode($streamer->getAlertDurationTiers()) !!};
 let MAX_DURATION   = {{ (int) min((int)($streamer->alert_max_duration ?? 30), 120) }};
@@ -976,6 +1003,7 @@ function armWatchdog(duration) {
         const box = document.getElementById('alert-box');
         box.classList.remove('visible', 'hiding');
         document.getElementById('yt-iframe').src = '';
+        document.getElementById('media-player').src = '';
         isShowing = false;
         processQueue();
     }, duration + 2000);
@@ -1019,6 +1047,24 @@ function showAlert(donation) {
         document.getElementById('yt-iframe').src = '';
     }
 
+    // ── Media Upload playback ──
+    const mediaSection = document.getElementById('alert-media');
+    const mediaPlayer = document.getElementById('media-player');
+    const mediaFile = donation.media_file || null;
+    
+    if (!isSide && mediaFile && MEDIA_UPLOAD_ENABLED !== false) {
+        const mediaUrl = ASSET_STORAGE + '/' + mediaFile;
+        mediaPlayer.src = mediaUrl;
+        mediaSection.style.display = 'block';
+        mediaPlayer.play().catch(function(err) {
+            console.warn('Media play error:', err);
+            mediaSection.style.display = 'none';
+        });
+    } else {
+        mediaSection.style.display = 'none';
+        mediaPlayer.src = '';
+    }
+
     box.classList.remove('visible', 'hiding');
     void box.offsetWidth;
     box.classList.add('visible');
@@ -1038,6 +1084,7 @@ function showAlert(donation) {
         setTimeout(function() {
             box.classList.remove('visible', 'hiding');
             document.getElementById('yt-iframe').src = '';
+            document.getElementById('media-player').src = '';
             clearTimeout(_watchdog);
             processQueue();
         }, 450);

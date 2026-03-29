@@ -1,39 +1,9 @@
 <x-app-layout>
     @push('styles')
     <style>
-        .admin-wrap { max-width: 1300px; margin: 0 auto; padding: 28px 28px 48px; }
-        .page-header { margin-bottom: 24px; }
-        .page-title {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 24px; font-weight: 700; letter-spacing: -.5px; color: var(--text);
-        }
-        .page-subtitle { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+        /* ── Uses unified .page-container, .page-header, .filter-bar, .table-card, .pagination from app.blade.php ── */
 
-        /* ── FILTER BAR ── */
-        .filter-bar {
-            display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius-lg); padding: 14px 18px;
-            margin-bottom: 20px;
-        }
-        .filter-bar input, .filter-bar select {
-            width: auto; flex: 1; min-width: 160px; max-width: 280px;
-            padding: 8px 12px; font-size: 13px;
-        }
-        .filter-bar button {
-            padding: 8px 18px; font-size: 13px; font-weight: 600;
-            background: var(--brand); color: #fff;
-            border: none; border-radius: var(--radius); cursor: pointer;
-        }
-        .filter-bar button:hover { opacity: .85; }
-
-        /* ── TABLE ── */
-        .table-wrap {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-        }
+        /* ── TABLE (local overrides) ── */
         table { width: 100%; border-collapse: collapse; }
         thead { background: var(--surface-2); }
         th {
@@ -60,21 +30,6 @@
         }
         .btn-xs:hover { background: rgba(244,63,94,.12); }
 
-        /* ── PAGINATION ── */
-        .pagination {
-            display: flex; gap: 4px; align-items: center;
-            justify-content: center; margin-top: 20px; flex-wrap: wrap;
-        }
-        .pagination a, .pagination span {
-            padding: 6px 12px; border-radius: var(--radius-sm);
-            font-size: 13px; background: var(--surface); border: 1px solid var(--border);
-            color: var(--text-2);
-        }
-        .pagination a:hover { border-color: var(--brand); color: var(--brand-light); }
-        .pagination .active span {
-            background: var(--brand); border-color: var(--brand); color: #fff;
-        }
-
         /* ── TRUNCATED TEXT ── */
         .msg-cell {
             max-width: 200px; white-space: nowrap;
@@ -84,11 +39,13 @@
     </style>
     @endpush
 
-    <div class="admin-wrap">
+    <div class="page-container">
         <!-- Header -->
         <div class="page-header">
-            <h1 class="page-title">Semua Donasi</h1>
-            <p class="page-subtitle">{{ $donations->total() }} donasi dari semua streamer</p>
+            <div class="page-header-left">
+                <h1 class="page-title">Semua Donasi</h1>
+                <p class="page-subtitle">{{ $donations->total() }} donasi dari semua streamer</p>
+            </div>
         </div>
 
         <!-- Filter -->
@@ -104,7 +61,7 @@
                     </option>
                     @endforeach
                 </select>
-                <button type="submit">Filter</button>
+                <button type="submit" class="btn-filter">Filter</button>
                 @if(request('search') || request('streamer_id'))
                     <a href="{{ route('admin.donations') }}" class="btn-sm" style="font-size:12px;padding:7px 14px">Reset</a>
                 @endif
@@ -112,7 +69,7 @@
         </form>
 
         <!-- Table -->
-        <div class="table-wrap">
+        <div class="table-card">
             <table>
                 <thead>
                     <tr>

@@ -1,74 +1,24 @@
 <x-app-layout>
     @push('styles')
     <style>
-        .admin-wrap { max-width: 1200px; margin: 0 auto; padding: 28px 28px 48px; }
-        .page-header {
-            display: flex; align-items: flex-start; justify-content: space-between;
-            margin-bottom: 24px; gap: 16px;
-        }
-        .page-title {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 24px; font-weight: 700; letter-spacing: -.5px; color: var(--text);
-        }
-        .page-subtitle { font-size: 13px; color: var(--text-3); margin-top: 4px; }
-
-        /* ── FILTER BAR ── */
-        .filter-bar {
-            display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius-lg); padding: 14px 18px;
-            margin-bottom: 20px;
-        }
-        .filter-bar input, .filter-bar select {
-            width: auto; flex: 1; min-width: 160px; max-width: 280px;
-            padding: 8px 12px; font-size: 13px;
-        }
-        .filter-bar button {
-            padding: 8px 18px; font-size: 13px; font-weight: 600;
-            background: var(--brand); color: #fff;
-            border: none; border-radius: var(--radius); cursor: pointer;
-            transition: opacity .15s;
-        }
-        .filter-bar button:hover { opacity: .85; }
-
-        /* ── TABLE ── */
-        .table-wrap {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-        }
-        table { width: 100%; border-collapse: collapse; }
-        thead { background: var(--surface-2); }
-        th {
-            padding: 11px 16px; text-align: left;
-            font-size: 11px; font-weight: 700; letter-spacing: .7px;
-            text-transform: uppercase; color: var(--text-3);
-        }
-        td {
-            padding: 13px 16px; border-top: 1px solid var(--border);
-            font-size: 13px; color: var(--text-2); vertical-align: middle;
-        }
-        tr:hover td { background: var(--surface-2); }
-
-        /* ── BADGE ── */
-        .badge {
-            display: inline-block; padding: 2px 9px;
-            border-radius: 20px; font-size: 10px; font-weight: 700;
-            letter-spacing: .3px; text-transform: uppercase;
-        }
+        /* ── Admin-specific badge colors ── */
         .badge-admin  { background: rgba(168,85,247,.12); color: #c084fc; border: 1px solid rgba(168,85,247,.25); }
         .badge-stream { background: rgba(124,108,252,.12); color: var(--brand-light); border: 1px solid rgba(124,108,252,.25); }
         .badge-active { background: rgba(34,211,160,.10);  color: var(--green);        border: 1px solid rgba(34,211,160,.25); }
         .badge-inactive { background: rgba(244,63,94,.10); color: var(--red);          border: 1px solid rgba(244,63,94,.25); }
 
-        /* ── ACTIONS ── */
+        /* ── Actions buttons ── */
         .actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
         .btn-xs {
-            padding: 4px 10px; font-size: 11px; font-weight: 600;
-            border-radius: var(--radius-sm); cursor: pointer;
-            border: 1px solid var(--border); background: var(--surface-2);
-            color: var(--text-2); transition: all .15s;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            color: var(--text-2);
+            transition: all .15s;
         }
         .btn-xs:hover { border-color: var(--border-2); color: var(--text); }
         .btn-xs.danger { border-color: rgba(244,63,94,.3); color: var(--red); background: rgba(244,63,94,.06); }
@@ -78,52 +28,45 @@
         .btn-xs.warn { border-color: rgba(251,191,36,.3); color: var(--yellow); background: rgba(251,191,36,.06); }
         .btn-xs.warn:hover { background: rgba(251,191,36,.12); }
 
-        /* ── MODAL ── */
+        /* ── Modal ── */
         .modal-overlay {
-            display: none; position: fixed; inset: 0; z-index: 1000;
-            background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
-            align-items: center; justify-content: center;
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0,0,0,.75);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
         }
         .modal-overlay.open { display: flex; }
         .modal {
-            background: var(--surface);
-            border: 1px solid var(--border-2);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(124,108,252,.2);
             border-radius: var(--radius-xl);
             padding: 28px 32px;
-            width: 380px; max-width: 92vw;
+            width: 380px;
+            max-width: 92vw;
+            box-shadow: 0 24px 60px rgba(0,0,0,.6), 0 0 30px rgba(124,108,252,.1);
         }
         .modal-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 18px; }
         .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
-
-        /* ── PAGINATION ── */
-        .pagination {
-            display: flex; gap: 4px; align-items: center;
-            justify-content: center; margin-top: 20px;
-        }
-        .pagination a, .pagination span {
-            padding: 6px 12px; border-radius: var(--radius-sm);
-            font-size: 13px; background: var(--surface); border: 1px solid var(--border);
-            color: var(--text-2);
-        }
-        .pagination a:hover { border-color: var(--brand); color: var(--brand-light); }
-        .pagination .active span {
-            background: var(--brand); border-color: var(--brand); color: #fff;
-        }
-
-        .empty-cell { text-align: center; color: var(--text-3); padding: 40px; font-size: 13px; }
     </style>
     @endpush
 
-    <div class="admin-wrap">
+    <div class="page-container">
         <!-- Header -->
         <div class="page-header">
-            <div>
+            <div class="page-header-left">
                 <h1 class="page-title">Manajemen User</h1>
                 <p class="page-subtitle">{{ $users->total() }} user terdaftar</p>
             </div>
-            <a href="{{ route('admin.users.create') }}" class="btn-primary" style="padding:10px 20px; font-size:13px; text-decoration:none; display:inline-flex; align-items:center; gap:6px">
-                + Tambah User
-            </a>
+            <div class="page-header-right">
+                <a href="{{ route('admin.users.create') }}" class="btn-primary" style="padding:10px 20px; font-size:13px; text-decoration:none; display:inline-flex; align-items:center; gap:6px">
+                    + Tambah User
+                </a>
+            </div>
         </div>
 
         <!-- Filter -->
@@ -136,7 +79,7 @@
                     <option value="admin"    {{ request('role') === 'admin'    ? 'selected' : '' }}>Admin</option>
                     <option value="streamer" {{ request('role') === 'streamer' ? 'selected' : '' }}>Streamer</option>
                 </select>
-                <button type="submit">Filter</button>
+                <button type="submit" class="btn-filter">Filter</button>
                 @if(request('search') || request('role'))
                     <a href="{{ route('admin.users') }}" class="btn-xs">Reset</a>
                 @endif
@@ -144,7 +87,7 @@
         </form>
 
         <!-- Table -->
-        <div class="table-wrap">
+        <div class="table-card">
             <table>
                 <thead>
                     <tr>
@@ -215,7 +158,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="6" class="empty-cell">Tidak ada user ditemukan</td></tr>
+                    <tr><td colspan="6" class="table-empty">Tidak ada user ditemukan</td></tr>
                     @endforelse
                 </tbody>
             </table>

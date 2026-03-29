@@ -1,13 +1,7 @@
 <x-app-layout>
     @push('styles')
     <style>
-        .admin-wrap { max-width: 1100px; margin: 0 auto; padding: 28px 28px 48px; }
-        .page-header { margin-bottom: 24px; }
-        .page-title {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 24px; font-weight: 700; letter-spacing: -.5px; color: var(--text);
-        }
-        .page-subtitle { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+        /* ── Uses unified .page-container.narrow, .page-header, .filter-bar from app.blade.php ── */
 
         /* ── LAYOUT ── */
         .bw-grid { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
@@ -35,47 +29,17 @@
         .btn-add:hover { opacity: .85; }
         .add-hint { font-size: 11px; color: var(--text-3); margin-top: 8px; line-height: 1.5; }
 
-        /* ── FILTER BAR ── */
-        .filter-bar {
-            display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius-lg); padding: 12px 16px;
-            margin-bottom: 16px;
-        }
-        .filter-bar input {
-            flex: 1; min-width: 180px; padding: 8px 12px; font-size: 13px;
-            background: var(--surface-2); border: 1px solid var(--border);
-            border-radius: var(--radius); color: var(--text);
-        }
-        .filter-bar input:focus { outline: none; border-color: var(--brand); }
-        .filter-bar button {
-            padding: 8px 18px; font-size: 13px; font-weight: 600;
-            background: var(--brand); color: #fff;
-            border: none; border-radius: var(--radius); cursor: pointer;
-        }
-        .filter-bar button:hover { opacity: .85; }
-        .filter-bar a {
-            font-size: 12px; color: var(--text-3); text-decoration: none; padding: 8px 4px;
-        }
-        .filter-bar a:hover { color: var(--text); }
-
-        /* ── TABLE ── */
-        .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        thead th {
+        /* ── TABLE (local overrides) ── */
+        .table-card table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .table-card thead th {
             background: var(--surface-2); color: var(--text-3);
             font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
             padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border);
         }
-        tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
-        tbody tr:last-child td { border-bottom: none; }
-        tbody tr:hover td { background: var(--surface-2); }
+        .table-card tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+        .table-card tbody tr:last-child td { border-bottom: none; }
+        .table-card tbody tr:hover td { background: var(--surface-2); }
         .empty-cell { text-align: center; color: var(--text-3); padding: 32px 0 !important; }
-
-        /* ── BADGES ── */
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: .5px; }
-        .badge-global { background: rgba(124,108,252,.15); color: var(--brand-light); border: 1px solid rgba(124,108,252,.25); }
-        .badge-streamer { background: rgba(34,211,160,.12); color: var(--green); border: 1px solid rgba(34,211,160,.2); }
 
         /* ── DELETE BUTTON ── */
         .btn-del {
@@ -100,11 +64,13 @@
     </style>
     @endpush
 
-    <div class="admin-wrap">
+    <div class="page-container narrow">
         <div class="page-header">
-            <div class="page-title">Kata Terlarang</div>
-            <div class="page-subtitle">
-                Kelola daftar kata yang akan disensor otomatis (***) pada nama dan pesan donasi.
+            <div class="page-header-left">
+                <h1 class="page-title">Kata Terlarang</h1>
+                <p class="page-subtitle">
+                    Kelola daftar kata yang akan disensor otomatis (***) pada nama dan pesan donasi.
+                </p>
             </div>
         </div>
 
@@ -156,13 +122,13 @@
                         placeholder="Cari kata..."
                         autocomplete="off"
                     >
-                    <button type="submit">Cari</button>
+                    <button type="submit" class="btn-filter">Cari</button>
                     @if($search)
                         <a href="{{ route('admin.banned-words.index') }}">Reset</a>
                     @endif
                 </form>
 
-                <div class="table-wrap">
+                <div class="table-card">
                     <table>
                         <thead>
                             <tr>
@@ -182,9 +148,9 @@
                                 </td>
                                 <td>
                                     @if(is_null($bw->streamer_id))
-                                        <span class="badge badge-global">Global</span>
+                                        <span class="badge-brand">Global</span>
                                     @else
-                                        <span class="badge badge-streamer">Streamer</span>
+                                        <span class="badge-green">Streamer</span>
                                     @endif
                                 </td>
                                 <td style="color:var(--text-3); font-size:12px;">

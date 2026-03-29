@@ -34,6 +34,19 @@
             border-radius:{{ $radius }}px;
             padding:20px;
             transition:all .3s ease;
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            box-shadow: 0 8px 40px rgba(0,0,0,.6), 0 0 60px rgba(124,108,252,.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .subathon-widget::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2.5px;
+            background: linear-gradient(90deg, {{ $brand }}, #a855f7, #22d3a0);
+            box-shadow: 0 0 20px {{ $brand }};
         }
         .subathon-label{
             font-size:12px;font-weight:600;
@@ -48,34 +61,41 @@
             color:{{ $text }};
             line-height:1;
             letter-spacing:-1px;
+            text-shadow: 0 0 30px rgba(124,108,252,.3);
         }
         .subathon-timer.warning{
             color:#f97316;
             animation:pulse 1s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(249,115,22,.4);
         }
         .subathon-timer.danger{
             color:#ef4444;
             animation:pulse .5s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(239,68,68,.4);
         }
         .subathon-bar{
             width:100%;max-width:240px;
-            height:6px;
-            background:rgba(255,255,255,0.1);
-            border-radius:3px;
+            height:8px;
+            background:rgba(255,255,255,0.08);
+            border-radius:4px;
             margin-top:16px;
             overflow:hidden;
+            border: 1px solid rgba(255,255,255,.05);
         }
         .subathon-bar-fill{
             height:100%;
             background:linear-gradient(90deg,{{ $brand }},{{ $brand2 }});
-            border-radius:3px;
+            border-radius:4px;
             transition:width 1s linear;
+            box-shadow: 0 0 20px {{ $brand }};
         }
         .subathon-bar-fill.low{
             background:linear-gradient(90deg,#f97316,#fb923c);
+            box-shadow: 0 0 20px rgba(249,115,22,.5);
         }
         .subathon-bar-fill.critical{
             background:linear-gradient(90deg,#ef4444,#f87171);
+            box-shadow: 0 0 20px rgba(239,68,68,.5);
         }
         .subathon-remaining{
             font-size:11px;color:{{ $text2 }};

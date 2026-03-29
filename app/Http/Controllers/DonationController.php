@@ -10,6 +10,8 @@ use App\Services\ProfanityFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class DonationController extends Controller
@@ -19,11 +21,29 @@ class DonationController extends Controller
      */
     public function show(string $slug): View
     {
-        $streamer = Streamer::where('slug', $slug)->firstOrFail();
+        $streamer = $this->findStreamerBySlug($slug);
 
         abort_unless($streamer->is_accepting_donation, 404, 'Streamer sedang tidak menerima donasi.');
 
-        return view('donate.show', compact('streamer'));
+        // Load active milestones yang belum completed
+        $milestones = $streamer->milestones()
+            ->active()
+            ->notCompleted()
+            ->orderBy('order')
+            ->get();
+
+        // Media duration settings for frontend
+        $mediaDurationTiers = $streamer->getMediaDurationTiers();
+        $mediaUploadEnabled = $streamer->media_upload_enabled ?? true;
+        $mediaMaxSizeMb = $streamer->media_max_size_mb ?? 50;
+
+        return view('donate.show', compact(
+            'streamer', 
+            'milestones', 
+            'mediaDurationTiers',
+            'mediaUploadEnabled',
+            'mediaMaxSizeMb'
+        ));
     }
 
     /**
@@ -36,16 +56,19 @@ class DonationController extends Controller
      */
     public function store(Request $request, string $slug): JsonResponse
     {
-        $streamer = Streamer::where('slug', $slug)->firstOrFail();
+        $streamer = $this->findStreamerBySlug($slug);
 
         abort_unless($streamer->is_accepting_donation, 403, 'Streamer sedang tidak menerima donasi.');
 
         // ── Validasi input (error user / pihak ke-3 → rollback otomatis oleh Laravel) ──
-        // Max amount: Rp 100.000.000 (100 juta) - limit wajar untuk mencegah abuse
-        $maxAmount = 100000000;
+        $maxAmount = config('donation.max_amount', 100000000);
+        $mediaMaxSizeMb = $streamer->media_max_size_mb ?? 50;
+        $mediaMaxSizeKb = $mediaMaxSizeMb * 1024;
+        
         $validated = $request->validate([
             'name'   => ['required', 'string', 'max:60'],
             'amount' => ['required', 'integer', 'min:' . $streamer->min_donation, 'max:' . $maxAmount],
+            'milestone_id' => ['nullable', 'integer', 'exists:milestones,id'],
             'emoji'  => ['nullable', 'string', 'max:10'],
             'msg'    => ['nullable', 'string', 'max:200'],
             'yt_url' => [
@@ -54,13 +77,87 @@ class DonationController extends Controller
                 'max:255',
                 'regex:/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//i',
             ],
+            'media_file' => [
+                'nullable',
+                'file',
+                'mimes:mp4,webm,mov,avi,mp3,wav,ogg,m4a',
+                'max:' . $mediaMaxSizeKb,
+            ],
         ], [
             'name.required'   => 'Nama wajib diisi.',
             'amount.required' => 'Jumlah donasi wajib diisi.',
             'amount.min'      => 'Minimum donasi adalah Rp ' . number_format($streamer->min_donation, 0, ',', '.'),
             'amount.max'      => 'Maksimum donasi adalah Rp ' . number_format($maxAmount, 0, ',', '.'),
             'yt_url.regex'    => 'URL YouTube tidak valid. Gunakan youtube.com atau youtu.be',
+            'milestone_id.exists' => 'Milestone tidak valid.',
+            'media_file.max'  => 'Ukuran file maksimal ' . $mediaMaxSizeMb . 'MB.',
+            'media_file.mimes' => 'Format file tidak didukung. Gunakan MP4, WebM, MOV, AVI, MP3, WAV, OGG, atau M4A.',
         ]);
+
+        // ── Handle media file upload with duration validation ──
+        $mediaPath = null;
+        if ($request->hasFile('media_file') && $request->file('media_file')->isValid()) {
+            // Check if media upload is enabled for this streamer
+            if (!($streamer->media_upload_enabled ?? true)) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['media_file' => ['Upload media tidak diaktifkan untuk streamer ini.']],
+                ], 422);
+            }
+
+            // Check if donation amount qualifies for media upload
+            $amount = (int) $validated['amount'];
+            $maxDuration = $streamer->getMaxMediaDuration($amount);
+            
+            if ($maxDuration <= 0) {
+                $minTier = collect($streamer->getMediaDurationTiers())->sortBy('min_amount')->first();
+                $minAmount = $minTier ? $minTier['min_amount'] : 10000;
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['media_file' => ['Donasi minimal Rp ' . number_format($minAmount, 0, ',', '.') . ' untuk upload media.']],
+                ], 422);
+            }
+
+            // Validate actual file duration using getID3
+            $fileDuration = $this->getMediaDuration($request->file('media_file'));
+            
+            if ($fileDuration === null) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['media_file' => ['Tidak dapat membaca durasi file. Pastikan file tidak corrupt.']],
+                ], 422);
+            }
+
+            if ($fileDuration > $maxDuration) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['media_file' => [
+                        'Durasi file (' . $this->formatDuration($fileDuration) . ') melebihi batas maksimal (' . $this->formatDuration($maxDuration) . ') untuk nominal donasi ini.'
+                    ]],
+                ], 422);
+            }
+
+            // Upload the file
+            try {
+                $file = $request->file('media_file');
+                $ext = $file->getClientOriginalExtension();
+                $filename = 'media_' . $streamer->id . '_' . time() . '_' . Str::random(8) . '.' . $ext;
+                $mediaPath = $file->storeAs('donations/media', $filename, 'public');
+                
+                if ($mediaPath === false) {
+                    throw new \RuntimeException('Failed to store media file.');
+                }
+            } catch (\Throwable $e) {
+                Log::error('DonationController: gagal upload media', [
+                    'streamer_id' => $streamer->id,
+                    'error' => $e->getMessage(),
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['media_file' => ['Gagal mengupload file. Mohon coba lagi.']],
+                ], 422);
+            }
+        }
 
         // ── Sanitasi ──
         $name  = strip_tags($validated['name']);
@@ -79,13 +176,23 @@ class DonationController extends Controller
         try {
             $donation = Donation::create([
                 'streamer_id' => $streamer->id,
+                'milestone_id' => $validated['milestone_id'] ?? null,
                 'name'        => $name,
                 'amount'      => (int) $validated['amount'],
                 'emoji'       => $emoji,
                 'message'     => $msg,
                 'yt_url'      => $ytUrl,
+                'media_path'  => $mediaPath,
                 'ip_address'  => $request->ip(),
             ]);
+
+            // ── Update milestone progress jika ada ──
+            if (isset($validated['milestone_id'])) {
+                $milestone = \App\Models\Milestone::find($validated['milestone_id']);
+                if ($milestone && $milestone->streamer_id === $streamer->id) {
+                    $milestone->addAmount((int) $validated['amount']);
+                }
+            }
 
             // ── Update Subathon timer jika enabled ──
             $subathonUpdate = null;
@@ -93,6 +200,11 @@ class DonationController extends Controller
                 $subathonUpdate = $streamer->addSubathonTime((int) $validated['amount']);
             }
         } catch (\Throwable $e) {
+            // If donation save fails, clean up uploaded media
+            if ($mediaPath) {
+                Storage::disk('public')->delete($mediaPath);
+            }
+            
             Log::error('DonationController: gagal menyimpan donasi', [
                 'streamer_id' => $streamer->id,
                 'error'       => $e->getMessage(),
@@ -150,7 +262,59 @@ class DonationController extends Controller
         return response()->json([
             'success' => true,
             'message' => $streamer->thank_you_message,
-            'id'      => $donation->id,
+            'data'    => ['id' => $donation->id],
         ]);
+    }
+
+    /**
+     * Get media file duration in seconds using getID3.
+     *
+     * @param \Illuminate\Http\UploadedFile $file
+     * @return int|null Duration in seconds, or null if cannot read
+     */
+    private function getMediaDuration($file): ?int
+    {
+        try {
+            // Require getID3 library (legacy, not autoloaded)
+            $getID3Path = base_path('vendor/james-heinrich/getid3/getid3/getid3.php');
+            if (!class_exists('getID3') && file_exists($getID3Path)) {
+                require_once $getID3Path;
+            }
+            
+            if (!class_exists('getID3')) {
+                Log::warning('DonationController: getID3 class not found');
+                return null;
+            }
+            
+            $getID3 = new \getID3();
+            $fileInfo = $getID3->analyze($file->getRealPath());
+            
+            if (isset($fileInfo['playtime_seconds'])) {
+                return (int) ceil($fileInfo['playtime_seconds']);
+            }
+            
+            return null;
+        } catch (\Throwable $e) {
+            Log::warning('DonationController: getID3 failed to analyze file', [
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Format duration in seconds to human-readable string.
+     *
+     * @param int $seconds
+     * @return string
+     */
+    private function formatDuration(int $seconds): string
+    {
+        if ($seconds >= 60) {
+            $mins = floor($seconds / 60);
+            $secs = $seconds % 60;
+            return $secs > 0 ? "{$mins} menit {$secs} detik" : "{$mins} menit";
+        }
+        return "{$seconds} detik";
     }
 }

@@ -23,7 +23,7 @@ class StreamerDashboardController extends Controller
      */
     public function index(): View|RedirectResponse
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
         // Jika belum punya profil streamer, redirect ke setup
         if (!$user->streamer) {
@@ -36,7 +36,7 @@ class StreamerDashboardController extends Controller
         // Donasi terbaru (50 terakhir)
         $donations = $streamer->donations()
             ->orderBy('created_at', 'desc')
-            ->limit(50)
+            ->limit(config('pagination.dashboard_donations', 50))
             ->get();
 
         // Heatmap: kirim data bulan ini langsung (navigasi bulan lain via AJAX)
@@ -50,7 +50,7 @@ class StreamerDashboardController extends Controller
      */
     public function setup(): View|RedirectResponse
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
         if ($user->streamer) {
             return redirect()->route('streamer.dashboard');
@@ -64,7 +64,7 @@ class StreamerDashboardController extends Controller
      */
     public function storeSetup(Request $request): RedirectResponse
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
         if ($user->streamer) {
             return redirect()->route('streamer.dashboard');
@@ -103,11 +103,16 @@ class StreamerDashboardController extends Controller
     }
 
     /**
-     * Resolve a unique slug.
+     * Resolve a unique slug for a streamer profile.
      *
+     * Strategy:
      * - If $base is non-empty and not already taken → use it as-is.
      * - If $base is taken or empty → generate from $fallbackName + 4-char suffix,
      *   retrying up to 10 times until unique.
+     *
+     * @param string $base The preferred slug (may be empty or already taken)
+     * @param string $fallbackName Display name to use for slug generation if base unavailable
+     * @return string A unique slug guaranteed not to exist in database
      */
     private function resolveUniqueSlug(string $base, string $fallbackName): string
     {
@@ -153,7 +158,7 @@ class StreamerDashboardController extends Controller
      */
     public function settings(): View|RedirectResponse
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
         if (!$user->streamer) {
             return redirect()->route('streamer.setup');
@@ -168,7 +173,7 @@ class StreamerDashboardController extends Controller
      */
     public function updateSettings(Request $request): RedirectResponse
     {
-        $user     = Auth::user();
+        $user     = auth()->user();
         $streamer = $user->streamer;
 
         if (!$streamer) {
@@ -179,23 +184,15 @@ class StreamerDashboardController extends Controller
             'display_name'         => ['required', 'string', 'max:60'],
             'bio'                  => ['nullable', 'string', 'max:200'],
             'min_donation'         => ['required', 'integer', 'min:100', 'max:1000000'],
-            'alert_duration'       => ['required', 'integer', 'min:3000', 'max:30000'],
-            'alert_theme'          => ['required', 'in:default,minimal,neon,fire,ice'],
-            'yt_enabled'           => ['boolean'],
-            'sound_enabled'        => ['boolean'],
-            'notification_sound_preset' => ['nullable', 'string', 'in:ding,coin,whoosh,__custom__'],
             'avatar'               => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:2048'],
-            'sound_file'           => ['nullable', 'file', 'mimes:mp3,wav,ogg', 'max:5120'],
-            'delete_sound'         => ['nullable', 'in:0,1'],
-            'milestone_title'      => ['required', 'string', 'max:80'],
-            'milestone_target'     => ['required', 'integer', 'min:1000'],
-            'milestone_reset'      => ['boolean'],
-            'leaderboard_title'    => ['required', 'string', 'max:80'],
-            'leaderboard_count'    => ['required', 'integer', 'min:3', 'max:20'],
             'is_accepting_donation'=> ['boolean'],
             'thank_you_message'    => ['required', 'string', 'max:200'],
-            'subathon_enabled'     => ['boolean'],
-            'subathon_duration_minutes' => ['nullable', 'integer', 'min:1', 'max:1440'],
+            // Media upload settings
+            'media_upload_enabled' => ['boolean'],
+            'media_max_size_mb'    => ['nullable', 'integer', 'min:1', 'max:500'],
+            'media_tiers'          => ['nullable', 'array', 'max:10'],
+            'media_tiers.*.min_amount'   => ['nullable', 'integer', 'min:1000'],
+            'media_tiers.*.max_duration' => ['nullable', 'integer', 'min:5', 'max:600'],
         ]);
 
         // ── Handle avatar upload (atomic: upload baru dulu, hapus lama hanya jika berhasil) ──
@@ -232,123 +229,34 @@ class StreamerDashboardController extends Controller
             }
         }
 
-        // ── Handle sound file upload / delete (atomic: upload baru dulu, hapus lama hanya jika berhasil) ──
-        $existingIsCustom = $streamer->notification_sound
-            && !in_array($streamer->notification_sound, ['ding', 'coin', 'whoosh']);
-        $submittedPreset  = $request->input('notification_sound_preset', 'ding');
-        $userChosePreset  = in_array($submittedPreset, ['ding', 'coin', 'whoosh']);
-
-        if ($request->input('delete_sound') === '1' && $existingIsCustom) {
-            // User klik delete — hapus custom sound, kembali ke preset default
-            try {
-                Storage::disk('public')->delete($streamer->notification_sound);
-            } catch (\Throwable $e) {
-                Log::warning('StreamerDashboardController: gagal menghapus sound lama', [
-                    'streamer_id' => $streamer->id,
-                    'path'        => $streamer->notification_sound,
-                    'error'       => $e->getMessage(),
-                ]);
-                // Lanjutkan meski hapus gagal — set ke preset ding agar fungsional
-            }
-            $notificationSound = 'ding';
-
-        } elseif ($request->hasFile('sound_file') && $request->file('sound_file')->isValid()) {
-            // Upload sound baru — upload dulu, baru hapus yang lama
-            try {
-                // Use guessExtension() for security - it checks MIME type, not user-provided extension
-                $ext = $this->getSecureExtension($request->file('sound_file'), ['mp3', 'wav', 'ogg']);
-                
-                if ($ext === null) {
-                    return back()->withInput()->with('error', 'Tipe file suara tidak didukung. Gunakan MP3, WAV, atau OGG.');
-                }
-                
-                // Secure filename: streamer_id + random string + extension
-                $filename = $streamer->id . '_' . Str::random(8) . '.' . $ext;
-                $newPath = $request->file('sound_file')->storeAs('sounds', $filename, 'public');
-
-                if ($newPath === false) {
-                    throw new \RuntimeException('Upload file sound gagal (storeAs returned false).');
-                }
-
-                // Upload berhasil — baru hapus file lama
-                if ($existingIsCustom && $streamer->notification_sound !== $newPath) {
-                    try {
-                        Storage::disk('public')->delete($streamer->notification_sound);
-                    } catch (\Throwable $e) {
-                        Log::warning('StreamerDashboardController: gagal hapus sound lama setelah upload baru', [
-                            'streamer_id' => $streamer->id,
-                            'old_path'    => $streamer->notification_sound,
-                            'error'       => $e->getMessage(),
-                        ]);
-                        // Lanjutkan — file baru sudah tersimpan, file lama jadi orphan (bisa di-cleanup nanti)
-                    }
-                }
-                $notificationSound = $newPath;
-
-            } catch (\Throwable $e) {
-                Log::error('StreamerDashboardController: gagal upload sound file', [
-                    'streamer_id' => $streamer->id,
-                    'error'       => $e->getMessage(),
-                ]);
-                return back()->withInput()->with('error', 'Gagal mengunggah file suara. Mohon coba lagi.');
-            }
-
-        } elseif ($userChosePreset) {
-            // User memilih preset built-in — hapus custom file jika ada
-            if ($existingIsCustom) {
-                try {
-                    Storage::disk('public')->delete($streamer->notification_sound);
-                } catch (\Throwable $e) {
-                    Log::warning('StreamerDashboardController: gagal hapus sound lama saat ganti preset', [
-                        'streamer_id' => $streamer->id,
-                        'error'       => $e->getMessage(),
-                    ]);
-                }
-            }
-            $notificationSound = $submittedPreset;
-
-        } elseif ($existingIsCustom) {
-            // Custom badge masih aktif, tidak ada perubahan — pertahankan
-            $notificationSound = $streamer->notification_sound;
-        } else {
-            $notificationSound = 'ding';
-        }
 
         $streamer->update([
             'display_name'          => $validated['display_name'],
             'bio'                   => $validated['bio'] ?? null,
             'min_donation'          => $validated['min_donation'],
-            'alert_duration'        => $validated['alert_duration'],
-            'alert_theme'           => $validated['alert_theme'],
-            'yt_enabled'            => $request->boolean('yt_enabled'),
-            'sound_enabled'         => $request->boolean('sound_enabled'),
-            'notification_sound'    => $notificationSound,
-            'milestone_title'       => $validated['milestone_title'],
-            'milestone_target'      => $validated['milestone_target'],
-            'milestone_reset'       => $request->boolean('milestone_reset'),
-            'leaderboard_title'     => $validated['leaderboard_title'],
-            'leaderboard_count'     => $validated['leaderboard_count'],
             'is_accepting_donation' => $request->boolean('is_accepting_donation'),
             'thank_you_message'     => $validated['thank_you_message'],
-            'subathon_enabled'      => $request->boolean('subathon_enabled'),
-            'subathon_duration_minutes' => $validated['subathon_duration_minutes'] ?? 60,
+            'media_upload_enabled'  => $request->boolean('media_upload_enabled'),
+            'media_max_size_mb'     => $validated['media_max_size_mb'] ?? 50,
         ]);
 
-        // Handle subathon additional values (array)
-        $subathonValues = $request->input('subathon_values', []);
-        if (!empty($subathonValues)) {
-            $values = [];
-            foreach ($subathonValues as $v) {
-                if (isset($v['from']) && isset($v['minutes'])) {
-                    $values[] = [
-                        'from' => (int) $v['from'],
-                        'minutes' => (int) $v['minutes'],
+        // Handle media duration tiers (array)
+        $mediaTiers = $request->input('media_tiers', []);
+        if (!empty($mediaTiers)) {
+            $tiers = [];
+            foreach ($mediaTiers as $t) {
+                if (isset($t['min_amount']) && isset($t['max_duration']) && 
+                    (int) $t['min_amount'] > 0 && (int) $t['max_duration'] > 0) {
+                    $tiers[] = [
+                        'min_amount' => (int) $t['min_amount'],
+                        'max_duration' => (int) $t['max_duration'],
                     ];
                 }
             }
-            if (!empty($values)) {
-                usort($values, fn($a, $b) => $a['from'] <=> $b['from']);
-                $streamer->subathon_additional_values = $values;
+            if (!empty($tiers)) {
+                // Sort by min_amount ascending
+                usort($tiers, fn($a, $b) => $a['min_amount'] <=> $b['min_amount']);
+                $streamer->media_duration_tiers = $tiers;
                 $streamer->save();
             }
         }
@@ -372,7 +280,7 @@ class StreamerDashboardController extends Controller
      */
     public function regenerateApiKey(): RedirectResponse
     {
-        $user     = Auth::user();
+        $user     = auth()->user();
         $streamer = $user->streamer;
 
         if (!$streamer) {
@@ -391,24 +299,38 @@ class StreamerDashboardController extends Controller
     }
 
     /**
-     * AJAX: kembalikan data heatmap untuk bulan tertentu (JSON)
+     * AJAX: kembalikan data heatmap untuk bulan tertentu (JSON).
+     *
      * GET /streamer/heatmap-data?year=2026&month=3
+     * Validates year/month parameters and falls back to current date if invalid.
+     *
+     * @param Request $request The HTTP request with optional year/month query params
+     * @return JsonResponse Heatmap data array
      */
     public function heatmapData(Request $request): JsonResponse
     {
-        $user     = Auth::user();
+        $user     = auth()->user();
         $streamer = $user->streamer;
 
         if (!$streamer) {
-            return response()->json(['error' => 'Streamer tidak ditemukan.'], 404);
+            return response()->json(['success' => false, 'message' => 'Streamer tidak ditemukan.'], 404);
         }
 
-        $year  = (int) $request->query('year',  now()->year);
-        $month = (int) $request->query('month', now()->month);
+        // Validate with fallback to current date (user-friendly for AJAX)
+        $validator = \Illuminate\Support\Facades\Validator::make($request->query(), [
+            'year'  => 'nullable|integer|min:2000|max:2100',
+            'month' => 'nullable|integer|min:1|max:12',
+        ]);
 
-        // Sanity clamp
-        if ($year < 2000 || $year > 2100) $year  = now()->year;
-        if ($month < 1   || $month > 12)  $month = now()->month;
+        if ($validator->fails()) {
+            // Fall back to current date instead of returning error (better UX for AJAX)
+            $year  = now()->year;
+            $month = now()->month;
+        } else {
+            $validated = $validator->validated();
+            $year  = $validated['year'] ?? now()->year;
+            $month = $validated['month'] ?? now()->month;
+        }
 
         return response()->json($this->buildMonthHeatmap($streamer, $year, $month));
     }
@@ -416,13 +338,19 @@ class StreamerDashboardController extends Controller
     /**
      * Build heatmap data for a given month.
      *
-     * Returns:
-     *   year          int
-     *   month         int
-     *   monthLabel    string  e.g. "Maret 2026"
-     *   firstWeekday  int     0 = Sun … 6 = Sat (day-of-week of 1st of month)
-     *   daysInMonth   int
-     *   days          array   [{iso, dateLabel, total, count}, …]  (1 entry per day)
+     * Aggregates donation data by day (in WIB timezone) for calendar heatmap visualization.
+     * Uses timezone-aware SQL to properly group donations occurring in Indonesian time.
+     *
+     * @param \App\Models\Streamer $streamer The streamer to build heatmap for
+     * @param int $year Year (e.g., 2026)
+     * @param int $month Month (1-12)
+     * @return array Heatmap structure with keys:
+     *   - year: int
+     *   - month: int
+     *   - monthLabel: string (e.g., "Maret 2026")
+     *   - firstWeekday: int (0=Sun, 6=Sat - day of week for 1st of month)
+     *   - daysInMonth: int
+     *   - days: array of [{iso, dateLabel, total, count}, ...] (1 entry per day)
      */
     private function buildMonthHeatmap($streamer, int $year, int $month): array
     {
@@ -487,22 +415,42 @@ class StreamerDashboardController extends Controller
     }
 
     /**
-     * Kirim test alert ke SSE stream tanpa menyimpan ke database donations
+     * Kirim test alert ke SSE stream tanpa menyimpan ke database donations.
+     *
+     * Includes database-level rate limiting in addition to middleware throttle.
+     *
+     * @param Request $request The HTTP request
+     * @return JsonResponse Success/failure response with test alert data
      */
     public function testAlert(Request $request): JsonResponse
     {
-        $user     = Auth::user();
+        $user     = auth()->user();
         $streamer = $user->streamer;
 
         if (!$streamer) {
-            return response()->json(['ok' => false, 'error' => 'Profil streamer tidak ditemukan.'], 404);
+            return response()->json(['success' => false, 'message' => 'Profil streamer tidak ditemukan.'], 404);
         }
 
-        // Nama & pesan random untuk test
-        $names    = ['Budi Santoso', 'Siti Rahayu', 'Ahmad Fauzi', 'Dewi Pratiwi', 'Rizky Maulana'];
-        $messages = ['Semangat streamnya!', 'GG streamer!', 'Keep it up!', 'Mantap kali bang!', 'Halo dari penonton setia!'];
-        $emojis   = ['🎉', '💝', '🔥', '👏', '🌟'];
-        $amounts  = [5000, 10000, 25000, 50000, 100000];
+        // Database-level rate limiting (additional protection beyond middleware)
+        $testAlertConfig = config('alert.test_alert');
+        $recentTestAlerts = AlertQueue::where('streamer_id', $streamer->id)
+            ->whereNull('donation_id') // Test alerts have null donation_id
+            ->where('created_at', '>=', now()->subMinutes($testAlertConfig['window_minutes']))
+            ->count();
+
+        if ($recentTestAlerts >= $testAlertConfig['max_per_window']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terlalu banyak test alert. Tunggu beberapa menit.',
+            ], 429);
+        }
+
+        // Nama & pesan random untuk test dari config
+        $testConfig = config('donation.test_alert');
+        $names    = $testConfig['names'];
+        $messages = $testConfig['messages'];
+        $emojis   = $testConfig['emojis'];
+        $amounts  = $testConfig['amounts'];
 
         $name    = $names[array_rand($names)];
         $message = $messages[array_rand($messages)];
@@ -547,16 +495,19 @@ class StreamerDashboardController extends Controller
             ]);
 
             return response()->json([
-                'ok'    => false,
-                'error' => 'Gagal mengirim test alert. Pastikan widget OBS sedang terhubung.',
+                'success' => false,
+                'message' => 'Gagal mengirim test alert. Pastikan widget OBS sedang terhubung.',
             ], 500);
         }
 
         return response()->json([
-            'ok'     => true,
-            'name'   => $name,
-            'amount' => $amount,
-            'emoji'  => $emoji,
+            'success' => true,
+            'message' => 'Test alert berhasil dikirim.',
+            'data'    => [
+                'name'   => $name,
+                'amount' => $amount,
+                'emoji'  => $emoji,
+            ],
         ]);
     }
 
@@ -565,7 +516,7 @@ class StreamerDashboardController extends Controller
      */
     public function widgets(): View|RedirectResponse
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
         if (!$user->streamer) {
             return redirect()->route('streamer.setup');
@@ -581,29 +532,69 @@ class StreamerDashboardController extends Controller
     }
 
     /**
-     * Simpan widget settings (AJAX / form POST)
+     * Simpan widget settings (AJAX / form POST).
+     *
+     * Validates widget type and settings data before saving.
+     *
+     * @param Request $request The HTTP request containing widget and data
+     * @return \Illuminate\Http\JsonResponse Success/failure response
      */
     public function saveWidgets(Request $request): \Illuminate\Http\JsonResponse
     {
-        $user     = Auth::user();
+        $user     = auth()->user();
         $streamer = $user->streamer;
 
         if (!$streamer) {
-            return response()->json(['ok' => false, 'error' => 'Profil tidak ditemukan.'], 404);
+            return response()->json(['success' => false, 'message' => 'Profil tidak ditemukan.'], 404);
         }
 
-        $widget = $request->input('widget'); // 'alert','milestone','leaderboard','qr','subathon','running_text'
-        $data   = $request->input('data', []);
-
+        // Validate request structure
         $allowed = ['alert', 'milestone', 'leaderboard', 'qr', 'subathon', 'running_text'];
-        if (!in_array($widget, $allowed)) {
-            return response()->json(['ok' => false, 'error' => 'Widget tidak dikenal.'], 422);
+
+        try {
+            $validated = $request->validate([
+                'widget' => ['required', 'string', 'in:' . implode(',', $allowed)],
+                'data'   => ['required', 'array', 'max:50'], // Max 50 settings per widget
+                'data.*' => ['nullable', 'string', 'max:' . config('alert.widget_validation.max_string_length', 255)],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak valid: ' . implode(', ', $e->validator->errors()->all()),
+            ], 422);
         }
 
-        // Sanitize: hanya string keys, strip tags
+        $widget = $validated['widget'];
+        $data   = $validated['data'];
+
+        // Sanitize: normalize keys, strip HTML tags, validate specific field types
         $clean = [];
+        $validation = config('alert.widget_validation');
+
         foreach ($data as $key => $val) {
-            $clean[preg_replace('/[^a-z0-9_]/', '', strtolower($key))] = strip_tags((string) $val);
+            $normalizedKey = preg_replace('/[^a-z0-9_]/', '', strtolower($key));
+            if (empty($normalizedKey)) {
+                continue; // Skip invalid keys
+            }
+
+            $sanitizedVal = strip_tags((string) $val);
+
+            // Additional validation for specific field patterns
+            if (str_contains($normalizedKey, 'color') && !empty($sanitizedVal)) {
+                // Validate color format (hex)
+                if (!preg_match($validation['allowed_color_pattern'], $sanitizedVal)) {
+                    $sanitizedVal = ''; // Invalid color, reset to empty
+                }
+            }
+
+            if (str_contains($normalizedKey, 'duration') || str_contains($normalizedKey, 'size') || str_contains($normalizedKey, 'width') || str_contains($normalizedKey, 'height')) {
+                // Ensure numeric fields are within bounds
+                if (is_numeric($sanitizedVal)) {
+                    $sanitizedVal = (string) min((int) $sanitizedVal, $validation['max_numeric_value']);
+                }
+            }
+
+            $clean[$normalizedKey] = $sanitizedVal;
         }
 
         $current = $streamer->widget_settings ?? [];
@@ -617,7 +608,7 @@ class StreamerDashboardController extends Controller
             streamerId: $streamer->id,
         );
 
-        return response()->json(['ok' => true]);
+        return response()->json(['success' => true, 'message' => 'Widget settings berhasil disimpan.']);
     }
 
     /**
@@ -626,22 +617,32 @@ class StreamerDashboardController extends Controller
      */
     public function saveAlertSettings(Request $request): \Illuminate\Http\JsonResponse
     {
-        $user     = Auth::user();
+        $user     = auth()->user();
         $streamer = $user->streamer;
 
         if (!$streamer) {
-            return response()->json(['ok' => false, 'error' => 'Profil tidak ditemukan.'], 404);
+            return response()->json(['success' => false, 'message' => 'Profil tidak ditemukan.'], 404);
         }
 
-        $validSounds = [
+        $validSounds = config('alert.sound_presets', [
             'ding', 'coin', 'whoosh', 'chime', 'pop', 'tada',
             'woosh_light', 'blip', 'sparkle', 'fanfare',
-        ];
+        ]);
 
         $validated = $request->validate([
             'sound_enabled'        => ['boolean'],
             'notification_sound'   => ['nullable', 'string', 'in:' . implode(',', $validSounds)],
+            // Media channels
             'yt_enabled'           => ['boolean'],
+            'tiktok_enabled'      => ['boolean'],
+            'instagram_enabled'   => ['boolean'],
+            'twitter_enabled'     => ['boolean'],
+            'spotify_enabled'     => ['boolean'],
+            'media_upload_enabled' => ['boolean'],
+            'media_max_size_mb'   => ['nullable', 'integer', 'min:1', 'max:500'],
+            'media_tiers'         => ['nullable', 'array', 'max:10'],
+            'media_tiers.*.min_amount'   => ['nullable', 'integer', 'min:1000'],
+            'media_tiers.*.max_duration' => ['nullable', 'integer', 'min:5', 'max:600'],
             'alert_max_duration'   => ['required', 'integer', 'min:5', 'max:120'],
             'alert_duration_tiers' => ['required', 'array', 'min:1', 'max:4'],
             'alert_duration_tiers.*.from'     => ['required', 'integer', 'min:0'],
@@ -660,10 +661,27 @@ class StreamerDashboardController extends Controller
         // Sort tiers ascending by `from`
         usort($tiers, fn($a, $b) => $a['from'] <=> $b['from']);
 
+        // Process media tiers
+        $mediaTiers = [];
+        if (!empty($validated['media_tiers'])) {
+            $mediaTiers = array_filter($validated['media_tiers'], function($tier) {
+                return !empty($tier['min_amount']) && !empty($tier['max_duration']);
+            });
+            $mediaTiers = array_values($mediaTiers);
+        }
+
         $streamer->fill([
             'sound_enabled'        => $request->boolean('sound_enabled'),
             'notification_sound'   => $validated['notification_sound'] ?? $streamer->notification_sound,
+            // Media channels
             'yt_enabled'           => $request->boolean('yt_enabled'),
+            'tiktok_enabled'      => $request->boolean('tiktok_enabled'),
+            'instagram_enabled'   => $request->boolean('instagram_enabled'),
+            'twitter_enabled'     => $request->boolean('twitter_enabled'),
+            'spotify_enabled'     => $request->boolean('spotify_enabled'),
+            'media_upload_enabled' => $request->boolean('media_upload_enabled'),
+            'media_max_size_mb'   => $validated['media_max_size_mb'] ?? $streamer->media_max_size_mb ?? 50,
+            'media_duration_tiers' => !empty($mediaTiers) ? $mediaTiers : $streamer->media_duration_tiers,
             'alert_max_duration'   => $maxDur,
             'alert_duration_tiers' => $tiers,
         ])->save();
@@ -674,7 +692,73 @@ class StreamerDashboardController extends Controller
             streamerId: $streamer->id,
         );
 
-        return response()->json(['ok' => true]);
+        return response()->json(['success' => true, 'message' => 'Alert settings berhasil disimpan.']);
+    }
+
+    /**
+     * Simpan pengaturan Milestone Widget (AJAX).
+     * POST /streamer/widgets/milestone-settings
+     */
+    public function saveMilestoneSettings(Request $request): JsonResponse
+    {
+        $user     = auth()->user();
+        $streamer = $user->streamer;
+
+        if (!$streamer) {
+            return response()->json(['success' => false, 'message' => 'Profil tidak ditemukan.'], 404);
+        }
+
+        $validated = $request->validate([
+            'milestone_title'  => ['required', 'string', 'max:80'],
+            'milestone_target' => ['required', 'integer', 'min:1000', 'max:1000000000'],
+            'milestone_reset'  => ['boolean'],
+        ]);
+
+        $streamer->fill([
+            'milestone_title'  => $validated['milestone_title'],
+            'milestone_target' => $validated['milestone_target'],
+            'milestone_reset'  => $request->boolean('milestone_reset'),
+        ])->save();
+
+        ActivityLog::log(
+            action: 'streamer.milestone-settings.saved',
+            description: 'Pengaturan Milestone disimpan',
+            streamerId: $streamer->id,
+        );
+
+        return response()->json(['success' => true, 'message' => 'Pengaturan Milestone berhasil disimpan.']);
+    }
+
+    /**
+     * Simpan pengaturan Leaderboard Widget (AJAX).
+     * POST /streamer/widgets/leaderboard-settings
+     */
+    public function saveLeaderboardSettings(Request $request): JsonResponse
+    {
+        $user     = auth()->user();
+        $streamer = $user->streamer;
+
+        if (!$streamer) {
+            return response()->json(['success' => false, 'message' => 'Profil tidak ditemukan.'], 404);
+        }
+
+        $validated = $request->validate([
+            'leaderboard_title' => ['required', 'string', 'max:80'],
+            'leaderboard_count' => ['required', 'integer', 'min:3', 'max:20'],
+        ]);
+
+        $streamer->fill([
+            'leaderboard_title' => $validated['leaderboard_title'],
+            'leaderboard_count' => $validated['leaderboard_count'],
+        ])->save();
+
+        ActivityLog::log(
+            action: 'streamer.leaderboard-settings.saved',
+            description: 'Pengaturan Leaderboard disimpan',
+            streamerId: $streamer->id,
+        );
+
+        return response()->json(['success' => true, 'message' => 'Pengaturan Leaderboard berhasil disimpan.']);
     }
 
     /**
@@ -682,7 +766,7 @@ class StreamerDashboardController extends Controller
      */
     public function subathon(): RedirectResponse
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
         if (!$user->streamer) {
             return redirect()->route('streamer.setup');
@@ -696,11 +780,11 @@ class StreamerDashboardController extends Controller
      */
     public function saveSubathonSettings(Request $request): JsonResponse
     {
-        $user     = Auth::user();
+        $user     = auth()->user();
         $streamer = $user->streamer;
 
         if (!$streamer) {
-            return response()->json(['ok' => false, 'error' => 'Profil tidak ditemukan.'], 404);
+            return response()->json(['success' => false, 'message' => 'Profil tidak ditemukan.'], 404);
         }
 
         $validated = $request->validate([
@@ -732,7 +816,7 @@ class StreamerDashboardController extends Controller
             streamerId: $streamer->id,
         );
 
-        return response()->json(['ok' => true]);
+        return response()->json(['success' => true, 'message' => 'Pengaturan Subathon berhasil disimpan.']);
     }
 
     /**
@@ -740,11 +824,11 @@ class StreamerDashboardController extends Controller
      */
     public function resetSubathonTimer(Request $request): JsonResponse
     {
-        $user     = Auth::user();
+        $user     = auth()->user();
         $streamer = $user->streamer;
 
         if (!$streamer) {
-            return response()->json(['ok' => false, 'error' => 'Profil tidak ditemukan.'], 404);
+            return response()->json(['success' => false, 'message' => 'Profil tidak ditemukan.'], 404);
         }
 
         $streamer->resetSubathonTimer();
@@ -756,9 +840,12 @@ class StreamerDashboardController extends Controller
         );
 
         return response()->json([
-            'ok'    => true,
-            'timer' => $streamer->subathon_current_minutes,
-            'formatted' => $streamer->subathon_timer_formatted,
+            'success'   => true,
+            'message'   => 'Timer Subathon berhasil di-reset.',
+            'data'      => [
+                'timer'     => $streamer->subathon_current_minutes,
+                'formatted' => $streamer->subathon_timer_formatted,
+            ],
         ]);
     }
 
@@ -767,17 +854,17 @@ class StreamerDashboardController extends Controller
      */
     public function addSubathonTimeManual(Request $request): JsonResponse
     {
-        $user     = Auth::user();
+        $user     = auth()->user();
         $streamer = $user->streamer;
 
         if (!$streamer) {
-            return response()->json(['ok' => false, 'error' => 'Profil tidak ditemukan.'], 404);
+            return response()->json(['success' => false, 'message' => 'Profil tidak ditemukan.'], 404);
         }
 
         $minutes = $request->input('minutes', 0);
 
         if ($minutes < 1 || $minutes > 60) {
-            return response()->json(['ok' => false, 'error' => 'Menit harus antara 1-60.'], 422);
+            return response()->json(['success' => false, 'message' => 'Menit harus antara 1-60.'], 422);
         }
 
         $streamer->subathon_current_minutes = ($streamer->subathon_current_minutes ?? 0) + $minutes;
@@ -791,9 +878,12 @@ class StreamerDashboardController extends Controller
         );
 
         return response()->json([
-            'ok'    => true,
-            'timer' => $streamer->subathon_current_minutes,
-            'formatted' => $streamer->subathon_timer_formatted,
+            'success'   => true,
+            'message'   => "Timer Subathon berhasil ditambah {$minutes} menit.",
+            'data'      => [
+                'timer'     => $streamer->subathon_current_minutes,
+                'formatted' => $streamer->subathon_timer_formatted,
+            ],
         ]);
     }
 

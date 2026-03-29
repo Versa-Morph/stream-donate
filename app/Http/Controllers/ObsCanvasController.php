@@ -2,16 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Streamer;
+use App\Services\QrCodeGenerator;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\View\View;
 
 class ObsCanvasController extends Controller
 {
     /**
-     * Halaman editor canvas — hanya untuk streamer yang login.
+     * QR Code Generator service instance.
      */
-    public function editor(Request $request)
+    private QrCodeGenerator $qrGenerator;
+
+    /**
+     * Create a new controller instance.
+     */
+    public function __construct(QrCodeGenerator $qrGenerator)
+    {
+        $this->qrGenerator = $qrGenerator;
+    }
+
+    /**
+     * Halaman editor canvas — hanya untuk streamer yang login.
+     *
+     * @param Request $request The HTTP request
+     * @return View|RedirectResponse The editor view or redirect to setup
+     */
+    public function editor(Request $request): View|RedirectResponse
     {
         $streamer = auth()->user()->streamer;
 
@@ -27,13 +45,16 @@ class ObsCanvasController extends Controller
 
     /**
      * Simpan canvas_config ke database — dipanggil via AJAX fetch (JSON).
+     *
+     * @param Request $request The HTTP request with canvas configuration
+     * @return JsonResponse Success/failure response
      */
-    public function save(Request $request)
+    public function save(Request $request): JsonResponse
     {
         $streamer = auth()->user()->streamer;
 
         if (!$streamer) {
-            return response()->json(['error' => 'Streamer not found'], 404);
+            return response()->json(['success' => false, 'message' => 'Streamer not found'], 404);
         }
 
         $validated = $request->validate([
@@ -74,48 +95,21 @@ class ObsCanvasController extends Controller
 
     /**
      * Render canvas output untuk OBS Browser Source — public, tanpa auth.
+     *
+     * @param Request $request The HTTP request
+     * @param string $slug Streamer's unique slug
+     * @return View The canvas view for OBS
      */
-    public function render(Request $request, string $slug)
+    public function render(Request $request, string $slug): View
     {
-        $streamer     = Streamer::where('slug', $slug)->firstOrFail();
+        $streamer     = $this->findStreamerBySlug($slug);
         $apiKey       = $request->query('key', '');
         $canvasConfig = $streamer->getCanvasConfig();
 
-        // Generate QR SVG untuk widget QR Code
+        // Generate QR SVG untuk widget QR Code using centralized service
         $donateUrl = url('/' . $streamer->slug);
-        $qrSvg     = $this->buildQrSvg($donateUrl);
+        $qrSvg     = $this->qrGenerator->generate($donateUrl, 200);
 
         return view('obs.canvas', compact('streamer', 'apiKey', 'canvasConfig', 'donateUrl', 'qrSvg'));
-    }
-
-    /**
-     * Generate QR Code SVG (sama seperti QrController).
-     */
-    private function buildQrSvg(string $url): string
-    {
-        $raw = QrCode::format('svg')
-            ->size(200)
-            ->errorCorrection('H')
-            ->margin(1)
-            ->generate($url);
-
-        $svg = (string) $raw;
-
-        // Inject gradient def + circular logo overlay (sama persis dengan QrController)
-        $defs = '<defs>'
-            . '<radialGradient id="qrBg" cx="50%" cy="50%" r="50%">'
-            . '<stop offset="0%" stop-color="#1a1a2e"/>'
-            . '<stop offset="100%" stop-color="#0d0d18"/>'
-            . '</radialGradient>'
-            . '</defs>';
-
-        $logo = '<circle cx="50%" cy="50%" r="13%" fill="#7c6cfc"/>'
-            . '<text x="50%" y="54%" font-family="Inter,sans-serif" font-size="11" font-weight="800" '
-            . 'fill="white" text-anchor="middle" dominant-baseline="middle">SD</text>';
-
-        $svg = str_replace('<svg ', '<svg style="background:#141419;border-radius:8px;" ', $svg);
-        $svg = str_replace('</svg>', $defs . $logo . '</svg>', $svg);
-
-        return $svg;
     }
 }

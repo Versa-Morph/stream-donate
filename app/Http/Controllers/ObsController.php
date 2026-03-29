@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Streamer;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class ObsController extends Controller
 {
@@ -36,11 +37,15 @@ class ObsController extends Controller
      */
 
     /**
-     * Overlay alert widget untuk OBS
+     * Overlay alert widget untuk OBS.
+     *
+     * @param Request $request The HTTP request
+     * @param string $slug Streamer's unique slug
+     * @return View The overlay widget view
      */
-    public function overlay(Request $request, string $slug)
+    public function overlay(Request $request, string $slug): View
     {
-        $streamer = Streamer::where('slug', $slug)->firstOrFail();
+        $streamer = $this->findStreamerBySlug($slug);
 
         // Validasi API key opsional (bisa diakses tanpa key tapi hanya baca)
         $apiKey = $request->query('key', '');
@@ -49,33 +54,45 @@ class ObsController extends Controller
     }
 
     /**
-     * Leaderboard widget untuk OBS
+     * Leaderboard widget untuk OBS.
+     *
+     * @param Request $request The HTTP request
+     * @param string $slug Streamer's unique slug
+     * @return View The leaderboard widget view
      */
-    public function leaderboard(Request $request, string $slug)
+    public function leaderboard(Request $request, string $slug): View
     {
-        $streamer = Streamer::where('slug', $slug)->firstOrFail();
+        $streamer = $this->findStreamerBySlug($slug);
         $apiKey = $request->query('key', '');
 
         return view('obs.leaderboard', compact('streamer', 'apiKey'));
     }
 
     /**
-     * Milestone progress bar widget untuk OBS
+     * Milestone progress bar widget untuk OBS.
+     *
+     * @param Request $request The HTTP request
+     * @param string $slug Streamer's unique slug
+     * @return View The milestone widget view
      */
-    public function milestone(Request $request, string $slug)
+    public function milestone(Request $request, string $slug): View
     {
-        $streamer = Streamer::where('slug', $slug)->firstOrFail();
+        $streamer = $this->findStreamerBySlug($slug);
         $apiKey = $request->query('key', '');
 
         return view('obs.milestone', compact('streamer', 'apiKey'));
     }
 
     /**
-     * Subathon timer widget untuk OBS
+     * Subathon timer widget untuk OBS.
+     *
+     * @param Request $request The HTTP request
+     * @param string $slug Streamer's unique slug
+     * @return View The subathon timer widget view
      */
-    public function subathon(Request $request, string $slug)
+    public function subathon(Request $request, string $slug): View
     {
-        $streamer = Streamer::where('slug', $slug)->firstOrFail();
+        $streamer = $this->findStreamerBySlug($slug);
         $apiKey = $request->query('key', '');
 
         $widgetSettings = $streamer->getWidgetSettings();
@@ -85,11 +102,17 @@ class ObsController extends Controller
     }
 
     /**
-     * Running text widget untuk OBS
+     * Running text widget untuk OBS.
+     *
+     * Displays recent donation messages in a scrolling marquee format.
+     *
+     * @param Request $request The HTTP request
+     * @param string $slug Streamer's unique slug
+     * @return View The running text widget view
      */
-    public function runningText(Request $request, string $slug)
+    public function runningText(Request $request, string $slug): View
     {
-        $streamer = Streamer::where('slug', $slug)->firstOrFail();
+        $streamer = $this->findStreamerBySlug($slug);
         $apiKey = $request->query('key', '');
 
         $widgetSettings = $streamer->getWidgetSettings();
@@ -101,7 +124,7 @@ class ObsController extends Controller
             ->whereNotNull('message')
             ->where('message', '!=', '')
             ->orderBy('created_at', 'desc')
-            ->limit(20)
+            ->limit(config('pagination.running_text_donations', 20))
             ->get();
 
         return view('obs.running_text', compact('streamer', 'apiKey', 'widget', 'streamerMessage', 'donations'));

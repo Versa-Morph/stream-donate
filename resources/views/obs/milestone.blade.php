@@ -26,9 +26,11 @@
             --text:    #f1f1f6;
             --text-2:  rgba(241,241,246,.55);
             --text-3:  rgba(241,241,246,.35);
-            --surface: rgba(8,8,12,.96);
-            --border:  rgba(255,255,255,.09);
-            --border2: rgba(124,108,252,.2);
+            --surface: rgba(8,8,12,.88);
+            --border:  rgba(255,255,255,.1);
+            --border2: rgba(124,108,252,.22);
+            --glass-blur: 16px;
+            --glass-glow: 0 0 60px rgba(124,108,252,.1);
         }
 
         /* ─── PANEL ─── */
@@ -51,12 +53,15 @@
         .ms-wrap {
             background: var(--surface);
             border: 1px solid var(--border2);
-            border-radius: var(--radius-ms, 16px);
+            border-radius: var(--radius-ms, 18px);
             overflow: hidden;
             box-shadow:
                 0 8px 40px rgba(0,0,0,.7),
-                inset 0 0 0 1px rgba(255,255,255,.04);
+                inset 0 0 0 1px rgba(255,255,255,.05),
+                var(--glass-glow);
             position: relative;
+            backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
         }
 
         /* Top accent bar */
@@ -64,8 +69,9 @@
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0;
-            height: 2px;
+            height: 2.5px;
             background: linear-gradient(90deg, var(--brand), var(--purple), var(--green));
+            box-shadow: 0 0 20px rgba(124,108,252,.4);
         }
 
         /* ─── INNER CONTENT ─── */
@@ -76,14 +82,15 @@
         /* ─── BADGE ─── */
         .ms-badge {
             display: inline-flex; align-items: center; gap: 5px;
-            background: rgba(124,108,252,.1);
-            border: 1px solid rgba(124,108,252,.22);
+            background: rgba(124,108,252,.12);
+            border: 1px solid rgba(124,108,252,.25);
             border-radius: 20px;
-            padding: 3px 9px;
+            padding: 3px 10px;
             font-size: 9px; font-weight: 800; letter-spacing: 1.5px;
             color: var(--brand2);
             text-transform: uppercase;
             margin-bottom: 10px;
+            box-shadow: 0 0 20px rgba(124,108,252,.15);
         }
 
         /* ─── TITLE ─── */
@@ -129,21 +136,23 @@
 
         /* ─── PROGRESS TRACK ─── */
         .ms-track {
-            height: 8px;
-            background: rgba(255,255,255,.06);
-            border-radius: 4px;
+            height: 10px;
+            background: rgba(255,255,255,.08);
+            border-radius: 5px;
             overflow: hidden;
             position: relative;
+            border: 1px solid rgba(255,255,255,.05);
         }
 
         .ms-bar {
             height: 100%;
             width: 0%;
-            border-radius: 4px;
+            border-radius: 5px;
             background: linear-gradient(90deg, var(--brand), var(--purple), var(--orange));
             background-size: 200% 100%;
             transition: width 1.2s cubic-bezier(.4, 0, .2, 1);
             position: relative;
+            box-shadow: 0 0 20px rgba(124,108,252,.4);
         }
 
         /* Shimmer */

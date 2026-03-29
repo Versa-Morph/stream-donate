@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AlertQueue;
 use App\Models\Streamer;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -22,7 +23,7 @@ class SseController extends Controller
      */
     public function stream(Request $request, string $slug): StreamedResponse
     {
-        $streamer = Streamer::where('slug', $slug)->firstOrFail();
+        $streamer = $this->findStreamerBySlug($slug);
 
         // Validasi API key dengan hash_equals untuk mencegah timing attack
         $apiKey = $request->query('key');
@@ -65,6 +66,10 @@ class SseController extends Controller
                     'streamer_id' => $streamer->id,
                     'error'       => $e->getMessage(),
                 ]);
+                // Notify client of stats error so JavaScript can handle appropriately
+                echo "event: stats_error\n";
+                echo "data: " . json_encode(['error' => 'Failed to load initial stats']) . "\n\n";
+                flush();
             }
 
             $lastPing   = time();
@@ -81,10 +86,12 @@ class SseController extends Controller
                     // Reload streamer untuk memastikan masih ada (tidak dihapus)
                     // Cukup dilakukan di heartbeat, bukan setiap detik
                     // Baca alert baru untuk streamer ini saja (terisolasi)
+                    // SAFETY: Limit alerts to prevent overwhelming client on reconnect
                     $newAlerts = AlertQueue::where('streamer_id', $streamer->id)
                         ->where('seq', '>', $currentSeq)
                         ->where('expires_at', '>', now())
                         ->orderBy('seq', 'asc')
+                        ->limit(config('pagination.sse_max_alerts_batch', 50))
                         ->get();
 
                     if ($newAlerts->isNotEmpty()) {
@@ -154,11 +161,15 @@ class SseController extends Controller
     }
 
     /**
-     * Endpoint stats JSON — snapshot satu kali (untuk inisialisasi widget)
+     * Endpoint stats JSON — snapshot satu kali (untuk inisialisasi widget).
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param string $slug Streamer slug identifier
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function stats(Request $request, string $slug)
+    public function stats(Request $request, string $slug): JsonResponse
     {
-        $streamer = Streamer::where('slug', $slug)->firstOrFail();
+        $streamer = $this->findStreamerBySlug($slug);
 
         // Validasi API key dengan hash_equals untuk mencegah timing attack
         $apiKey = $request->query('key');

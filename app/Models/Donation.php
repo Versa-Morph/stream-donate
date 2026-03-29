@@ -13,11 +13,13 @@ class Donation extends Model
 
     protected $fillable = [
         'streamer_id',
+        'milestone_id',
         'name',
         'amount',
         'emoji',
         'message',
         'yt_url',
+        'media_path',
         'ip_address',
     ];
 
@@ -39,6 +41,11 @@ class Donation extends Model
     public function streamer(): BelongsTo
     {
         return $this->belongsTo(Streamer::class);
+    }
+
+    public function milestone(): BelongsTo
+    {
+        return $this->belongsTo(Milestone::class);
     }
 
     public function alertQueue(): HasMany

@@ -76,6 +76,15 @@ class ProcessDonationJob implements ShouldQueue
                 'time'      => $this->donation->created_at->toIso8601String(),
             ];
 
+            // Add media file info if present (for Media Player widget)
+            if (!empty($this->donation->media_path)) {
+                $payload['media_file'] = $this->donation->media_path;
+                // Determine media type from extension
+                $extension = strtolower(pathinfo($this->donation->media_path, PATHINFO_EXTENSION));
+                $videoExtensions = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
+                $payload['media_type'] = in_array($extension, $videoExtensions) ? 'video' : 'audio';
+            }
+
             // Simpan ke alert queue dengan TTL 15 menit
             // (diperpanjang dari 5 menit agar OBS yang sempat offline masih bisa replay)
             AlertQueue::create([

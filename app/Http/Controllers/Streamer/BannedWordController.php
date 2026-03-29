@@ -7,6 +7,7 @@ use App\Models\BannedWord;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class BannedWordController extends Controller
 {
@@ -19,11 +20,13 @@ class BannedWordController extends Controller
      */
     public function index(): JsonResponse
     {
-        $streamer = Auth::user()->streamer;
+        $streamer = auth()->user()->streamer;
         abort_unless($streamer, 403);
 
+        // PERFORMANCE: Limit global words display (unlikely to exceed, but safe)
         $global = BannedWord::whereNull('streamer_id')
             ->orderBy('word')
+            ->limit(config('pagination.max_banned_words', 1000))
             ->pluck('word');
 
         $custom = BannedWord::where('streamer_id', $streamer->id)
@@ -41,7 +44,7 @@ class BannedWordController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $streamer = Auth::user()->streamer;
+        $streamer = auth()->user()->streamer;
         abort_unless($streamer, 403);
 
         $request->validate([
@@ -57,8 +60,8 @@ class BannedWordController extends Controller
 
         if ($globalExists) {
             return response()->json([
-                'ok'    => false,
-                'error' => "Kata \"$word\" sudah ada di daftar global.",
+                'success' => false,
+                'message' => "Kata \"$word\" sudah ada di daftar global.",
             ], 422);
         }
 
@@ -69,8 +72,8 @@ class BannedWordController extends Controller
 
         if ($ownExists) {
             return response()->json([
-                'ok'    => false,
-                'error' => "Kata \"$word\" sudah ada di daftar kamu.",
+                'success' => false,
+                'message' => "Kata \"$word\" sudah ada di daftar kamu.",
             ], 422);
         }
 
@@ -80,10 +83,16 @@ class BannedWordController extends Controller
             'created_by'  => Auth::id(),
         ]);
 
+        // Invalidate profanity filter cache for this streamer
+        $this->invalidateProfanityCache($streamer->id);
+
         return response()->json([
-            'ok'   => true,
-            'id'   => $banned->id,
-            'word' => $banned->word,
+            'success' => true,
+            'message' => 'Kata berhasil ditambahkan.',
+            'data'    => [
+                'id'   => $banned->id,
+                'word' => $banned->word,
+            ],
         ]);
     }
 
@@ -93,20 +102,38 @@ class BannedWordController extends Controller
      */
     public function destroy(BannedWord $bannedWord): JsonResponse
     {
-        $streamer = Auth::user()->streamer;
+        $streamer = auth()->user()->streamer;
         abort_unless($streamer, 403);
 
         // Enforce ownership — streamer can only delete their own words
         if ($bannedWord->streamer_id !== $streamer->id) {
             return response()->json([
-                'ok'    => false,
-                'error' => 'Kamu tidak bisa menghapus kata ini.',
+                'success' => false,
+                'message' => 'Kamu tidak bisa menghapus kata ini.',
             ], 403);
         }
 
         $word = $bannedWord->word;
         $bannedWord->delete();
 
-        return response()->json(['ok' => true, 'word' => $word]);
+        // Invalidate profanity filter cache for this streamer
+        $this->invalidateProfanityCache($streamer->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kata berhasil dihapus.',
+            'data'    => ['word' => $word],
+        ]);
+    }
+
+    /**
+     * Invalidate profanity filter cache when banned words are modified.
+     *
+     * @param int $streamerId The streamer whose cache should be invalidated
+     */
+    private function invalidateProfanityCache(int $streamerId): void
+    {
+        Cache::forget("banned_words:{$streamerId}");
+        Cache::forget("banned_words:global");
     }
 }
