@@ -278,7 +278,15 @@ git commit -m "feat: deskripsi fitur"
 git push -u origin feature/nama-fitur
 
 # 5. Buat Pull Request di GitHub: feature/nama-fitur → development
+
+# 6. Setelah PR di-merge, HAPUS branch feature (wajib!)
+git checkout development
+git pull origin development
+git branch -d feature/nama-fitur          # Hapus branch lokal
+git push origin --delete feature/nama-fitur  # Hapus branch remote
 ```
+
+> **Penting:** Selalu hapus branch feature setelah di-merge untuk menjaga repository tetap bersih. Jangan biarkan branch menumpuk!
 
 ### Merge ke Main (Release)
 
