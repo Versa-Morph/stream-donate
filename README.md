@@ -250,9 +250,81 @@ php artisan pail
 
 ---
 
+## Git Workflow
+
+Project ini menggunakan **Git Flow** sederhana dengan branch utama:
+
+| Branch | Fungsi |
+|--------|--------|
+| `main` | Production-ready code. Hanya menerima merge dari `development` |
+| `development` | Integrasi semua feature. Testing sebelum ke `main` |
+| `feature/*` | Branch per-fitur baru |
+
+### Membuat Feature Baru
+
+```bash
+# 1. Pastikan development up-to-date
+git checkout development
+git pull origin development
+
+# 2. Buat branch feature baru
+git checkout -b feature/nama-fitur
+
+# 3. Develop & commit
+git add .
+git commit -m "feat: deskripsi fitur"
+
+# 4. Push ke remote
+git push -u origin feature/nama-fitur
+
+# 5. Buat Pull Request di GitHub: feature/nama-fitur → development
+```
+
+### Merge ke Main (Release)
+
+```bash
+# 1. Pastikan development sudah tested & stable
+git checkout development
+git pull origin development
+
+# 2. Merge ke main
+git checkout main
+git pull origin main
+git merge development
+
+# 3. Push ke production
+git push origin main
+
+# 4. (Opsional) Tag release
+git tag -a v1.0.0 -m "Release v1.0.0"
+git push origin v1.0.0
+```
+
+### Konvensi Commit Message
+
+Gunakan format [Conventional Commits](https://www.conventionalcommits.org/):
+
+| Prefix | Penggunaan |
+|--------|------------|
+| `feat:` | Fitur baru |
+| `fix:` | Bug fix |
+| `docs:` | Dokumentasi |
+| `style:` | Formatting, tidak mengubah logic |
+| `refactor:` | Refactoring code |
+| `test:` | Menambah/memperbaiki test |
+| `chore:` | Maintenance, dependencies, dll |
+
+**Contoh:**
+```bash
+git commit -m "feat: tambah filter donasi by date range"
+git commit -m "fix: overlay tidak muncul saat nominal 0"
+git commit -m "docs: update README dengan workflow git"
+```
+
+---
+
 ## Catatan
 
-- File legacy PHP vanilla (sebelum migrasi ke Laravel) tersimpan di folder `_legacy/` sebagai referensi.
 - Untuk deploy ke server publik, pastikan `APP_DEBUG=false` dan `QUEUE_CONNECTION=database` dengan queue worker aktif (`php artisan queue:work`).
 - SSE reconnect otomatis setiap 3 detik jika koneksi terputus.
 - Perubahan tema/suara di halaman Settings akan berlaku di OBS dalam ~20 detik tanpa perlu refresh Browser Source.
