@@ -1,4 +1,4 @@
-# StreamDonate
+# Tiptipan
 
 Platform donasi real-time untuk streamer. Penonton bisa kirim donasi langsung dari browser, alert muncul otomatis di OBS via Browser Source — tanpa plugin tambahan, tanpa layanan pihak ketiga.
 
