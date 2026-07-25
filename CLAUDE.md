@@ -1,0 +1,79 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project
+
+StreamDonate — Laravel 12 real-time donation platform for streamers. Public donors submit donations via a per-streamer public form; donations flow into an alert queue that OBS Browser Source widgets consume over Server-Sent Events (SSE), no third-party services or OBS plugins required.
+
+## Commands
+
+```bash
+composer run dev          # server + queue:listen + pail (logs) + vite, all concurrently
+php artisan serve         # server only
+npm run dev                # vite only (hot reload)
+npm run build               # build frontend assets
+
+composer test               # config:clear + php artisan test
+php artisan test --filter=TestName
+php artisan test tests/Feature/Auth/AuthenticationTest.php
+
+php artisan migrate
+php artisan migrate:fresh   # destructive: wipes all data
+php artisan optimize:clear  # clear all caches
+php artisan pail            # tail logs in real time
+```
+
+Local `.env` uses `DB_CONNECTION=sqlite` and `QUEUE_CONNECTION=sync` (jobs run inline, no worker needed). Tests (`phpunit.xml`) force `DB_DATABASE=:memory:` and `QUEUE_CONNECTION=sync`.
+
+## Architecture
+
+### Donation → Alert pipeline (the core flow)
+
+1. **`DonationController::store`** (public, no auth, rate-limited `throttle:donate` — 5/min per IP+slug) validates and persists a `Donation`. Optional donor-uploaded media (audio/video) is validated for duration via `getID3` against the streamer's `media_duration_tiers` (bigger donation → longer allowed clip).
+2. It then calls `ProcessDonationJob::dispatchSync(...)` immediately so the alert is queued without waiting on a worker. If sync dispatch throws, it falls back to `dispatch(...)->delay(5s)` onto the real queue (which has `$tries=3`, backoff `[5,30,60]`) — the donation row is never lost even if alert delivery fails.
+3. **`ProcessDonationJob`** assigns the next `seq` for that streamer inside `DB::transaction` + `lockForUpdate()` (prevents two simultaneous donations from colliding on the same seq), builds the SSE payload, and inserts it into `AlertQueue` with a 15-minute `expires_at` (long TTL so an OBS browser source that was briefly offline can still replay it).
+4. **`SseController::stream`** is a long-lived `StreamedResponse` per streamer (`/{slug}/sse`), polling `AlertQueue` every 1s for rows with `seq > $lastSeq`, and sending a `ping` + refreshed `stats` heartbeat every 20s. Resume position is resolved in priority order: `Last-Event-ID` header (native browser reconnect) → `?last_seq=` query param (manual JS reconnect after OBS scene switch) → `MAX(seq)` (fresh connect, skips history). Every stream is isolated by `streamer_id` — one streamer's widgets never see another's data.
+5. **`ObsController`** renders the actual widget Blade views (`overlay`, `leaderboard`, `milestone`, `subathon`, `running-text`) that the browser source loads; they connect to the SSE endpoint client-side. See `docs/architecture-obs-widgets.md` for how widget styling (Widget Studio), layout (OBS Canvas), and rendering fit together.
+
+When touching this flow, preserve the "donation is never lost" guarantee — DB persistence of the `Donation` and the alert-queue dispatch are treated as separable concerns with independent failure handling.
+
+### Auth / roles
+
+Single `User` model with a `role` column (`admin` | `streamer`), deliberately excluded from `$fillable`/mass-assignment (`$guarded = ['role', 'is_active', ...]`) to prevent privilege escalation — role must be set explicitly, never via user input. `EnsureAdmin`/`EnsureStreamer` middleware (aliased `admin`/`streamer` in `bootstrap/app.php`) gate route groups. A `User` may exist without a `Streamer` profile yet (fresh signup) — the `streamer.setup` route is intentionally reachable with only `auth,verified`, not the `streamer` middleware, to avoid a redirect loop for users completing onboarding.
+
+### Streamer model config blobs
+
+`Streamer` stores several JSON-cast config blobs (`widget_settings`, `canvas_config`, `alert_duration_tiers`, `media_duration_tiers`, `subathon_additional_values`) each with a getter (`getWidgetSettings()`, `getCanvasConfig()`, etc.) that deep-merges saved values over hardcoded defaults — this lets new default keys ship without a migration or breaking existing streamers' saved settings. Follow this merge pattern when adding new configurable widget/canvas options rather than requiring backfill migrations.
+
+`api_key` is excluded from `$fillable` (regenerated only via `Streamer::generateApiKey()`) and from `$hidden`/serialization. Only the SSE endpoint authenticates it, via `hash_equals($streamer->api_key, $request->query('key'))` to prevent timing attacks — OBS Canvas render and individual widget endpoints deliberately do not (see `docs/gotchas.md`). Follow the `hash_equals` pattern for any new endpoint that reads non-public per-streamer data.
+
+`Streamer::buildStats()` delegates to `StreamerStatsService` (all aggregation done in SQL, no in-memory `get()`), which is what both the dashboard and the SSE `stats` event consume.
+
+### Routing structure (`routes/web.php`)
+
+Route order matters: Breeze auth routes load first, then named static/prefixed routes, and the wildcard public routes (`/{slug}`, `/{slug}/donate`, `/{slug}/obs/*`, `/{slug}/sse`) are declared **last** since they'd otherwise swallow everything. Within the admin group, `/impersonate/stop` is declared before the `admin`-gated group (the currently-impersonating user has swapped identity and would fail the `admin` check), and before `/impersonate/{user}` (to avoid being captured by route-model binding).
+
+Every mutating/public-facing route has a dedicated named rate limiter registered in `AppServiceProvider::boot()` (`donate`, `otp-verify`, `settings-update`, `admin-actions`, `sse`, `obs-widget`, `report-export`, etc.) — add a new limiter there rather than reusing an unrelated one when adding endpoints.
+
+### Error handling (`bootstrap/app.php`)
+
+Centralized exception rendering: `ThrottleRequestsException` → `errors.429` view, `ModelNotFoundException` → `errors.404`, generic `HttpException` → `errors.{status}` view (falls back to `errors.generic`) with Indonesian user-facing messages resolved via `resolveHttpMessage()`. All of these branch on `$request->expectsJson()` to return JSON instead for AJAX/API callers. Unhandled `Throwable`s are logged then rendered as `errors.500` in production, or left to Laravel's default debug page when `APP_DEBUG=true`.
+
+### Content moderation
+
+`ProfanityFilter` service sanitizes donor `name`/`message` server-side before storage (banned words are both a global admin-managed list and per-streamer custom lists via `BannedWord`) — filtering happens once, at write time, so all downstream consumers (OBS overlay, dashboard, exports) see already-clean text.
+
+## Conventions
+
+- User-facing strings, comments, and commit messages in this codebase are Indonesian; keep consistent with surrounding code unless told otherwise.
+- Git workflow, branch model, and commit message format: see `README.md` ("Git Workflow" section) — not repeated here.
+
+## Further docs
+
+This file is a gateway, not the full picture. Deeper docs live in `docs/`:
+
+- **`docs/gotchas.md`** — non-obvious/deliberate decisions (security tradeoffs, race-condition fixes, route-ordering constraints). Read before "fixing" anything that looks wrong.
+- **`docs/architecture-obs-widgets.md`** — how Widget Studio (styling), OBS Canvas (layout), and OBS widget rendering fit together; which config blob owns what.
+
+Add new docs here only when they capture **why**, not **what** — anything derivable by reading the code or `README.md` doesn't need a doc.

@@ -1,0 +1,31 @@
+# Gotchas & Non-Obvious Decisions
+
+Things that look wrong/inconsistent at first read but are deliberate. Read before "fixing" any of these. If you fix a real bug, add an entry here explaining what broke and why, so it isn't reintroduced.
+
+## Security
+
+- **OBS widget endpoints (`ObsController::overlay/leaderboard/milestone/subathon/runningText`) accept `?key=` but never validate it.** Deliberate — see the block comment at the top of `app/Http/Controllers/ObsController.php`. These render public livestream overlays; the data is meant to be publicly visible, and validating a key baked into a URL sitting in an OBS Scene Collection file provides no real protection anyway. Do not add key validation here.
+- **Only `SseController::stream`/`stats` validate `?key=`, via `hash_equals($streamer->api_key, $apiKey)`.** This is the one real trust boundary in the OBS-facing surface — `ObsCanvasController::render` and every `ObsController` widget action accept `?key=` but never check it (same "intentionally public" reasoning as above). `hash_equals` (not `===`) matters because a plain string comparison leaks timing info about how many leading bytes matched. Any new endpoint that reads real-time/sensitive per-streamer data (not just public overlay output) should validate the key the same way SSE does.
+- **`api_key` is excluded from `Streamer::$fillable` and `$hidden`.** It's only ever set via `Streamer::generateApiKey()` and never round-trips through mass assignment or JSON serialization. Don't add it to `$fillable` even for admin forms — use an explicit `$streamer->api_key = ...` assignment.
+- **`User::$fillable` excludes `role` and `is_active`** (see `$guarded`). This is intentional privilege-escalation prevention — a streamer editing their own profile form must never be able to POST `role=admin`. Role changes go through `AdminController` explicitly.
+
+## Concurrency
+
+- **`AlertQueue.seq` is assigned inside `DB::transaction` + `lockForUpdate()` in `ProcessDonationJob::handle()`.** Without the row lock, two donations landing in the same second for the same streamer could read the same `MAX(seq)` and collide. If you touch this job, keep the lock scoped to the transaction — don't move the `MAX(seq)` read outside it.
+- **`Streamer::addSubathonTime()` uses `increment('subathon_current_minutes', ...)`**, not read-modify-write (`$this->subathon_current_minutes += ...; $this->save()`). Comment in code flags this as a specific fix for a race condition under concurrent donations. Keep using `increment()`/`decrement()` for any other counter mutated from a request that can fire concurrently (donation totals, counters, etc).
+
+## Donation reliability
+
+- **Donation persistence and alert-queue dispatch are handled as two separate failure domains** in `DonationController::store`. The `Donation` row is saved first and is never rolled back due to alert-delivery problems. `ProcessDonationJob::dispatchSync()` is tried first (so the alert shows up immediately without waiting on a queue worker); if that throws, it falls back to `dispatch()->delay(5s)` on the real queue (which has its own `$tries=3`, backoff `[5,30,60]`). If you change this flow, preserve the property that a donation can never silently disappear even if every alert-delivery path fails — worst case it should still show up in the streamer's dashboard/reports.
+
+## Routing
+
+- **The wildcard routes (`/{slug}`, `/{slug}/donate`, `/{slug}/obs/*`, `/{slug}/sse`, `/{slug}/qr`) must stay at the very bottom of `routes/web.php`.** Anything declared after them gets shadowed — e.g. a literal `/policies` route would never match if it were declared below `/{slug}`.
+- **`/admin/impersonate/stop` is declared in its own route group with only `auth,verified` (no `admin` middleware), before the `admin`-gated group.** An admin who is currently impersonating a streamer would fail the `admin` middleware check (their effective session is the streamer), so "stop impersonating" can't itself live behind that middleware.
+- **`/admin/impersonate/stop` and `/admin/impersonate/{user}` ordering matters too** — `/stop` must come before the `{user}` wildcard capture, or Laravel would try to route-model-bind `stop` as a `{user}` ID.
+- **`/streamer/setup` (GET+POST) is registered under `auth,verified` only, deliberately not behind the `streamer` middleware.** `EnsureStreamer` redirects to `streamer.setup` when the authenticated user has no `Streamer` profile yet — putting `setup` itself behind that same middleware would create a redirect loop for every brand-new streamer account.
+
+## Config / operational
+
+- **`AppServiceProvider::boot()` calls `Artisan::call('migrate', ['--force' => true])` unconditionally whenever `APP_ENV=production`.** This runs on every application boot in production (not just on deploy) — i.e. migrations attempt to run on every request in prod. This is unusual and worth confirming is still wanted before changing deploy tooling that assumes migrations only run via CI/CD or manually; removing it without also adding a deploy-time migration step would silently stop schema updates from ever running in production.
+- **Streamer JSON config blobs (`widget_settings`, `canvas_config`, `alert_duration_tiers`, `media_duration_tiers`, `subathon_additional_values`) are deep-merged over hardcoded defaults** in their respective getters (`getWidgetSettings()`, `getCanvasConfig()`, etc.), not backfilled via migration. When adding a new configurable key to any of these, add it to the default array in the getter — existing streamer rows will pick it up automatically on next read, no migration needed.
