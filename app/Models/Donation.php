@@ -25,6 +25,7 @@ class Donation extends Model
         'payment_reference',
         'payment_type',
         'paid_at',
+        'payout_id',
     ];
 
     /**
@@ -56,6 +57,11 @@ class Donation extends Model
     public function milestone(): BelongsTo
     {
         return $this->belongsTo(Milestone::class);
+    }
+
+    public function payout(): BelongsTo
+    {
+        return $this->belongsTo(Payout::class);
     }
 
     public function alertQueue(): HasMany

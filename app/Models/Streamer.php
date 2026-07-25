@@ -53,6 +53,10 @@ class Streamer extends Model
         'instagram_enabled',
         'twitter_enabled',
         'spotify_enabled',
+        // Payout bank info
+        'bank_name',
+        'bank_account_number',
+        'bank_account_holder',
     ];
 
     /**
@@ -132,6 +136,20 @@ class Streamer extends Model
     public function paidDonations(): HasMany
     {
         return $this->donations()->where('status', 'paid');
+    }
+
+    /**
+     * Donasi yang sudah dibayar tapi belum masuk payout manapun —
+     * inilah saldo "owed" streamer yang ditampilkan di admin/payouts.
+     */
+    public function unpaidOutDonations(): HasMany
+    {
+        return $this->paidDonations()->whereNull('payout_id');
+    }
+
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(Payout::class);
     }
 
     /**
