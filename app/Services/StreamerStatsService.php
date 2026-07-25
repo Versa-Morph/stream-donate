@@ -73,7 +73,7 @@ class StreamerStatsService
      */
     public function computeStats(Streamer $streamer): array
     {
-        $base = $streamer->donations();
+        $base = $streamer->paidDonations();
 
         // Scalar aggregates — one query
         // SECURITY NOTE: Raw SQL used here is SAFE because:
@@ -98,7 +98,7 @@ class StreamerStatsService
         // - The subquery uses whereColumn() which is parameterized by Eloquent
         // - No user input is interpolated into the SQL string
         // - All column names are hardcoded, not user-controlled
-        $leaderboard = $streamer->donations()
+        $leaderboard = $streamer->paidDonations()
             ->selectRaw('name, SUM(amount) as total, COUNT(*) as cnt')
             ->selectSub(
                 Donation::selectRaw('emoji')
@@ -122,8 +122,8 @@ class StreamerStatsService
 
         // Milestone: if milestone_reset is active, only count today's donations
         $milestoneQuery = $streamer->milestone_reset
-            ? $streamer->donations()->whereDate('created_at', today())
-            : $streamer->donations();
+            ? $streamer->paidDonations()->whereDate('created_at', today())
+            : $streamer->paidDonations();
         $milestoneCurrent = (int) $milestoneQuery->sum('amount');
 
         return [
@@ -177,7 +177,7 @@ class StreamerStatsService
     private function calculateDynamicCacheTtl(Streamer $streamer): int
     {
         // Check last donation time (use simple DB query, very fast with index)
-        $lastDonationAt = $streamer->donations()
+        $lastDonationAt = $streamer->paidDonations()
             ->latest('created_at')
             ->value('created_at');
 

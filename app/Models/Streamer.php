@@ -541,7 +541,7 @@ class Streamer extends Model
      */
     public function getTotalDonationsAttribute(): int
     {
-        return $this->donations()->sum('amount');
+        return $this->paidDonations()->sum('amount');
     }
 
     /**
@@ -551,7 +551,7 @@ class Streamer extends Model
      */
     public function getTodayDonationsAttribute(): int
     {
-        return $this->donations()->whereDate('created_at', today())->sum('amount');
+        return $this->paidDonations()->whereDate('created_at', today())->sum('amount');
     }
 
     /**
