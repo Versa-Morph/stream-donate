@@ -13,17 +13,17 @@ return [
     /**
      * OTP code length (number of characters).
      */
-    'length' => env('OTP_LENGTH', 8),
+    'length' => (int) env('OTP_LENGTH', 8),
 
     /**
      * OTP expiration time in minutes.
      */
-    'expires_minutes' => env('OTP_EXPIRES_MINUTES', 5),
+    'expires_minutes' => (int) env('OTP_EXPIRES_MINUTES', 5),
 
     /**
      * Maximum OTP verification attempts before lockout.
      */
-    'max_attempts' => env('OTP_MAX_ATTEMPTS', 3),
+    'max_attempts' => (int) env('OTP_MAX_ATTEMPTS', 3),
 
     /**
      * Allowed characters for OTP generation.

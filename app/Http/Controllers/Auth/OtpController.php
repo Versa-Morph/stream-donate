@@ -81,12 +81,15 @@ class OtpController extends Controller
         $record->update(['used_at' => now()]);
 
         // Buat user baru
+        // email_verified_at ada di User::$guarded (mencegah mass-assignment dari form),
+        // jadi harus di-set eksplisit di sini, bukan lewat array create().
         $user = User::create([
-            'name'              => $data['name'],
-            'email'             => $data['email'],
-            'password'          => $data['password'], // sudah di-hash
-            'email_verified_at' => now(), // langsung verified karena OTP
+            'name'     => $data['name'],
+            'email'    => $data['email'],
+            'password' => $data['password'], // sudah di-hash
         ]);
+        $user->email_verified_at = now(); // langsung verified karena OTP
+        $user->save();
 
         // Hapus data sesi OTP
         $request->session()->forget('otp_register');
