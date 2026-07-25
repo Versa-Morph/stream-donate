@@ -47,8 +47,18 @@
             <div class="filter-bar">
                 <input type="text" name="action" value="{{ request('action') }}"
                     placeholder="Filter berdasarkan action (cth: donation, admin, user)…">
+                <select name="streamer_id" style="max-width:220px">
+                    <option value="">Semua Streamer</option>
+                    @foreach($streamers as $s)
+                    <option value="{{ $s->id }}" {{ request('streamer_id') == $s->id ? 'selected' : '' }}>
+                        {{ $s->display_name }}
+                    </option>
+                    @endforeach
+                </select>
+                <input type="date" name="from" value="{{ request('from') }}" style="max-width:150px">
+                <input type="date" name="to" value="{{ request('to') }}" style="max-width:150px">
                 <button type="submit" class="btn-filter">Filter</button>
-                @if(request('action'))
+                @if(request('action') || request('streamer_id') || request('from') || request('to'))
                     <a href="{{ route('admin.logs') }}" class="btn-sm" style="font-size:12px;padding:7px 14px">Reset</a>
                 @endif
             </div>

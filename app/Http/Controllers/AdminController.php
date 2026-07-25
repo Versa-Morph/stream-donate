@@ -231,6 +231,13 @@ class AdminController extends Controller
             $query->where('streamer_id', $streamerId);
         }
 
+        if ($from = $request->input('from')) {
+            $query->whereDate('created_at', '>=', $from);
+        }
+        if ($to = $request->input('to')) {
+            $query->whereDate('created_at', '<=', $to);
+        }
+
         $donations = $query->paginate(config('pagination.admin_donations', 30))->withQueryString();
         $streamers = Streamer::orderBy('display_name')->get(['id', 'display_name', 'slug']);
 
@@ -250,9 +257,21 @@ class AdminController extends Controller
             $query->where('action', 'like', "%{$escapedAction}%");
         }
 
-        $logs = $query->paginate(config('pagination.admin_logs', 30))->withQueryString();
+        if ($streamerId = $request->input('streamer_id')) {
+            $query->where('streamer_id', $streamerId);
+        }
 
-        return view('admin.logs', compact('logs'));
+        if ($from = $request->input('from')) {
+            $query->whereDate('created_at', '>=', $from);
+        }
+        if ($to = $request->input('to')) {
+            $query->whereDate('created_at', '<=', $to);
+        }
+
+        $logs = $query->paginate(config('pagination.admin_logs', 30))->withQueryString();
+        $streamers = Streamer::orderBy('display_name')->get(['id', 'display_name', 'slug']);
+
+        return view('admin.logs', compact('logs', 'streamers'));
     }
 
     /**

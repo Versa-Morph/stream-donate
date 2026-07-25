@@ -61,8 +61,10 @@
                     </option>
                     @endforeach
                 </select>
+                <input type="date" name="from" value="{{ request('from') }}" style="max-width:150px">
+                <input type="date" name="to" value="{{ request('to') }}" style="max-width:150px">
                 <button type="submit" class="btn-filter">Filter</button>
-                @if(request('search') || request('streamer_id'))
+                @if(request('search') || request('streamer_id') || request('from') || request('to'))
                     <a href="{{ route('admin.donations') }}" class="btn-sm" style="font-size:12px;padding:7px 14px">Reset</a>
                 @endif
             </div>
