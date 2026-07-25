@@ -182,6 +182,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
 
     // Dashboard admin
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard/trends', [AdminController::class, 'trendsData'])->name('dashboard.trends');
 
     // Manajemen user
     Route::get('/users', [AdminController::class, 'users'])->name('users');

@@ -7,10 +7,13 @@ use App\Models\Donation;
 use App\Models\Streamer;
 use App\Models\User;
 use App\Services\AlertFailureService;
+use App\Services\TrendsService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
 class AdminController extends Controller
@@ -47,12 +50,27 @@ class AdminController extends Controller
             ->get();
 
         $unresolvedAlertFailures = app(AlertFailureService::class)->unresolvedCount();
+        $trend = app(TrendsService::class)->donationTrend(30);
 
         return view('admin.dashboard', compact(
             'totalStreamers', 'totalUsers', 'totalDonations', 'totalAmount',
             'todayAmount', 'todayCount', 'recentDonations', 'recentLogs', 'streamerStats',
-            'unresolvedAlertFailures'
+            'unresolvedAlertFailures', 'trend'
         ));
+    }
+
+    /**
+     * Data tren donasi harian untuk chart dashboard (AJAX)
+     */
+    public function trendsData(Request $request): JsonResponse
+    {
+        $validated = Validator::make($request->query(), [
+            'days' => ['required', 'integer', 'in:7,30,90'],
+        ])->validate();
+
+        $trend = app(TrendsService::class)->donationTrend((int) $validated['days']);
+
+        return response()->json($trend);
     }
 
     /**
