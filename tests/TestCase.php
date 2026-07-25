@@ -12,6 +12,6 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        $this->app->bind(PaymentGatewayInterface::class, FakePaymentGateway::class);
+        $this->app->singleton(PaymentGatewayInterface::class, FakePaymentGateway::class);
     }
 }

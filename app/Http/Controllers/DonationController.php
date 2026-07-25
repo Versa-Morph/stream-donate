@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\ProcessDonationJob;
 use App\Models\ActivityLog;
 use App\Models\Donation;
 use App\Models\Streamer;
+use App\Services\Payment\PaymentGatewayInterface;
 use App\Services\ProfanityFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,6 +16,10 @@ use Illuminate\View\View;
 
 class DonationController extends Controller
 {
+    public function __construct(
+        private readonly PaymentGatewayInterface $paymentGateway
+    ) {}
+
     /**
      * Tampilkan form donasi publik untuk streamer berdasarkan slug
      */
@@ -171,7 +175,7 @@ class DonationController extends Controller
         $name   = $filter->filter($name, $streamer->id);
         $msg    = $msg !== null ? $filter->filter($msg, $streamer->id) : null;
 
-        // ── Simpan donasi ke DB ──
+        // ── Simpan donasi (status pending) ke DB ──
         // Ini adalah operasi inti; jika gagal berarti DB bermasalah serius — return error.
         try {
             $donation = Donation::create([
@@ -184,27 +188,14 @@ class DonationController extends Controller
                 'yt_url'      => $ytUrl,
                 'media_path'  => $mediaPath,
                 'ip_address'  => $request->ip(),
+                'status'      => 'pending',
             ]);
-
-            // ── Update milestone progress jika ada ──
-            if (isset($validated['milestone_id'])) {
-                $milestone = \App\Models\Milestone::find($validated['milestone_id']);
-                if ($milestone && $milestone->streamer_id === $streamer->id) {
-                    $milestone->addAmount((int) $validated['amount']);
-                }
-            }
-
-            // ── Update Subathon timer jika enabled ──
-            $subathonUpdate = null;
-            if ($streamer->subathon_enabled) {
-                $subathonUpdate = $streamer->addSubathonTime((int) $validated['amount']);
-            }
         } catch (\Throwable $e) {
             // If donation save fails, clean up uploaded media
             if ($mediaPath) {
                 Storage::disk('public')->delete($mediaPath);
             }
-            
+
             Log::error('DonationController: gagal menyimpan donasi', [
                 'streamer_id' => $streamer->id,
                 'error'       => $e->getMessage(),
@@ -216,53 +207,37 @@ class DonationController extends Controller
             ], 500);
         }
 
-        // ── Dispatch job untuk membuat alert queue ──
-        // Strategi: coba sync dulu (agar alert langsung masuk queue).
-        // Jika sync gagal (error sistem, bukan error user), donasi TETAP tersimpan
-        // dan job di-dispatch ke queue untuk di-retry otomatis.
-        $alertQueued = true;
+        // ── Mulai transaksi pembayaran via Midtrans Snap ──
+        // Alert, milestone, dan subathon TIDAK diproses di sini — hanya setelah
+        // PaymentWebhookController mengonfirmasi pembayaran berhasil.
         try {
-            ProcessDonationJob::dispatchSync($donation);
+            $transaction = $this->paymentGateway->createTransaction($donation);
+            $donation->update(['payment_reference' => $transaction->orderId]);
         } catch (\Throwable $e) {
-            $alertQueued = false;
-
-            Log::error('DonationController: ProcessDonationJob sync gagal, fallback ke queue', [
+            Log::error('DonationController: gagal membuat transaksi pembayaran', [
                 'donation_id' => $donation->id,
                 'error'       => $e->getMessage(),
             ]);
 
-            // Fallback: dispatch ke queue worker agar bisa di-retry
-            // Job sudah punya $tries=3 dan backoff, jadi akan dicoba ulang otomatis
-            try {
-                ProcessDonationJob::dispatch($donation)->delay(now()->addSeconds(5));
-            } catch (\Throwable $queueError) {
-                // Queue juga tidak tersedia — catat ke log tapi donasi tetap aman
-                Log::critical('DonationController: fallback queue juga gagal', [
-                    'donation_id' => $donation->id,
-                    'error'       => $queueError->getMessage(),
-                ]);
-            }
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memulai pembayaran. Mohon coba lagi.',
+            ], 502);
         }
 
-        // ── Log activity (best-effort, tidak boleh gagalkan response) ──
-        try {
-            ActivityLog::log(
-                action: 'donation.create',
-                description: "{$name} berdonasi Rp " . number_format($donation->amount, 0, ',', '.'),
-                streamerId: $streamer->id,
-                payload: ['donation_id' => $donation->id, 'alert_queued' => $alertQueued]
-            );
-        } catch (\Throwable $e) {
-            Log::warning('DonationController: gagal menyimpan activity log', [
-                'donation_id' => $donation->id,
-                'error'       => $e->getMessage(),
-            ]);
-        }
+        ActivityLog::log(
+            action: 'donation.pending',
+            description: "{$name} memulai pembayaran Rp " . number_format($donation->amount, 0, ',', '.'),
+            streamerId: $streamer->id,
+            payload: ['donation_id' => $donation->id],
+        );
 
         return response()->json([
             'success' => true,
-            'message' => $streamer->thank_you_message,
-            'data'    => ['id' => $donation->id],
+            'data' => [
+                'donation_id' => $donation->id,
+                'snap_token'  => $transaction->token,
+            ],
         ]);
     }
 

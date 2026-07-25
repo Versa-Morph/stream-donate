@@ -676,7 +676,9 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        $this->app->bind(PaymentGatewayInterface::class, FakePaymentGateway::class);
+        // singleton, not bind() — Task 4's failure test needs to mutate the
+        // SAME instance the controller later resolves via constructor injection.
+        $this->app->singleton(PaymentGatewayInterface::class, FakePaymentGateway::class);
     }
 }
 ```
