@@ -56,6 +56,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
             'streamer' => \App\Http\Middleware\EnsureStreamer::class,
         ]);
+
+        // Midtrans posts server-to-server with no Laravel session/CSRF token.
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/midtrans',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 

@@ -100,6 +100,13 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(120)->by($request->ip());
         });
 
+        // Rate-limit Midtrans payment webhook.
+        // The real protection is signature verification in PaymentWebhookController;
+        // this just caps abuse volume on a public unauthenticated endpoint.
+        RateLimiter::for('payment-webhook', function (Request $request) {
+            return Limit::perMinute(120)->by($request->ip());
+        });
+
         // Rate-limit QR code generation
         // Max 30 requests per minute per IP
         RateLimiter::for('qr-code', function (Request $request) {

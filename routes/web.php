@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\BannedWordController as AdminBannedWordController
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\ObsCanvasController;
 use App\Http\Controllers\ObsController;
+use App\Http\Controllers\PaymentWebhookController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PolicyController;
 use App\Http\Controllers\QrController;
@@ -41,6 +42,16 @@ Route::get('/policies/{slug}', [PolicyController::class, 'show'])->name('policie
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+/*
+|--------------------------------------------------------------------------
+| Payment Webhooks
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/webhooks/midtrans', [PaymentWebhookController::class, 'handle'])
+    ->middleware('throttle:payment-webhook')
+    ->name('webhooks.midtrans');
 
 /*
 |--------------------------------------------------------------------------
