@@ -243,8 +243,10 @@
                             <tr>
                                 <td class="streamer-rank">{{ $i + 1 }}</td>
                                 <td>
-                                    <div style="font-size:13px; font-weight:600; color:var(--text)">{{ $s->display_name }}</div>
-                                    <div style="font-size:11px; color:var(--text-3)">{{ $s->slug }}</div>
+                                    <a href="{{ route('admin.streamers.show', $s) }}" style="text-decoration:none">
+                                        <div style="font-size:13px; font-weight:600; color:var(--text)">{{ $s->display_name }}</div>
+                                        <div style="font-size:11px; color:var(--text-3)">{{ $s->slug }}</div>
+                                    </a>
                                 </td>
                                 <td>{{ number_format($s->donations_count) }}</td>
                                 <td class="amount-cell">Rp {{ number_format($s->donations_sum_amount ?? 0) }}</td>

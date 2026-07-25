@@ -74,6 +74,27 @@ class AdminController extends Controller
     }
 
     /**
+     * Halaman detail satu streamer untuk admin (drill-down dari leaderboard)
+     */
+    public function showStreamer(Streamer $streamer): View
+    {
+        $stats = $streamer->buildStats();
+        $owedBalance = $streamer->unpaidOutDonations()->sum('amount');
+
+        $recentDonations = $streamer->donations()
+            ->orderByDesc('created_at')
+            ->limit(config('pagination.admin_streamer_recent_donations', 10))
+            ->get();
+
+        $recentActivity = ActivityLog::where('streamer_id', $streamer->id)
+            ->orderByDesc('created_at')
+            ->limit(config('pagination.admin_streamer_recent_activity', 10))
+            ->get();
+
+        return view('admin.streamer-show', compact('streamer', 'stats', 'owedBalance', 'recentDonations', 'recentActivity'));
+    }
+
+    /**
      * Daftar semua user
      */
     public function users(Request $request): View

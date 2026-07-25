@@ -206,6 +206,9 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     // Activity logs
     Route::get('/logs', [AdminController::class, 'logs'])->name('logs');
 
+    // Streamer drill-down
+    Route::get('/streamers/{streamer}', [AdminController::class, 'showStreamer'])->name('streamers.show');
+
     // Alert failures
     Route::get('/alert-failures', [AdminAlertFailureController::class, 'index'])->name('alert-failures.index');
     Route::post('/alert-failures/{donation}/retry', [AdminAlertFailureController::class, 'retry'])
