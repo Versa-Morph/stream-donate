@@ -152,6 +152,15 @@ class Streamer extends Model
         return $this->hasMany(Payout::class);
     }
 
+    public function bankDisplayName(): string
+    {
+        if (!$this->bank_name) {
+            return '-';
+        }
+
+        return config('banks')[$this->bank_name] ?? $this->bank_name;
+    }
+
     /**
      * Get all alert queue items for this streamer.
      *

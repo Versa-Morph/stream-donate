@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class StreamerDashboardController extends Controller
@@ -210,7 +211,7 @@ class StreamerDashboardController extends Controller
             'media_tiers'          => ['nullable', 'array', 'max:10'],
             'media_tiers.*.min_amount'   => ['nullable', 'integer', 'min:1000'],
             'media_tiers.*.max_duration' => ['nullable', 'integer', 'min:5', 'max:600'],
-            'bank_name' => ['nullable', 'required_with:bank_account_number,bank_account_holder', 'string', 'max:100'],
+            'bank_name' => ['nullable', 'required_with:bank_account_number,bank_account_holder', Rule::in(array_keys(config('banks')))],
             'bank_account_number' => ['nullable', 'required_with:bank_name,bank_account_holder', 'string', 'max:50'],
             'bank_account_holder' => ['nullable', 'required_with:bank_name,bank_account_number', 'string', 'max:100'],
         ]);

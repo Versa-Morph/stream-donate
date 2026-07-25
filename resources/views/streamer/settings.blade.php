@@ -418,7 +418,14 @@ input[type="file"].file-input-hidden{display:none}
                     <div class="form-row">
                         <div class="form-group">
                             <label>Nama Bank</label>
-                            <input type="text" name="bank_name" value="{{ old('bank_name', $streamer->bank_name) }}" placeholder="mis. Bank Central Asia">
+                            <select name="bank_name">
+                                <option value="">Pilih Bank</option>
+                                @foreach(config('banks') as $code => $name)
+                                <option value="{{ $code }}" {{ old('bank_name', $streamer->bank_name) === $code ? 'selected' : '' }}>
+                                    {{ $name }}
+                                </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Nomor Rekening</label>
