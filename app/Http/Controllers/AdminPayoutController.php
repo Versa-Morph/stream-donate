@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
+use App\Models\Donation;
 use App\Models\Payout;
 use App\Models\Streamer;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -61,5 +63,54 @@ class AdminPayoutController extends Controller
         );
 
         return back()->with('success', 'Payout berhasil dibuat.');
+    }
+
+    public function markPaid(Payout $payout, Request $request): RedirectResponse
+    {
+        if ($payout->status !== 'pending') {
+            return back()->withErrors(['payout' => 'Payout ini sudah diproses sebelumnya.']);
+        }
+
+        $validated = $request->validate([
+            'reference' => ['required', 'string', 'max:100'],
+        ]);
+
+        $payout->update([
+            'status' => 'paid',
+            'reference' => $validated['reference'],
+            'paid_at' => now(),
+        ]);
+
+        ActivityLog::log(
+            action: 'payout.paid',
+            description: "Payout #{$payout->id} ditandai sudah dibayar (ref: {$validated['reference']})",
+            userId: Auth::id(),
+            streamerId: $payout->streamer_id,
+            payload: ['payout_id' => $payout->id],
+        );
+
+        return back()->with('success', 'Payout ditandai sudah dibayar.');
+    }
+
+    public function void(Payout $payout): RedirectResponse
+    {
+        if ($payout->status !== 'pending') {
+            return back()->withErrors(['payout' => 'Hanya payout berstatus pending yang bisa dibatalkan.']);
+        }
+
+        DB::transaction(function () use ($payout) {
+            Donation::where('payout_id', $payout->id)->update(['payout_id' => null]);
+            $payout->update(['status' => 'voided']);
+        });
+
+        ActivityLog::log(
+            action: 'payout.voided',
+            description: "Payout #{$payout->id} dibatalkan",
+            userId: Auth::id(),
+            streamerId: $payout->streamer_id,
+            payload: ['payout_id' => $payout->id],
+        );
+
+        return back()->with('success', 'Payout dibatalkan, donasi dikembalikan ke saldo.');
     }
 }

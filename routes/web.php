@@ -205,6 +205,12 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::post('/payouts/{streamer}', [AdminPayoutController::class, 'create'])
         ->middleware('throttle:admin-actions')
         ->name('payouts.create');
+    Route::post('/payouts/{payout}/mark-paid', [AdminPayoutController::class, 'markPaid'])
+        ->middleware('throttle:admin-actions')
+        ->name('payouts.mark-paid');
+    Route::post('/payouts/{payout}/void', [AdminPayoutController::class, 'void'])
+        ->middleware('throttle:admin-actions')
+        ->name('payouts.void');
 
     // Impersonate — /stop harus SEBELUM /{user} agar tidak ditangkap sebagai model binding
     Route::post('/impersonate/{user}', [AdminController::class, 'impersonate'])
