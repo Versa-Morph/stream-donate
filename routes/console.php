@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\CleanupExpiredPendingDonationsJob;
 use App\Jobs\CleanupExpiredQueueJob;
 use App\Jobs\CleanupOrphanedFilesJob;
 use Illuminate\Foundation\Inspiring;
@@ -15,3 +16,6 @@ Schedule::job(new CleanupExpiredQueueJob)->everyFiveMinutes();
 
 // Cleanup orphaned avatar/sound files daily at 3 AM
 Schedule::job(new CleanupOrphanedFilesJob)->dailyAt('03:00');
+
+// Cleanup stale pending donations (payment abandoned/expired) every 15 minutes
+Schedule::job(new CleanupExpiredPendingDonationsJob)->everyFifteenMinutes();
