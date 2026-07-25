@@ -43,12 +43,13 @@ class SecurityHeaders
         // - blob: and data: for audio/images
         $csp = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' https://code.iconify.design https://api.iconify.design",
+            "script-src 'self' 'unsafe-inline' https://code.iconify.design https://api.iconify.design https://app.sandbox.midtrans.com https://app.midtrans.com",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: blob: https:",
             "media-src 'self' blob: data:",
-            "connect-src 'self' https://api.iconify.design",
+            "connect-src 'self' https://api.iconify.design https://api.sandbox.midtrans.com https://api.midtrans.com https://app.sandbox.midtrans.com https://app.midtrans.com",
+            "frame-src https://app.sandbox.midtrans.com https://app.midtrans.com",
             "frame-ancestors 'self'",
             "base-uri 'self'",
             "form-action 'self'",

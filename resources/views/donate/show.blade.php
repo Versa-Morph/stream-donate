@@ -7,6 +7,9 @@
     <meta name="theme-color" content="#070709" />
     <title>Donasi untuk {{ $streamer->display_name }} — Tiptipan</title>
     <link rel="icon" type="image/x-icon" id="favicon" />
+    <script
+        src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}"
+        data-client-key="{{ config('midtrans.client_key') }}"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
     <style>
         *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -2605,7 +2608,23 @@ async function submitDonation() {
         const data = await res.json();
         
         if (data.success) {
-            showSuccess(data.message || 'Terima kasih!');
+            window.snap.pay(data.data.snap_token, {
+                onSuccess: function () {
+                    showSuccess('Pembayaran berhasil! Terima kasih atas donasi kamu.');
+                },
+                onPending: function () {
+                    showSuccess('Pembayaran kamu sedang diproses. Alert akan muncul begitu dikonfirmasi.');
+                },
+                onError: function () {
+                    showErr('Pembayaran gagal. Silakan coba lagi.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Kirim Donasi';
+                },
+                onClose: function () {
+                    btn.disabled = false;
+                    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Kirim Donasi';
+                },
+            });
         } else if (data.errors) {
             // Handle validation errors
             const firstError = Object.values(data.errors)[0];
