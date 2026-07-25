@@ -415,6 +415,21 @@ input[type="file"].file-input-hidden{display:none}
                         </div>
                     </div>
 
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nama Bank</label>
+                            <input type="text" name="bank_name" value="{{ old('bank_name', $streamer->bank_name) }}" placeholder="mis. Bank Central Asia">
+                        </div>
+                        <div class="form-group">
+                            <label>Nomor Rekening</label>
+                            <input type="text" name="bank_account_number" value="{{ old('bank_account_number', $streamer->bank_account_number) }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Nama Pemilik Rekening</label>
+                        <input type="text" name="bank_account_holder" value="{{ old('bank_account_holder', $streamer->bank_account_holder) }}">
+                    </div>
+
                     <div class="form-group">
                         <label>Bio</label>
                         <textarea name="bio" maxlength="200" rows="3" placeholder="Deskripsi singkat tentang kamu...">{{ old('bio', $streamer->bio) }}</textarea>

@@ -193,6 +193,9 @@ class StreamerDashboardController extends Controller
             'media_tiers'          => ['nullable', 'array', 'max:10'],
             'media_tiers.*.min_amount'   => ['nullable', 'integer', 'min:1000'],
             'media_tiers.*.max_duration' => ['nullable', 'integer', 'min:5', 'max:600'],
+            'bank_name' => ['nullable', 'required_with:bank_account_number,bank_account_holder', 'string', 'max:100'],
+            'bank_account_number' => ['nullable', 'required_with:bank_name,bank_account_holder', 'string', 'max:50'],
+            'bank_account_holder' => ['nullable', 'required_with:bank_name,bank_account_number', 'string', 'max:100'],
         ]);
 
         // ── Handle avatar upload (atomic: upload baru dulu, hapus lama hanya jika berhasil) ──
@@ -238,6 +241,9 @@ class StreamerDashboardController extends Controller
             'thank_you_message'     => $validated['thank_you_message'],
             'media_upload_enabled'  => $request->boolean('media_upload_enabled'),
             'media_max_size_mb'     => $validated['media_max_size_mb'] ?? 50,
+            'bank_name'             => $validated['bank_name'] ?? $streamer->bank_name,
+            'bank_account_number'   => $validated['bank_account_number'] ?? $streamer->bank_account_number,
+            'bank_account_holder'   => $validated['bank_account_holder'] ?? $streamer->bank_account_holder,
         ]);
 
         // Handle media duration tiers (array)
