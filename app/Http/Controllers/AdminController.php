@@ -39,8 +39,8 @@ class AdminController extends Controller
         // Per-streamer summary (top 25 by donation amount for dashboard display)
         // PERFORMANCE: Limit to prevent loading all streamers as platform grows
         $streamerStats = Streamer::with('user')
-            ->withCount('donations')
-            ->withSum('donations', 'amount')
+            ->withCount(['donations as donations_count' => fn ($q) => $q->where('status', 'paid')])
+            ->withSum(['donations as donations_sum_amount' => fn ($q) => $q->where('status', 'paid')], 'amount')
             ->orderByDesc('donations_sum_amount')
             ->limit(config('pagination.admin_streamer_stats', 25))
             ->get();

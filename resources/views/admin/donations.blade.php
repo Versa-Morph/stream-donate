@@ -78,6 +78,7 @@
                         <th>Pesan</th>
                         <th>Streamer</th>
                         <th>Waktu</th>
+                        <th>Status</th>
                         <th>YT</th>
                         <th></th>
                     </tr>
@@ -107,6 +108,24 @@
                             {{ $d->created_at->format('d/m/Y H:i') }}
                         </td>
                         <td>
+                            @php
+                                $statusLabel = match($d->status) {
+                                    'paid' => 'Berhasil',
+                                    'pending' => 'Menunggu Pembayaran',
+                                    'failed' => 'Gagal',
+                                    'expired' => 'Kedaluwarsa',
+                                    default => ucfirst($d->status),
+                                };
+                                $statusClass = match($d->status) {
+                                    'paid' => 'badge-success',
+                                    'pending' => 'badge-warning',
+                                    'failed', 'expired' => 'badge-danger',
+                                    default => '',
+                                };
+                            @endphp
+                            <span class="{{ $statusClass }}" style="font-size:11px;padding:2px 8px;border-radius:6px">{{ $statusLabel }}</span>
+                        </td>
+                        <td>
                             @if($d->yt_url)
                                 <a href="{{ $d->yt_url }}" target="_blank" style="font-size:11px; color:var(--red)">▶ YT</a>
                             @else
@@ -123,7 +142,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" class="empty-cell">Tidak ada donasi ditemukan</td></tr>
+                    <tr><td colspan="8" class="empty-cell">Tidak ada donasi ditemukan</td></tr>
                     @endforelse
                 </tbody>
             </table>

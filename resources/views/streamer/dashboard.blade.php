@@ -452,6 +452,17 @@
                                 </div>
                             @endif
                             <span class="h-badge {{ $tier }}">{{ $tierLabel }}</span>
+                            @if($d->status !== 'paid')
+                                @php
+                                    $statusLabel = match($d->status) {
+                                        'pending' => 'Menunggu Pembayaran',
+                                        'failed' => 'Gagal',
+                                        'expired' => 'Kedaluwarsa',
+                                        default => ucfirst($d->status),
+                                    };
+                                @endphp
+                                <span class="h-badge" style="background:var(--surface-3);color:var(--text-3)">{{ $statusLabel }}</span>
+                            @endif
                         </div>
                         <div class="h-meta">
                             <div class="h-amount">{{ $d->formatted_amount }}</div>
