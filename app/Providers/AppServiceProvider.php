@@ -19,6 +19,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Payment\PaymentGatewayInterface::class,
             \App\Services\Payment\MidtransSnapGateway::class
         );
+
+        $this->app->bind(\App\Services\Payout\PayoutGatewayInterface::class, function () {
+            return config('payout.automated_disbursement_enabled')
+                ? new \App\Services\Payout\MidtransIrisGateway()
+                : new \App\Services\Payout\ManualPayoutGateway();
+        });
         //
     }
 
