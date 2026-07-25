@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+if (! function_exists('resolveHttpMessage')) {
 function resolveHttpMessage(int $status, string $originalMessage = ''): string
 {
     if (
@@ -36,6 +37,7 @@ function resolveHttpMessage(int $status, string $originalMessage = ''): string
         503 => 'Layanan sedang dalam pemeliharaan. Coba lagi nanti.',
         default => 'Terjadi kesalahan. Mohon coba lagi.',
     };
+}
 }
 
 return Application::configure(basePath: dirname(__DIR__))
