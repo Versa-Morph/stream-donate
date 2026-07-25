@@ -103,7 +103,14 @@ class TrendsService
 {
     public function donationTrend(int $days): array
     {
-        $start = now()->subDays($days - 1)->startOfDay();
+        // App timezone is UTC, but donations are grouped by WIB (Asia/Jakarta)
+        // calendar day — reasoning in WIB here too keeps the PHP-side lookup
+        // keys in agreement with the SQL-side day buckets below. Plain now()
+        // (UTC) would mismatch the SQL bucketing for ~7 of every 24 hours
+        // (whenever UTC time is 17:00-23:59 and WIB has already rolled to the
+        // next calendar day) — caught by Step 4's test failing for real.
+        $nowWib = now('Asia/Jakarta');
+        $start = $nowWib->copy()->subDays($days - 1)->startOfDay()->setTimezone('UTC');
 
         // Same WIB-aware date grouping as StreamerDashboardController::buildMonthHeatmap
         $driver = DB::getDriverName();
@@ -120,7 +127,7 @@ class TrendsService
 
         $labels = $amounts = $counts = [];
         for ($i = 0; $i < $days; $i++) {
-            $date = now()->subDays($days - 1 - $i);
+            $date = $nowWib->copy()->subDays($days - 1 - $i);
             $row = $rows->get($date->format('Y-m-d'));
             $labels[] = $date->format('d/m');
             $amounts[] = $row ? (int) $row->total : 0;
