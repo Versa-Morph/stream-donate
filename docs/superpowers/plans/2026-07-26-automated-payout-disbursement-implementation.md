@@ -997,16 +997,18 @@ class MidtransIrisGateway implements PayoutGatewayInterface
 }
 ```
 
-- [ ] **Step 2: Manual verification checklist (once real Iris credentials + KYC exist)**
+- [x] **Step 2: Manual verification against the Iris sandbox — DONE**
 
-This class cannot be exercised against a real sandbox in this environment. Before ever setting `PAYOUT_AUTOMATED_DISBURSEMENT_ENABLED=true` in a real environment:
+Done via direct `curl` calls against `https://app.sandbox.midtrans.com/iris/api/v1` using real sandbox credentials, after the user supplied Midtrans's official Iris Postman collection:
 
-1. Pull Midtrans's current Iris API reference (`https://docs.midtrans.com/reference/`) or a Postman collection.
-2. Replace every `// TODO: confirm` field name/value in this file with the verified real ones.
-3. Test `validateBankAccount()` against a real (sandbox) bank account number — confirm it returns `true`/`false` correctly.
-4. Test `disburse()` against a small real sandbox payout — confirm `CreatePayout` + `ApprovePayout` both succeed and the returned reference matches what appears in the Midtrans Iris Portal.
-5. Test `checkStatus()` polls that same payout and correctly reflects its Iris Portal status.
-6. Only then flip the flag on in a real environment — and start with it off in production even after this, verifying one real payout manually before trusting it broadly.
+1. `GET /account_validation?bank=danamon&account=000001137298` (creator key) → `200 {"id":"...","account_no":"...","bank_name":"danamon","account_name":"External Account Inquiry Simulator"}`. No boolean validity field exists; an intentionally-wrong account number returned the identical shape — the sandbox simulator doesn't actually check, so `validateBankAccount()` treats HTTP success as the signal (documented as needing re-confirmation against a real production account before trusting it there).
+2. `GET /beneficiary_banks` (creator key) → confirmed all 10 codes in `config/banks.php` (`bca`, `bni`, `bri`, `mandiri`, `cimb`, `permata`, `bsi`, `danamon`, `btn`, `ocbc`) are real Iris bank codes.
+3. `POST /payouts` (creator key) with the exact body `disburse()` sends → `201 {"payouts":[{"status":"queued","reference_no":"sAiHJExdDSyUPRBVOT"}]}`. Confirms the `payouts.0.reference_no` response path.
+4. `POST /payouts/approve` with the **creator** key → `401 {"error_message":"You are not authorized to perform this action",...}`. Confirms the two-key creator/approver split is real Iris enforcement, not a Postman-collection artifact.
+5. `POST /payouts/approve` with the **approver** key → `202 {"status":"ok"}`. `GET /payouts/{reference_no}` immediately after still showed `"status":"queued"`; polling again ~8s later showed `"status":"completed"` — confirms approval is asynchronous, which is exactly why `CheckPayoutDisbursementStatusJob` polls rather than trusting the approve call's response.
+6. `POST /payouts/reject` (approver key, second test payout) → `202 {"status":"ok"}`, then `GET /payouts/{reference_no}` → `"status":"rejected"`. Confirms the two terminal `status` values are exactly `completed` (success) and `rejected` (failure); anything else (e.g. `queued`) maps to `'processing'`.
+
+`MidtransIrisGateway` was updated to match all of the above — no `// TODO: confirm field name` placeholders remain. Still true: this class has no automated test coverage (same boundary as `MidtransSnapGateway::createTransaction()`), and the flag should stay off in any real environment until real bank-account KYC is in place — these `curl` calls used Midtrans's shared sandbox, not a production account.
 
 - [ ] **Step 3: Run the full suite to check for regressions**
 
