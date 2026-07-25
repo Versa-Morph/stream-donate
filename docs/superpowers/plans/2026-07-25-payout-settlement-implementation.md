@@ -981,7 +981,11 @@ public function index(): View
         ['donations as owed_amount' => fn ($q) => $q->where('status', 'paid')->whereNull('payout_id')],
         'amount'
     )
-        ->having('owed_amount', '>', 0)
+        // whereHas (EXISTS), not having() on the withSum alias — SQLite rejects
+        // a HAVING clause without a GROUP BY, which withSum's correlated
+        // subquery column doesn't provide. Equivalent since amounts are always
+        // positive: "at least one matching donation exists" == "sum > 0".
+        ->whereHas('donations', fn ($q) => $q->where('status', 'paid')->whereNull('payout_id'))
         ->orderByDesc('owed_amount')
         ->get();
 

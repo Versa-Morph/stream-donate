@@ -10,9 +10,42 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
 class AdminPayoutController extends Controller
 {
+    public function index(): View
+    {
+        // SQL-level aggregation via withSum, not a per-streamer loop — matches the
+        // existing convention in StreamerStatsService/AdminController::dashboard
+        // (see CLAUDE.md: "all aggregation done in SQL, no in-memory get()").
+        $streamers = Streamer::withSum(
+            ['donations as owed_amount' => fn ($q) => $q->where('status', 'paid')->whereNull('payout_id')],
+            'amount'
+        )
+            // whereHas (EXISTS), not having() on the withSum alias — SQLite rejects
+            // a HAVING clause without a GROUP BY, which withSum's correlated
+            // subquery column doesn't provide. Equivalent since amounts are always
+            // positive: "at least one matching donation exists" == "sum > 0".
+            ->whereHas('donations', fn ($q) => $q->where('status', 'paid')->whereNull('payout_id'))
+            ->orderByDesc('owed_amount')
+            ->get();
+
+        $payouts = Payout::with('streamer')
+            ->orderByDesc('created_at')
+            ->limit(config('pagination.admin_payouts', 50))
+            ->get();
+
+        return view('admin.payouts', compact('streamers', 'payouts'));
+    }
+
+    public function show(Payout $payout): View
+    {
+        $payout->load('streamer', 'donations', 'createdBy');
+
+        return view('admin.payout-show', compact('payout'));
+    }
+
     public function create(Streamer $streamer): RedirectResponse
     {
         try {

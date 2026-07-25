@@ -202,6 +202,8 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::get('/logs', [AdminController::class, 'logs'])->name('logs');
 
     // Payouts
+    Route::get('/payouts', [AdminPayoutController::class, 'index'])->name('payouts.index');
+    Route::get('/payouts/{payout}', [AdminPayoutController::class, 'show'])->name('payouts.show');
     Route::post('/payouts/{streamer}', [AdminPayoutController::class, 'create'])
         ->middleware('throttle:admin-actions')
         ->name('payouts.create');

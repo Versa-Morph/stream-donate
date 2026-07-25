@@ -1512,6 +1512,9 @@
                     <a href="{{ route('admin.logs') }}" class="nav-link {{ request()->routeIs('admin.logs*') ? 'active' : '' }}">
                         <span class="iconify" data-icon="solar:document-text-bold-duotone"></span>Logs
                     </a>
+                    <a href="{{ route('admin.payouts.index') }}" class="nav-link {{ request()->routeIs('admin.payouts*') ? 'active' : '' }}">
+                        <span class="iconify" data-icon="solar:banknote-2-bold-duotone"></span>Payout
+                    </a>
                 @elseif(auth()->user()->isStreamer())
                     <a href="{{ route('streamer.dashboard') }}" class="nav-link {{ request()->routeIs('streamer.dashboard') ? 'active' : '' }}">
                         <span class="iconify" data-icon="solar:widget-bold-duotone"></span>Dashboard
