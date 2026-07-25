@@ -120,7 +120,7 @@ class ObsController extends Controller
 
         $streamerMessage = $widget['text'] ?? 'Terima kasih atas donasi Anda! Semangat terus streamnya!';
         
-        $donations = $streamer->donations()
+        $donations = $streamer->paidDonations()
             ->whereNotNull('message')
             ->where('message', '!=', '')
             ->orderBy('created_at', 'desc')

@@ -21,10 +21,10 @@ class AdminController extends Controller
     {
         $totalStreamers  = Streamer::count();
         $totalUsers      = User::count();
-        $totalDonations  = Donation::count();
-        $totalAmount     = Donation::sum('amount');
-        $todayAmount     = Donation::whereDate('created_at', today())->sum('amount');
-        $todayCount      = Donation::whereDate('created_at', today())->count();
+        $totalDonations  = Donation::paid()->count();
+        $totalAmount     = Donation::paid()->sum('amount');
+        $todayAmount     = Donation::paid()->whereDate('created_at', today())->sum('amount');
+        $todayCount      = Donation::paid()->whereDate('created_at', today())->count();
 
         $recentDonations = Donation::with('streamer')
             ->orderBy('created_at', 'desc')

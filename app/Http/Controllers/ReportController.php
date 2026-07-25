@@ -44,7 +44,7 @@ class ReportController extends Controller
         $dateFrom = $request->input('from', now()->startOfMonth()->toDateString());
         $dateTo   = $request->input('to',   now()->toDateString());
 
-        $baseQuery = $streamer->donations()
+        $baseQuery = $streamer->paidDonations()
             ->whereDate('created_at', '>=', $dateFrom)
             ->whereDate('created_at', '<=', $dateTo);
 
@@ -102,7 +102,7 @@ class ReportController extends Controller
             
             // Stream data in chunks to prevent memory issues
             $counter = 0;
-            $streamer->donations()
+            $streamer->paidDonations()
                 ->whereDate('created_at', '>=', $dateFrom)
                 ->whereDate('created_at', '<=', $dateTo)
                 ->orderBy('created_at', 'desc')
@@ -147,13 +147,13 @@ class ReportController extends Controller
         $maxPdfRecords = config('export.pdf_max_records', 1000);
 
         // Get total count first
-        $totalRecords = $streamer->donations()
+        $totalRecords = $streamer->paidDonations()
             ->whereDate('created_at', '>=', $dateFrom)
             ->whereDate('created_at', '<=', $dateTo)
             ->count();
 
         // Apply limit for PDF generation
-        $donations = $streamer->donations()
+        $donations = $streamer->paidDonations()
             ->whereDate('created_at', '>=', $dateFrom)
             ->whereDate('created_at', '<=', $dateTo)
             ->orderBy('created_at', 'desc')
@@ -161,7 +161,7 @@ class ReportController extends Controller
             ->get();
 
         // Use database aggregation for stats (include all records, not just limited)
-        $stats = $streamer->donations()
+        $stats = $streamer->paidDonations()
             ->whereDate('created_at', '>=', $dateFrom)
             ->whereDate('created_at', '<=', $dateTo)
             ->selectRaw(

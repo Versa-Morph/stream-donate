@@ -375,6 +375,7 @@ class StreamerDashboardController extends Controller
             : "DATE(CONVERT_TZ(created_at, 'UTC', 'Asia/Jakarta'))";
 
         $rows = \App\Models\Donation::where('streamer_id', $streamer->id)
+            ->where('status', 'paid')
             ->whereBetween('created_at', [$start, $end])
             ->selectRaw("{$datExpr} as day, SUM(amount) as total, COUNT(*) as cnt")
             ->groupBy('day')
