@@ -12,6 +12,5 @@ Manual, admin-executed payout tracking (owed-balance ledger, bank-info snapshot,
 
 ## 3. Admin dashboard — make it useful
 
-`AdminController::dashboard` currently ships: platform totals, today's stats, recent donations list, recent activity log, top-25 streamer leaderboard by lifetime donation sum, an unresolved-alert-failures count card + dedicated retry-able list page (shipped — `docs/superpowers/specs/2026-07-25-admin-alert-failures-design.md`), and a 7/30/90-day donations trend chart (shipped — `docs/superpowers/specs/2026-07-26-admin-trends-chart-design.md`). Missing / worth adding:
+`AdminController::dashboard` currently ships: platform totals, today's stats, recent donations list, recent activity log, top-25 streamer leaderboard by lifetime donation sum, an unresolved-alert-failures count card + dedicated retry-able list page (shipped — `docs/superpowers/specs/2026-07-25-admin-alert-failures-design.md`), a 7/30/90-day donations trend chart (shipped — `docs/superpowers/specs/2026-07-26-admin-trends-chart-design.md`), and a per-streamer drill-down page linked from the leaderboard (shipped — `docs/superpowers/specs/2026-07-26-admin-streamer-drilldown-design.md`). Missing / worth adding:
 - Filtering/search on the recent donations & activity log tables (currently fixed-limit lists, no date range or streamer filter)
-- Per-streamer drill-down (click a streamer in the leaderboard → their own stats page)
