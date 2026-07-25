@@ -100,6 +100,31 @@
         </div>
         @endif
 
+        <div class="table-card" style="margin-bottom:16px">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+                <h2 class="section-title">Tren Donasi</h2>
+                <div>
+                    <button type="button" class="btn-xs range-btn" data-days="7">7 Hari</button>
+                    <button type="button" class="btn-xs range-btn active" data-days="30">30 Hari</button>
+                    <button type="button" class="btn-xs range-btn" data-days="90">90 Hari</button>
+                </div>
+            </div>
+
+            <canvas id="trend-amount-chart" height="80"></canvas>
+            <a href="#" id="toggle-amount-table" style="font-size:11px">Lihat sebagai tabel</a>
+            <table id="amount-table" style="display:none; margin-top:8px">
+                <thead><tr><th>Tanggal</th><th>Jumlah</th></tr></thead>
+                <tbody></tbody>
+            </table>
+
+            <canvas id="trend-count-chart" height="80" style="margin-top:24px"></canvas>
+            <a href="#" id="toggle-count-table" style="font-size:11px">Lihat sebagai tabel</a>
+            <table id="count-table" style="display:none; margin-top:8px">
+                <thead><tr><th>Tanggal</th><th>Jumlah Donasi</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
         <!-- Stats -->
         <div class="stats-grid">
             <div class="stat-card c-brand">
@@ -302,4 +327,125 @@
         </div>
 
     </div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+@endpush
+
+@push('scripts')
+<script>
+(function () {
+    const brand = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim();
+    const orange = getComputedStyle(document.documentElement).getPropertyValue('--orange').trim();
+    const rupiah = (v) => 'Rp ' + new Intl.NumberFormat('id-ID').format(v);
+    const number = (v) => new Intl.NumberFormat('id-ID').format(v);
+
+    function hexToRgba(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function lineDataset(label, data, color) {
+        return {
+            label,
+            data,
+            borderColor: color,
+            backgroundColor: hexToRgba(color, 0.1),
+            borderWidth: 2,
+            pointRadius: 4,
+            pointBackgroundColor: color,
+            pointBorderColor: '#1a1a19',
+            pointBorderWidth: 2,
+            fill: true,
+            tension: 0.2,
+        };
+    }
+
+    function baseOptions(valueFormatter) {
+        return {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: (ctx) => valueFormatter(ctx.parsed.y) } },
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#2c2c2a' },
+                    ticks: { callback: (v) => valueFormatter(v) },
+                },
+            },
+        };
+    }
+
+    let initial = @json($trend);
+
+    const amountChart = new Chart(document.getElementById('trend-amount-chart'), {
+        type: 'line',
+        data: { labels: initial.labels, datasets: [lineDataset('Total Donasi', initial.amounts, brand)] },
+        options: baseOptions(rupiah),
+    });
+
+    const countChart = new Chart(document.getElementById('trend-count-chart'), {
+        type: 'line',
+        data: { labels: initial.labels, datasets: [lineDataset('Jumlah Donasi', initial.counts, orange)] },
+        options: baseOptions(number),
+    });
+
+    function renderTable(tableId, labels, values) {
+        const tbody = document.querySelector(`#${tableId} tbody`);
+        tbody.innerHTML = '';
+        labels.forEach((label, i) => {
+            const tr = document.createElement('tr');
+            const tdLabel = document.createElement('td');
+            tdLabel.textContent = label;
+            const tdValue = document.createElement('td');
+            tdValue.textContent = values[i];
+            tr.append(tdLabel, tdValue);
+            tbody.appendChild(tr);
+        });
+    }
+    renderTable('amount-table', initial.labels, initial.amounts);
+    renderTable('count-table', initial.labels, initial.counts);
+
+    document.getElementById('toggle-amount-table').addEventListener('click', function (e) {
+        e.preventDefault();
+        const t = document.getElementById('amount-table');
+        t.style.display = t.style.display === 'none' ? '' : 'none';
+    });
+    document.getElementById('toggle-count-table').addEventListener('click', function (e) {
+        e.preventDefault();
+        const t = document.getElementById('count-table');
+        t.style.display = t.style.display === 'none' ? '' : 'none';
+    });
+
+    document.querySelectorAll('.range-btn').forEach((btn) => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.range-btn').forEach((b) => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            [amountChart, countChart].forEach((c) => c.canvas.style.opacity = '0.5');
+
+            fetch(`{{ route('admin.dashboard.trends') }}?days=${btn.dataset.days}`)
+                .then((r) => r.json())
+                .then((data) => {
+                    amountChart.data.labels = data.labels;
+                    amountChart.data.datasets[0].data = data.amounts;
+                    amountChart.update();
+                    countChart.data.labels = data.labels;
+                    countChart.data.datasets[0].data = data.counts;
+                    countChart.update();
+                    renderTable('amount-table', data.labels, data.amounts);
+                    renderTable('count-table', data.labels, data.counts);
+                    [amountChart, countChart].forEach((c) => c.canvas.style.opacity = '1');
+                });
+        });
+    });
+})();
+</script>
+@endpush
 </x-app-layout>
