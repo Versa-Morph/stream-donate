@@ -93,6 +93,13 @@
             </div>
         </div>
 
+        @if($unresolvedAlertFailures > 0)
+        <div class="alert-error" style="margin-bottom:16px">
+            ⚠ {{ $unresolvedAlertFailures }} Alert Gagal —
+            <a href="{{ route('admin.alert-failures.index') }}" style="text-decoration:underline">Lihat →</a>
+        </div>
+        @endif
+
         <!-- Stats -->
         <div class="stats-grid">
             <div class="stat-card c-brand">

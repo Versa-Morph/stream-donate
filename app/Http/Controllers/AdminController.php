@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\Donation;
 use App\Models\Streamer;
 use App\Models\User;
+use App\Services\AlertFailureService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -45,9 +46,12 @@ class AdminController extends Controller
             ->limit(config('pagination.admin_streamer_stats', 25))
             ->get();
 
+        $unresolvedAlertFailures = app(AlertFailureService::class)->unresolvedCount();
+
         return view('admin.dashboard', compact(
             'totalStreamers', 'totalUsers', 'totalDonations', 'totalAmount',
-            'todayAmount', 'todayCount', 'recentDonations', 'recentLogs', 'streamerStats'
+            'todayAmount', 'todayCount', 'recentDonations', 'recentLogs', 'streamerStats',
+            'unresolvedAlertFailures'
         ));
     }
 

@@ -455,7 +455,9 @@ class DashboardAlertFailureCardTest extends TestCase
         $response = $this->actingAs($admin)->get('/admin/dashboard');
 
         $response->assertOk();
-        $response->assertSee('1 Alert Gagal');
+        // "Alert Gagal" alone also matches the nav link (present on every admin
+        // page regardless of this card) — the em dash is unique to the card copy.
+        $response->assertSee('1 Alert Gagal —', false);
     }
 
     public function test_card_is_absent_when_there_are_no_unresolved_failures(): void
@@ -465,7 +467,7 @@ class DashboardAlertFailureCardTest extends TestCase
         $response = $this->actingAs($admin)->get('/admin/dashboard');
 
         $response->assertOk();
-        $response->assertDontSee('Alert Gagal');
+        $response->assertDontSee('Alert Gagal —', false);
     }
 }
 ```
