@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminAlertFailureController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminPayoutController;
 use App\Http\Controllers\Admin\BannedWordController as AdminBannedWordController;
@@ -203,6 +204,12 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
 
     // Activity logs
     Route::get('/logs', [AdminController::class, 'logs'])->name('logs');
+
+    // Alert failures
+    Route::get('/alert-failures', [AdminAlertFailureController::class, 'index'])->name('alert-failures.index');
+    Route::post('/alert-failures/{donation}/retry', [AdminAlertFailureController::class, 'retry'])
+        ->middleware('throttle:admin-actions')
+        ->name('alert-failures.retry');
 
     // Payouts
     Route::get('/payouts', [AdminPayoutController::class, 'index'])->name('payouts.index');
