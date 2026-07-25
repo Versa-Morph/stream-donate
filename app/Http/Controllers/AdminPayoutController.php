@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\Donation;
 use App\Models\Payout;
 use App\Models\Streamer;
+use App\Services\Payout\PayoutGatewayInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,10 @@ use Illuminate\View\View;
 
 class AdminPayoutController extends Controller
 {
+    public function __construct(
+        private readonly PayoutGatewayInterface $payoutGateway
+    ) {}
+
     public function index(): View
     {
         // SQL-level aggregation via withSum, not a per-streamer loop — matches the
@@ -63,6 +68,16 @@ class AdminPayoutController extends Controller
                     throw new \InvalidArgumentException('Streamer belum melengkapi info rekening bank.');
                 }
 
+                $transientPayout = new Payout([
+                    'bank_name' => $streamer->bank_name,
+                    'bank_account_number' => $streamer->bank_account_number,
+                    'bank_account_holder' => $streamer->bank_account_holder,
+                ]);
+
+                if (!$this->payoutGateway->validateBankAccount($transientPayout)) {
+                    throw new \InvalidArgumentException('Info rekening bank streamer tidak valid (gagal validasi Midtrans).');
+                }
+
                 $feePercent = config('payout.platform_fee_percent', 10);
                 $fee = (int) round($gross * $feePercent / 100);
                 $net = $gross - $fee;
@@ -80,6 +95,16 @@ class AdminPayoutController extends Controller
                 ]);
 
                 $donations->each(fn ($d) => $d->update(['payout_id' => $payout->id]));
+
+                $disbursement = $this->payoutGateway->disburse($payout);
+
+                if ($disbursement->status === 'processing') {
+                    $payout->update(['status' => 'processing', 'reference' => $disbursement->reference]);
+                } elseif ($disbursement->status === 'failed') {
+                    $donations->each(fn ($d) => $d->update(['payout_id' => null]));
+                    $payout->update(['status' => 'failed']);
+                }
+                // status === 'pending' (manual gateway): no change, payout stays pending as created.
 
                 return $payout;
             });
@@ -100,7 +125,7 @@ class AdminPayoutController extends Controller
 
     public function markPaid(Payout $payout, Request $request): RedirectResponse
     {
-        if ($payout->status !== 'pending') {
+        if (!in_array($payout->status, ['pending', 'processing'], true)) {
             return back()->withErrors(['payout' => 'Payout ini sudah diproses sebelumnya.']);
         }
 
