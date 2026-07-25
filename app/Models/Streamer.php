@@ -125,6 +125,16 @@ class Streamer extends Model
     }
 
     /**
+     * Sama seperti donations(), tapi hanya donasi yang sudah dibayar.
+     * Gunakan ini (bukan donations()) untuk semua statistik publik/real-time —
+     * lihat docs/gotchas.md soal kenapa donasi pending tidak boleh terlihat.
+     */
+    public function paidDonations(): HasMany
+    {
+        return $this->donations()->where('status', 'paid');
+    }
+
+    /**
      * Get all alert queue items for this streamer.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany

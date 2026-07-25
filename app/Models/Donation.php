@@ -21,6 +21,10 @@ class Donation extends Model
         'yt_url',
         'media_path',
         'ip_address',
+        'status',
+        'payment_reference',
+        'payment_type',
+        'paid_at',
     ];
 
     /**
@@ -35,7 +39,13 @@ class Donation extends Model
     {
         return [
             'amount' => 'integer',
+            'paid_at' => 'datetime',
         ];
+    }
+
+    public function scopePaid($query)
+    {
+        return $query->where('status', 'paid');
     }
 
     public function streamer(): BelongsTo
