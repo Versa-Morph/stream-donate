@@ -62,6 +62,6 @@ Identical to today's admin flow: `InvalidArgumentException` (below minimum, miss
 
 ## Testing
 
-- `PayoutCreationServiceTest` — the extracted service's eligibility/fee/disbursement-branching logic, replacing (not duplicating) equivalent coverage currently implied by `PayoutCreationDisbursementTest`'s HTTP-level assertions.
-- `StreamerPayoutRequestTest` — streamer can request when eligible; rejected when below minimum; rejected when bank info missing; a streamer can never affect another streamer's payout (no route parameter to tamper with, but assert the resolved streamer is always the authenticated one).
-- Existing `PayoutCreationDisbursementTest` (admin flow) must still pass unchanged after the extraction — proves the refactor preserved behavior.
+- Existing `PayoutCreationDisbursementTest` (admin flow, HTTP-level) must still pass unchanged after the extraction — proves the refactor preserved behavior.
+- `StreamerPayoutRequestTest` — streamer can request when eligible; rejected when below minimum; rejected when bank info missing; a streamer can never affect another streamer's payout (no route parameter to tamper with, but assert the resolved streamer is always the authenticated one); the request button is disabled/enabled in the view based on eligibility.
+- No separate `PayoutCreationServiceTest`: between the admin-flow test and the streamer-flow test, every branch of `PayoutCreationService::createFor()` (flag off/on, disburse succeeds/fails, bank invalid, below minimum, missing bank info) is already exercised at the HTTP level through both callers. A dedicated unit test calling the service directly would duplicate that coverage rather than add to it — this codebase's existing convention is HTTP-level feature tests, not isolated service unit tests, so this follows suit.
