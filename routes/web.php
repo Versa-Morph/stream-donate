@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminPayoutController;
 use App\Http\Controllers\Admin\BannedWordController as AdminBannedWordController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\ObsCanvasController;
@@ -199,6 +200,11 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
 
     // Activity logs
     Route::get('/logs', [AdminController::class, 'logs'])->name('logs');
+
+    // Payouts
+    Route::post('/payouts/{streamer}', [AdminPayoutController::class, 'create'])
+        ->middleware('throttle:admin-actions')
+        ->name('payouts.create');
 
     // Impersonate — /stop harus SEBELUM /{user} agar tidak ditangkap sebagai model binding
     Route::post('/impersonate/{user}', [AdminController::class, 'impersonate'])
