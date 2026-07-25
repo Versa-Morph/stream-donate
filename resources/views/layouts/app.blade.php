@@ -1525,6 +1525,9 @@
                     <a href="{{ route('streamer.reports') }}" class="nav-link {{ request()->routeIs('streamer.reports*') ? 'active' : '' }}">
                         <span class="iconify" data-icon="solar:chart-bold-duotone"></span>Laporan
                     </a>
+                    <a href="{{ route('streamer.payouts') }}" class="nav-link {{ request()->routeIs('streamer.payouts*') ? 'active' : '' }}">
+                        <span class="iconify" data-icon="solar:banknote-2-bold-duotone"></span>Payout
+                    </a>
                     <a href="{{ route('streamer.obs-canvas') }}" class="nav-link {{ request()->routeIs('streamer.obs-canvas*') ? 'active' : '' }}">
                         <span class="iconify" data-icon="solar:monitor-bold-duotone"></span>OBS Canvas
                     </a>

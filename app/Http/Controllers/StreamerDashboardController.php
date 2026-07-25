@@ -169,6 +169,23 @@ class StreamerDashboardController extends Controller
     }
 
     /**
+     * Riwayat payout streamer sendiri
+     */
+    public function payouts(): View|RedirectResponse
+    {
+        $user = auth()->user();
+
+        if (!$user->streamer) {
+            return redirect()->route('streamer.setup');
+        }
+
+        $streamer = $user->streamer;
+        $payouts = $streamer->payouts()->orderByDesc('created_at')->get();
+
+        return view('streamer.payouts', compact('streamer', 'payouts'));
+    }
+
+    /**
      * Simpan perubahan settings
      */
     public function updateSettings(Request $request): RedirectResponse

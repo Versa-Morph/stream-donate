@@ -100,6 +100,9 @@ Route::middleware(['auth', 'verified', 'streamer'])->prefix('streamer')->name('s
         ->middleware('throttle:settings-update')
         ->name('settings.update');
 
+    // Payout history
+    Route::get('/payouts', [StreamerDashboardController::class, 'payouts'])->name('payouts');
+
     // Regenerate API key
     Route::post('/regenerate-key', [StreamerDashboardController::class, 'regenerateApiKey'])
         ->middleware('throttle:api-key-regen')
