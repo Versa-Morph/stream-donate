@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\CheckPayoutDisbursementStatusJob;
 use App\Jobs\CleanupExpiredPendingDonationsJob;
 use App\Jobs\CleanupExpiredQueueJob;
 use App\Jobs\CleanupOrphanedFilesJob;
@@ -19,3 +20,6 @@ Schedule::job(new CleanupOrphanedFilesJob)->dailyAt('03:00');
 
 // Cleanup stale pending donations (payment abandoned/expired) every 15 minutes
 Schedule::job(new CleanupExpiredPendingDonationsJob)->everyFifteenMinutes();
+
+// Poll Midtrans Iris for processing payout status every 15 minutes
+Schedule::job(new CheckPayoutDisbursementStatusJob)->everyFifteenMinutes();
