@@ -47,6 +47,12 @@ When touching this flow, preserve the "donation is never lost" guarantee — DB 
 
 `CleanupExpiredPendingDonationsJob` (scheduled every 15 min, `routes/console.php`) expires stale `pending` rows past Snap's configured expiry window and deletes their orphaned media file — it updates status rather than deleting the row, since a `Donation` is a durable record even unpaid.
 
+### Payout
+
+Manual, admin-executed for now — no gateway interface, since this path makes no external API call at all (see `docs/superpowers/specs/2026-07-25-payout-settlement-design.md`; automated Midtrans disbursement is tracked as a `BACKLOG.md` follow-up). A `paid` `Donation` counts toward its streamer's owed balance (`Streamer::unpaidOutDonations()`) until an admin creates a `Payout` for that streamer via `AdminPayoutController::create()`, which — inside a `DB::transaction()` + `lockForUpdate()` on the target donations, same concurrency pattern `ProcessDonationJob` uses for `AlertQueue.seq` — snapshots the gross/fee/net amounts and the streamer's bank info (`bank_name`/`bank_account_number`/`bank_account_holder`, self-reported on their Settings page) onto the `Payout` row, then assigns `payout_id` to every included donation so they're excluded from future owed-balance calculations.
+
+A `Payout` moves `pending → paid` (via `markPaid()`, requires a `reference` string) or `pending → voided` (via `void()`, releases its donations' `payout_id` back to `null` so they're picked up by the next payout) — **a `paid` payout is immutable**, never voidable, since the money has already left the platform and releasing its donations would let them be paid out a second time. Platform fee (`config('payout.platform_fee_percent', 10)`) and minimum payout threshold (`config('payout.minimum_amount', 50000)`) are snapshotted per-payout at creation time, not recomputed later — a config change only affects payouts created after the change.
+
 ### Auth / roles
 
 Single `User` model with a `role` column (`admin` | `streamer`), deliberately excluded from `$fillable`/mass-assignment (`$guarded = ['role', 'is_active', ...]`) to prevent privilege escalation — role must be set explicitly, never via user input. `EnsureAdmin`/`EnsureStreamer` middleware (aliased `admin`/`streamer` in `bootstrap/app.php`) gate route groups. A `User` may exist without a `Streamer` profile yet (fresh signup) — the `streamer.setup` route is intentionally reachable with only `auth,verified`, not the `streamer` middleware, to avoid a redirect loop for users completing onboarding.
