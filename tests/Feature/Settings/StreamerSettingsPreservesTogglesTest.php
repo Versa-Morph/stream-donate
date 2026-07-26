@@ -51,4 +51,37 @@ class StreamerSettingsPreservesTogglesTest extends TestCase
         $response->assertSessionHasNoErrors();
         $this->assertTrue($streamer->fresh()->media_upload_enabled);
     }
+
+    public function test_unchecking_accepting_donations_disables_it(): void
+    {
+        [$user, $streamer] = $this->streamerUser();
+
+        // Mirrors the real form: a hidden "0" input always precedes the
+        // checkbox, so unchecking it still submits "0" (not an absent key).
+        $response = $this->actingAs($user)->post('/streamer/settings', [
+            'display_name' => 'Updated Name',
+            'min_donation' => $streamer->min_donation,
+            'thank_you_message' => $streamer->thank_you_message,
+            'is_accepting_donation' => '0',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertFalse($streamer->fresh()->is_accepting_donation);
+    }
+
+    public function test_checking_accepting_donations_enables_it(): void
+    {
+        [$user, $streamer] = $this->streamerUser();
+        $streamer->update(['is_accepting_donation' => false]);
+
+        $response = $this->actingAs($user)->post('/streamer/settings', [
+            'display_name' => 'Updated Name',
+            'min_donation' => $streamer->min_donation,
+            'thank_you_message' => $streamer->thank_you_message,
+            'is_accepting_donation' => '1',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertTrue($streamer->fresh()->is_accepting_donation);
+    }
 }

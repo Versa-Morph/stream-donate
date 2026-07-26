@@ -417,6 +417,27 @@ input[type="file"].file-input-hidden{display:none}
 
                     <div class="form-row">
                         <div class="form-group">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer">
+                                <input type="hidden" name="is_accepting_donation" value="0">
+                                <input type="checkbox" name="is_accepting_donation" value="1" style="width:auto"
+                                       {{ old('is_accepting_donation', $streamer->is_accepting_donation) ? 'checked' : '' }}>
+                                Menerima Donasi
+                            </label>
+                            <p style="font-size:12px; color:var(--text-3); margin-top:4px">Nonaktifkan untuk menyembunyikan halaman donasi kamu sementara.</p>
+                        </div>
+                        <div class="form-group">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer">
+                                <input type="hidden" name="media_upload_enabled" value="0">
+                                <input type="checkbox" name="media_upload_enabled" value="1" style="width:auto"
+                                       {{ old('media_upload_enabled', $streamer->media_upload_enabled) ? 'checked' : '' }}>
+                                Izinkan Upload Media Donatur
+                            </label>
+                            <p style="font-size:12px; color:var(--text-3); margin-top:4px">Donatur dapat melampirkan audio/video pada donasi mereka.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
                             <label>Nama Bank</label>
                             <select name="bank_name">
                                 <option value="">Pilih Bank</option>
