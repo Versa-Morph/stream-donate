@@ -9,24 +9,6 @@
 
         /* ── Actions buttons ── */
         .actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-        .btn-xs {
-            padding: 4px 10px;
-            font-size: 11px;
-            font-weight: 600;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            border: 1px solid var(--border);
-            background: var(--surface-2);
-            color: var(--text-2);
-            transition: all .15s;
-        }
-        .btn-xs:hover { border-color: var(--border-2); color: var(--text); }
-        .btn-xs.danger { border-color: rgba(244,63,94,.3); color: var(--red); background: rgba(244,63,94,.06); }
-        .btn-xs.danger:hover { background: rgba(244,63,94,.12); }
-        .btn-xs.success { border-color: rgba(34,211,160,.3); color: var(--green); background: rgba(34,211,160,.06); }
-        .btn-xs.success:hover { background: rgba(34,211,160,.12); }
-        .btn-xs.warn { border-color: rgba(251,191,36,.3); color: var(--yellow); background: rgba(251,191,36,.06); }
-        .btn-xs.warn:hover { background: rgba(251,191,36,.12); }
 
         /* ── Modal ── */
         .modal-overlay {

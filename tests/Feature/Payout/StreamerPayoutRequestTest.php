@@ -77,4 +77,31 @@ class StreamerPayoutRequestTest extends TestCase
         $response->assertSessionHasErrors();
         $this->assertSame(0, Payout::count());
     }
+
+    public function test_request_button_disabled_when_ineligible(): void
+    {
+        [$user, $streamer] = $this->streamerUser(['bank_name' => null, 'bank_account_number' => null, 'bank_account_holder' => null]);
+        Donation::factory()->for($streamer)->create(['status' => 'paid', 'amount' => 100000]);
+
+        $response = $this->actingAs($user)->get('/streamer/payouts');
+
+        // Anchor on `disabled title="` — unique to this button's rendered
+        // output when blocked. A bare 'disabled' substring would always match
+        // (the shared layout's CSS has a ".btn-xs:disabled { ... }" rule in
+        // every page's <style> block), and matching on the exact whitespace
+        // around "btn-xs" is brittle (Blade's @if renders an extra leading
+        // space inside the block, so "class=\"btn-xs\"" is actually followed
+        // by two spaces before "disabled", not one).
+        $response->assertSee('disabled title="', false);
+    }
+
+    public function test_request_button_enabled_when_eligible(): void
+    {
+        [$user, $streamer] = $this->streamerUser();
+        Donation::factory()->for($streamer)->create(['status' => 'paid', 'amount' => 100000]);
+
+        $response = $this->actingAs($user)->get('/streamer/payouts');
+
+        $response->assertDontSee('disabled title="', false);
+    }
 }

@@ -852,6 +852,34 @@
         .badge-red    { background: rgba(244,63,94,.10);   color: var(--red);          border: 1px solid rgba(244,63,94,.25); }
         .badge-gray   { background: rgba(96,96,120,.15);   color: var(--text-3);       border: 1px solid rgba(96,96,120,.25); }
 
+        /* ── Small Action Buttons (table row actions: Detail, Hapus, Batalkan, etc.) ── */
+        .btn-xs {
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            color: var(--text-2);
+            transition: all .15s;
+        }
+        .btn-xs:hover { border-color: var(--border-2); color: var(--text); }
+        .btn-xs.danger { border-color: rgba(244,63,94,.3); color: var(--red); background: rgba(244,63,94,.06); }
+        .btn-xs.danger:hover { background: rgba(244,63,94,.12); }
+        .btn-xs.success { border-color: rgba(34,211,160,.3); color: var(--green); background: rgba(34,211,160,.06); }
+        .btn-xs.success:hover { background: rgba(34,211,160,.12); }
+        .btn-xs.warn { border-color: rgba(251,191,36,.3); color: var(--yellow); background: rgba(251,191,36,.06); }
+        .btn-xs.warn:hover { background: rgba(251,191,36,.12); }
+        .btn-xs:disabled {
+            cursor: not-allowed;
+            opacity: .45;
+            border-color: var(--border);
+            background: var(--surface-2);
+            color: var(--text-3);
+        }
+        .btn-xs:disabled:hover { border-color: var(--border); color: var(--text-3); }
+
         /* ── Pagination ── */
         .pagination {
             display: flex;
@@ -1119,6 +1147,32 @@
                 padding: 0;
                 border-width: 0;
             }
+        }
+
+        /* ── CONTENT ALERT BANNER (in-flow, persistent — for page-level state like
+           an unresolved-count warning, not a one-off session message like .flash) ── */
+        .alert-success,
+        .alert-error {
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .alert-success {
+            background: rgba(34, 211, 160, .08);
+            border: 1px solid rgba(34, 211, 160, .2);
+            color: var(--green);
+        }
+
+        .alert-error {
+            background: rgba(244, 63, 94, .08);
+            border: 1px solid rgba(244, 63, 94, .2);
+            color: var(--red);
         }
 
         /* ── IMPERSONATE BANNER ── */

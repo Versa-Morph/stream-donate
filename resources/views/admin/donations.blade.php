@@ -22,14 +22,6 @@
         }
         .empty-cell { text-align: center; color: var(--text-3); padding: 40px; font-size: 13px; }
 
-        .btn-xs {
-            padding: 4px 10px; font-size: 11px; font-weight: 600;
-            border-radius: var(--radius-sm); cursor: pointer;
-            border: 1px solid rgba(244,63,94,.3); background: rgba(244,63,94,.06);
-            color: var(--red); transition: all .15s;
-        }
-        .btn-xs:hover { background: rgba(244,63,94,.12); }
-
         /* ── TRUNCATED TEXT ── */
         .msg-cell {
             max-width: 200px; white-space: nowrap;
@@ -139,7 +131,7 @@
                                 onsubmit="return confirm('Hapus donasi dari {{ addslashes($d->name) }}?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn-xs">Hapus</button>
+                                <button type="submit" class="btn-xs danger">Hapus</button>
                             </form>
                         </td>
                     </tr>
