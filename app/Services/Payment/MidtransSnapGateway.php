@@ -25,9 +25,9 @@ class MidtransSnapGateway implements PaymentGatewayInterface
             'customer_details' => [
                 'first_name' => $donation->name,
             ],
-            'expiry' => [
+            'page_expiry' => [
+                'duration' => (int) config('midtrans.snap_expiry_minutes', 60),
                 'unit' => 'minutes',
-                'value' => (int) config('midtrans.snap_expiry_minutes', 60),
             ],
         ]);
 
