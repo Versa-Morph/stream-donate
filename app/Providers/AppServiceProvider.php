@@ -88,6 +88,12 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(10)->by($request->user()?->id ?? $request->ip());
         });
 
+        // Rate-limit streamer self-service payout requests
+        // Max 10 per minute per user
+        RateLimiter::for('payout-request', function (Request $request) {
+            return Limit::perMinute(10)->by($request->user()?->id ?? $request->ip());
+        });
+
         // Rate-limit admin user management actions
         // Max 20 actions per minute per admin
         RateLimiter::for('admin-actions', function (Request $request) {

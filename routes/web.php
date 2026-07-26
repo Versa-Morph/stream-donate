@@ -103,6 +103,9 @@ Route::middleware(['auth', 'verified', 'streamer'])->prefix('streamer')->name('s
 
     // Payout history
     Route::get('/payouts', [StreamerDashboardController::class, 'payouts'])->name('payouts');
+    Route::post('/payouts/request', [StreamerDashboardController::class, 'requestPayout'])
+        ->middleware('throttle:payout-request')
+        ->name('payouts.request');
 
     // Regenerate API key
     Route::post('/regenerate-key', [StreamerDashboardController::class, 'regenerateApiKey'])

@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\AlertQueue;
 use App\Models\Donation;
 use App\Models\Streamer;
+use App\Services\Payout\PayoutCreationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,10 @@ use Illuminate\View\View;
 
 class StreamerDashboardController extends Controller
 {
+    public function __construct(
+        private readonly PayoutCreationService $payoutCreationService
+    ) {}
+
     /**
      * Dashboard utama streamer
      */
@@ -184,6 +189,34 @@ class StreamerDashboardController extends Controller
         $payouts = $streamer->payouts()->orderByDesc('created_at')->get();
 
         return view('streamer.payouts', compact('streamer', 'payouts'));
+    }
+
+    /**
+     * Streamer meminta pencairan payout untuk saldo owed mereka sendiri.
+     */
+    public function requestPayout(): RedirectResponse
+    {
+        $user = auth()->user();
+
+        if (!$user->streamer) {
+            return redirect()->route('streamer.setup');
+        }
+
+        try {
+            $payout = $this->payoutCreationService->createFor($user->streamer, $user->id);
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['payout' => $e->getMessage()]);
+        }
+
+        ActivityLog::log(
+            action: 'payout.created',
+            description: "Payout Rp " . number_format($payout->net_amount, 0, ',', '.') . " diminta oleh {$user->streamer->display_name}",
+            userId: $user->id,
+            streamerId: $user->streamer->id,
+            payload: ['payout_id' => $payout->id],
+        );
+
+        return back()->with('success', 'Permintaan payout berhasil dibuat.');
     }
 
     /**
