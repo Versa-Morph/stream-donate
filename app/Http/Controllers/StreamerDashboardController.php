@@ -186,7 +186,10 @@ class StreamerDashboardController extends Controller
         }
 
         $streamer = $user->streamer;
-        $payouts = $streamer->payouts()->orderByDesc('created_at')->get();
+        $payouts = $streamer->payouts()
+            ->orderByDesc('created_at')
+            ->paginate(config('pagination.streamer_payouts', 20))
+            ->withQueryString();
 
         return view('streamer.payouts', compact('streamer', 'payouts'));
     }

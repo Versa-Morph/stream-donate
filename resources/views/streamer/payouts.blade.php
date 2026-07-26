@@ -2,6 +2,7 @@
 <div class="page-container">
     @php
         $ownedAmount = $streamer->unpaidOutDonations()->sum('amount');
+        $totalReceived = $streamer->payouts()->where('status', 'paid')->sum('net_amount');
         $hasBankInfo = (bool) $streamer->bank_account_number;
         $meetsMinimum = $ownedAmount >= config('payout.minimum_amount');
         $blockedReasons = [];
@@ -15,7 +16,7 @@
     <div class="page-header">
         <div class="page-header-left">
             <h1 class="page-title">Riwayat Payout</h1>
-            <p class="page-subtitle">{{ $payouts->count() }} payout tercatat · Saldo owed: Rp {{ number_format($ownedAmount, 0, ',', '.') }}</p>
+            <p class="page-subtitle">{{ $payouts->total() }} payout tercatat</p>
         </div>
         <form method="POST" action="{{ route('streamer.payouts.request') }}"
             onsubmit="return confirm('Ajukan payout Rp {{ number_format($ownedAmount, 0, ',', '.') }}?')">
@@ -23,6 +24,23 @@
             <button type="submit" class="btn-xs" @if($blockedReasons) disabled title="{{ implode(' · ', $blockedReasons) }}" @endif>Request Payout</button>
         </form>
     </div>
+
+    <div class="stats-grid">
+        <div class="stat-card" data-color="brand">
+            <div class="stat-label">Saldo Belum Dicairkan</div>
+            <div class="stat-value">Rp {{ number_format($ownedAmount, 0, ',', '.') }}</div>
+        </div>
+        <div class="stat-card" data-color="green">
+            <div class="stat-label">Total Sudah Diterima</div>
+            <div class="stat-value">Rp {{ number_format($totalReceived, 0, ',', '.') }}</div>
+        </div>
+    </div>
+
+    @if($blockedReasons)
+    <div class="alert-error" style="margin-bottom:16px">
+        Belum bisa request payout: {{ implode(' · ', $blockedReasons) }}
+    </div>
+    @endif
 
     <div class="table-card">
         <table>
@@ -60,5 +78,11 @@
             </tbody>
         </table>
     </div>
+
+    @if($payouts->hasPages())
+    <div class="pagination">
+        {{ $payouts->links() }}
+    </div>
+    @endif
 </div>
 </x-app-layout>

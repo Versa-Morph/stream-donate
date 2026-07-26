@@ -19,6 +19,61 @@
         /* ── Section styling ── */
         .section { margin-bottom: 32px; }
 
+        /* ── Trend chart ── */
+        .chart-wrap { position: relative; height: 280px; }
+
+        /* ── Payout owed banner: informational nudge, not an error ── */
+        .alert-warning {
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            background: rgba(251, 191, 36, .08);
+            border: 1px solid rgba(251, 191, 36, .2);
+            color: var(--yellow);
+        }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0,0,0,.75);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(124,108,252,.2);
+            border-radius: var(--radius-xl);
+            padding: 28px 32px;
+            width: 480px;
+            max-width: 92vw;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 60px rgba(0,0,0,.6), 0 0 30px rgba(124,108,252,.1);
+        }
+        .modal-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 18px; }
+        .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+        #trend-table { width: 100%; border-collapse: collapse; }
+        #trend-table th {
+            padding: 8px 10px; text-align: left; font-size: 11px; font-weight: 700;
+            letter-spacing: .5px; text-transform: uppercase; color: var(--text-3);
+            border-bottom: 1px solid var(--border);
+        }
+        #trend-table td {
+            padding: 9px 10px; font-size: 13px; color: var(--text-2);
+            border-top: 1px solid var(--border);
+        }
+
         /* ── Table specific ── */
         .td-mono { font-family: monospace; font-size: 12px; }
         .amount-cell {
@@ -100,29 +155,34 @@
         </div>
         @endif
 
-        <div class="table-card" style="margin-bottom:16px">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
-                <h2 class="section-title">Tren Donasi</h2>
-                <div>
-                    <button type="button" class="btn-xs range-btn" data-days="7">7 Hari</button>
-                    <button type="button" class="btn-xs range-btn active" data-days="30">30 Hari</button>
-                    <button type="button" class="btn-xs range-btn" data-days="90">90 Hari</button>
-                </div>
+        @if($totalOwed > 0 || $pendingPayoutCount > 0)
+        <div class="alert-warning">
+            💰 Rp {{ number_format($totalOwed, 0, ',', '.') }} saldo owed belum dicairkan
+            @if($pendingPayoutCount > 0)
+                · {{ $pendingPayoutCount }} payout pending
+            @endif
+            —
+            <a href="{{ route('admin.payouts.index') }}" style="text-decoration:underline">Lihat →</a>
+        </div>
+        @endif
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px">
+            <h2 class="section-title" style="margin:0">Tren Donasi</h2>
+            <div style="display:flex; align-items:center; gap:8px">
+                <button type="button" class="btn-xs range-btn" data-days="7">7 Hari</button>
+                <button type="button" class="btn-xs range-btn active" data-days="30">30 Hari</button>
+                <button type="button" class="btn-xs range-btn" data-days="90">90 Hari</button>
+                <button type="button" class="btn-xs" id="open-trend-table" style="display:inline-flex; align-items:center; gap:5px">
+                    <span class="iconify" data-icon="solar:list-bold-duotone"></span>
+                    Lihat Tabel
+                </button>
             </div>
+        </div>
 
-            <canvas id="trend-amount-chart" height="80"></canvas>
-            <a href="#" id="toggle-amount-table" style="font-size:11px">Lihat sebagai tabel</a>
-            <table id="amount-table" style="display:none; margin-top:8px">
-                <thead><tr><th>Tanggal</th><th>Jumlah</th></tr></thead>
-                <tbody></tbody>
-            </table>
-
-            <canvas id="trend-count-chart" height="80" style="margin-top:24px"></canvas>
-            <a href="#" id="toggle-count-table" style="font-size:11px">Lihat sebagai tabel</a>
-            <table id="count-table" style="display:none; margin-top:8px">
-                <thead><tr><th>Tanggal</th><th>Jumlah Donasi</th></tr></thead>
-                <tbody></tbody>
-            </table>
+        <div class="table-card" style="margin-bottom:16px">
+            <div class="chart-wrap">
+                <canvas id="trend-chart"></canvas>
+            </div>
         </div>
 
         <!-- Stats -->
@@ -330,6 +390,20 @@
 
     </div>
 
+    <!-- Modal Data Tren Donasi -->
+    <div class="modal-overlay" id="trend-table-modal">
+        <div class="modal">
+            <div class="modal-title">Data Tren Donasi</div>
+            <table id="trend-table">
+                <thead><tr><th>Tanggal</th><th>Jumlah Donasi</th><th>Total Nominal</th></tr></thead>
+                <tbody></tbody>
+            </table>
+            <div class="modal-footer">
+                <button type="button" class="btn-xs" onclick="closeTrendTableModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 @endpush
@@ -337,8 +411,12 @@
 @push('scripts')
 <script>
 (function () {
-    const brand = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim();
-    const orange = getComputedStyle(document.documentElement).getPropertyValue('--orange').trim();
+    const style = getComputedStyle(document.documentElement);
+    const brand = style.getPropertyValue('--brand').trim();
+    const orange = style.getPropertyValue('--orange').trim();
+    const bg = style.getPropertyValue('--bg').trim();
+    const text3 = style.getPropertyValue('--text-3').trim();
+    const border = style.getPropertyValue('--border-2').trim();
     const rupiah = (v) => 'Rp ' + new Intl.NumberFormat('id-ID').format(v);
     const number = (v) => new Intl.NumberFormat('id-ID').format(v);
 
@@ -349,101 +427,113 @@
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
-    function lineDataset(label, data, color) {
+    function lineDataset(label, data, color, yAxisID) {
         return {
             label,
             data,
+            yAxisID,
             borderColor: color,
             backgroundColor: hexToRgba(color, 0.1),
             borderWidth: 2,
-            pointRadius: 4,
+            pointRadius: 2,
+            pointHoverRadius: 5,
             pointBackgroundColor: color,
-            pointBorderColor: '#1a1a19',
+            pointBorderColor: bg,
             pointBorderWidth: 2,
             fill: true,
-            tension: 0.2,
-        };
-    }
-
-    function baseOptions(valueFormatter) {
-        return {
-            responsive: true,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: { display: false },
-                tooltip: { callbacks: { label: (ctx) => valueFormatter(ctx.parsed.y) } },
-            },
-            scales: {
-                x: { grid: { display: false } },
-                y: {
-                    beginAtZero: true,
-                    grid: { color: '#2c2c2a' },
-                    ticks: { callback: (v) => valueFormatter(v) },
-                },
-            },
+            tension: 0.3,
         };
     }
 
     let initial = @json($trend);
 
-    const amountChart = new Chart(document.getElementById('trend-amount-chart'), {
+    const trendChart = new Chart(document.getElementById('trend-chart'), {
         type: 'line',
-        data: { labels: initial.labels, datasets: [lineDataset('Total Donasi', initial.amounts, brand)] },
-        options: baseOptions(rupiah),
+        data: {
+            labels: initial.labels,
+            datasets: [
+                lineDataset('Total Donasi', initial.amounts, brand, 'yAmount'),
+                lineDataset('Jumlah Donasi', initial.counts, orange, 'yCount'),
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    align: 'end',
+                    labels: { color: text3, boxWidth: 10, usePointStyle: true, font: { size: 11 } },
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `${ctx.dataset.label}: ${ctx.dataset.yAxisID === 'yAmount' ? rupiah(ctx.parsed.y) : number(ctx.parsed.y)}`,
+                    },
+                },
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: text3 } },
+                yAmount: {
+                    position: 'left',
+                    beginAtZero: true,
+                    grid: { color: border },
+                    ticks: { color: text3, callback: (v) => rupiah(v) },
+                },
+                yCount: {
+                    position: 'right',
+                    beginAtZero: true,
+                    grid: { display: false },
+                    ticks: { color: text3, precision: 0 },
+                },
+            },
+        },
     });
 
-    const countChart = new Chart(document.getElementById('trend-count-chart'), {
-        type: 'line',
-        data: { labels: initial.labels, datasets: [lineDataset('Jumlah Donasi', initial.counts, orange)] },
-        options: baseOptions(number),
-    });
-
-    function renderTable(tableId, labels, values) {
-        const tbody = document.querySelector(`#${tableId} tbody`);
+    function renderTable(labels, counts, amounts) {
+        const tbody = document.querySelector('#trend-table tbody');
         tbody.innerHTML = '';
         labels.forEach((label, i) => {
             const tr = document.createElement('tr');
             const tdLabel = document.createElement('td');
             tdLabel.textContent = label;
-            const tdValue = document.createElement('td');
-            tdValue.textContent = values[i];
-            tr.append(tdLabel, tdValue);
+            const tdCount = document.createElement('td');
+            tdCount.textContent = number(counts[i]);
+            const tdAmount = document.createElement('td');
+            tdAmount.textContent = rupiah(amounts[i]);
+            tr.append(tdLabel, tdCount, tdAmount);
             tbody.appendChild(tr);
         });
     }
-    renderTable('amount-table', initial.labels, initial.amounts);
-    renderTable('count-table', initial.labels, initial.counts);
+    renderTable(initial.labels, initial.counts, initial.amounts);
 
-    document.getElementById('toggle-amount-table').addEventListener('click', function (e) {
-        e.preventDefault();
-        const t = document.getElementById('amount-table');
-        t.style.display = t.style.display === 'none' ? '' : 'none';
+    document.getElementById('open-trend-table').addEventListener('click', function () {
+        document.getElementById('trend-table-modal').classList.add('open');
     });
-    document.getElementById('toggle-count-table').addEventListener('click', function (e) {
-        e.preventDefault();
-        const t = document.getElementById('count-table');
-        t.style.display = t.style.display === 'none' ? '' : 'none';
+    document.getElementById('trend-table-modal').addEventListener('click', function (e) {
+        if (e.target === this) closeTrendTableModal();
     });
+    window.closeTrendTableModal = function () {
+        document.getElementById('trend-table-modal').classList.remove('open');
+    };
 
     document.querySelectorAll('.range-btn').forEach((btn) => {
         btn.addEventListener('click', function () {
             document.querySelectorAll('.range-btn').forEach((b) => b.classList.remove('active'));
             btn.classList.add('active');
 
-            [amountChart, countChart].forEach((c) => c.canvas.style.opacity = '0.5');
+            trendChart.canvas.style.opacity = '0.5';
 
             fetch(`{{ route('admin.dashboard.trends') }}?days=${btn.dataset.days}`)
                 .then((r) => r.json())
                 .then((data) => {
-                    amountChart.data.labels = data.labels;
-                    amountChart.data.datasets[0].data = data.amounts;
-                    amountChart.update();
-                    countChart.data.labels = data.labels;
-                    countChart.data.datasets[0].data = data.counts;
-                    countChart.update();
-                    renderTable('amount-table', data.labels, data.amounts);
-                    renderTable('count-table', data.labels, data.counts);
-                    [amountChart, countChart].forEach((c) => c.canvas.style.opacity = '1');
+                    trendChart.data.labels = data.labels;
+                    trendChart.data.datasets[0].data = data.amounts;
+                    trendChart.data.datasets[1].data = data.counts;
+                    trendChart.update();
+                    renderTable(data.labels, data.counts, data.amounts);
+                    trendChart.canvas.style.opacity = '1';
                 });
         });
     });

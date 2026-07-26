@@ -19,12 +19,12 @@ class AdminPayoutController extends Controller
         private readonly PayoutCreationService $payoutCreationService
     ) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
         // SQL-level aggregation via withSum, not a per-streamer loop — matches the
         // existing convention in StreamerStatsService/AdminController::dashboard
         // (see CLAUDE.md: "all aggregation done in SQL, no in-memory get()").
-        $streamers = Streamer::withSum(
+        $owedQuery = Streamer::withSum(
             ['donations as owed_amount' => fn ($q) => $q->where('status', 'paid')->whereNull('payout_id')],
             'amount'
         )
@@ -32,16 +32,53 @@ class AdminPayoutController extends Controller
             // a HAVING clause without a GROUP BY, which withSum's correlated
             // subquery column doesn't provide. Equivalent since amounts are always
             // positive: "at least one matching donation exists" == "sum > 0".
-            ->whereHas('donations', fn ($q) => $q->where('status', 'paid')->whereNull('payout_id'))
-            ->orderByDesc('owed_amount')
-            ->get();
+            ->whereHas('donations', fn ($q) => $q->where('status', 'paid')->whereNull('payout_id'));
 
-        $payouts = Payout::with('streamer')
-            ->orderByDesc('created_at')
-            ->limit(config('pagination.admin_payouts', 50))
-            ->get();
+        // Stats stay off the search box so the cards always reflect the true
+        // platform-wide owed balance, not whatever's currently searched.
+        $totalOwed = (clone $owedQuery)->get()->sum('owed_amount');
+        $eligibleStreamerCount = (clone $owedQuery)->count();
 
-        return view('admin.payouts', compact('streamers', 'payouts'));
+        if ($ownedSearch = $request->query('owed_search')) {
+            $owedQuery->where('display_name', 'like', "%{$ownedSearch}%");
+        }
+
+        $streamers = $owedQuery->orderByDesc('owed_amount')
+            ->paginate(config('pagination.admin_payout_owed', 20), ['*'], 'owed_page')
+            ->withQueryString();
+
+        $historyQuery = Payout::with('streamer')->orderByDesc('created_at');
+
+        if ($streamerId = $request->query('streamer_id')) {
+            $historyQuery->where('streamer_id', $streamerId);
+        }
+        if ($status = $request->query('status')) {
+            $historyQuery->where('status', $status);
+        }
+        if ($from = $request->query('from')) {
+            $historyQuery->whereDate('created_at', '>=', $from);
+        }
+        if ($to = $request->query('to')) {
+            $historyQuery->whereDate('created_at', '<=', $to);
+        }
+
+        $totalPaidOut = Payout::where('status', 'paid')->sum('net_amount');
+        $pendingPayoutCount = Payout::where('status', 'pending')->count();
+
+        $payouts = $historyQuery->paginate(config('pagination.admin_payout_history', 30), ['*'], 'payouts_page')
+            ->withQueryString();
+
+        $allStreamers = Streamer::orderBy('display_name')->get(['id', 'display_name']);
+
+        return view('admin.payouts', compact(
+            'streamers',
+            'payouts',
+            'allStreamers',
+            'totalOwed',
+            'eligibleStreamerCount',
+            'totalPaidOut',
+            'pendingPayoutCount',
+        ));
     }
 
     public function show(Payout $payout): View

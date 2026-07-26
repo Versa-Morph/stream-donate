@@ -18,8 +18,7 @@ class DashboardTrendChartTest extends TestCase
         $response = $this->actingAs($admin)->get('/admin/dashboard');
 
         $response->assertOk();
-        $response->assertSee('id="trend-amount-chart"', false);
-        $response->assertSee('id="trend-count-chart"', false);
+        $response->assertSee('id="trend-chart"', false);
         $response->assertSee('cdn.jsdelivr.net/npm/chart.js', false);
         $response->assertSee('30 Hari');
     }

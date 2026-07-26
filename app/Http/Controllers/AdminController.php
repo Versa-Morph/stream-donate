@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Donation;
+use App\Models\Payout;
 use App\Models\Streamer;
 use App\Models\User;
 use App\Services\AlertFailureService;
@@ -52,10 +53,18 @@ class AdminController extends Controller
         $unresolvedAlertFailures = app(AlertFailureService::class)->unresolvedCount();
         $trend = app(TrendsService::class)->donationTrend(30);
 
+        // Same shape as AdminPayoutController::index — total owed across all
+        // streamers, plain scalar sum, not paginated (this is just a banner nudge).
+        $totalOwed = Streamer::whereHas('donations', fn ($q) => $q->where('status', 'paid')->whereNull('payout_id'))
+            ->withSum(['donations as owed_amount' => fn ($q) => $q->where('status', 'paid')->whereNull('payout_id')], 'amount')
+            ->get()
+            ->sum('owed_amount');
+        $pendingPayoutCount = Payout::where('status', 'pending')->count();
+
         return view('admin.dashboard', compact(
             'totalStreamers', 'totalUsers', 'totalDonations', 'totalAmount',
             'todayAmount', 'todayCount', 'recentDonations', 'recentLogs', 'streamerStats',
-            'unresolvedAlertFailures', 'trend'
+            'unresolvedAlertFailures', 'trend', 'totalOwed', 'pendingPayoutCount'
         ));
     }
 
