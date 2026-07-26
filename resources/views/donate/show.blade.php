@@ -1383,24 +1383,6 @@
                 font-size:12px;
             }
             
-            /* Emoji Picker - Single Row */
-            .emoji-picker{
-                padding:10px;
-                gap:8px;
-            }
-            .emoji-grid{
-                grid-template-rows:repeat(1,1fr);
-                gap:6px;
-            }
-            .emoji-btn{
-                width:32px;
-                height:32px;
-                font-size:18px;
-            }
-            .emoji-nav{
-                display:none;
-            }
-            
             /* Media Tabs - Vertical Compact */
             .media-tabs{
                 flex-direction:row;
@@ -2295,6 +2277,7 @@ const SSE_URL = '/{{ $streamer->slug }}/sse?key={{ $streamer->api_key }}';
 const STORE_URL = '/{{ $streamer->slug }}/donate';
 const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
 const MIN_AMT = {{ $streamer->min_donation }};
+const DEFAULT_EMOJI = '🎉';
 
 // Amount presets
 function setPreset(btn, val) {
@@ -2566,7 +2549,7 @@ async function submitDonation() {
     const amount = parseInt(document.getElementById('donor-amount').value) || 0;
     const name = document.getElementById('donor-name').value.trim();
     const msg = document.getElementById('donor-msg').value.trim();
-    const emoji = document.getElementById('selected-emoji').value;
+    const emoji = DEFAULT_EMOJI;
     const fileInput = document.getElementById('media-upload');
 
     errBox.classList.remove('show');
@@ -2652,7 +2635,7 @@ function showErr(msg) {
 function showSuccess(msg) {
     document.getElementById('donate-form').style.display = 'none';
     const box = document.getElementById('success-box');
-    document.getElementById('ty-emoji').textContent = document.getElementById('selected-emoji').value;
+    document.getElementById('ty-emoji').textContent = DEFAULT_EMOJI;
     document.getElementById('ty-msg').textContent = msg || 'Terima kasih!';
     box.classList.add('show');
     let sec = 8;
