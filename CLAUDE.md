@@ -10,7 +10,7 @@ StreamDonate — Laravel 12 real-time donation platform for streamers. Public do
 
 ```bash
 composer run dev          # server + queue:listen + pail (logs) + vite, all concurrently
-php artisan serve         # server only
+php artisan serve --no-reload  # server only — see docs/gotchas.md re: SSE + single-threaded dev server
 npm run dev                # vite only (hot reload)
 npm run build               # build frontend assets
 
